@@ -59,7 +59,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     /**
      * Create the application instance.
      *
-     * @return Micro|Application
+     * @return \Phare\Foundation\Micro|Application
      */
     abstract protected function createApplication();
 
