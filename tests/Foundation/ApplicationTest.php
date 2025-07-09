@@ -36,8 +36,8 @@ class MockApplication extends \Phare\Foundation\AbstractApplication
 
 it('can be instantiated', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
-    expect($app)->toBeInstanceOf(Phare\Foundation\AbstractApplication::class);
-    expect($app)->toBeInstanceOf(Phare\Contracts\Foundation\Container::class);
+    expect($app)->toBeInstanceOf(\Phare\Foundation\AbstractApplication::class);
+    expect($app)->toBeInstanceOf(\Phare\Contracts\Foundation\Container::class);
 });
 
 it('has a version', function () {
@@ -91,7 +91,7 @@ it('registers configured providers', function () {
 
     // Assuming you have a ServiceProvider that binds a service named 'exampleService'
     $service = $app->make('log');
-    expect($service)->toBeInstanceOf(Phare\Log\LogManager::class);
+    expect($service)->toBeInstanceOf(\Phare\Log\LogManager::class);
     // Replace ExpectedServiceProviderClass with the actual class you expect
 });
 
@@ -113,7 +113,7 @@ it('bootstrap the application with given bootstrappers', function () {
 
     // Mock bootstrapper classes
     $bootstrappers = [
-        Phare\Foundation\Bootstrap\HandleExceptions::class,
+        \Phare\Foundation\Bootstrap\HandleExceptions::class,
     ];
 
     $app->bootstrapWith($bootstrappers);
@@ -130,7 +130,7 @@ it('determines if the application has been bootstrapped', function () {
     expect($app->hasBeenBootstrapped())->toBe(false);
 
     // Perform bootstrapping then check again
-    $app->bootstrapWith([Phare\Foundation\Bootstrap\HandleExceptions::class]);
+    $app->bootstrapWith([\Phare\Foundation\Bootstrap\HandleExceptions::class]);
     expect($app->hasBeenBootstrapped())->toBe(true);
 });
 
