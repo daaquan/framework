@@ -45,10 +45,10 @@
     },
     "autoload": {
         "files": [
-            "src/helpers.php"
+            "src/Phare/Support/helpers.php"
         ],
         "psr-4": {
-            "Phare\\": "src/"
+            "Phare\\": "src/Phare/"
         }
     },
     "autoload-dev": {
