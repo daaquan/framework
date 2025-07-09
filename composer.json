@@ -31,15 +31,17 @@
         "ext-phalcon": "^5.9.3",
         "symfony/dotenv": "^v7.4",
         "symfony/error-handler": "^7.4",
-        "pda/pheanstalk": "v5.0"
+        "pda/pheanstalk": "v5.0",
+        "psr/simple-cache": "^1.0"
     },
     "require-dev": {
         "phalcon/ide-stubs": "dev-master",
         "phpstan/phpstan": "2.1.x-dev",
         "laravel/pint": "dev-main",
         "mockery/mockery": "2.0.x-dev",
-        "pestphp/pest": "^3.8",
-        "pestphp/pest-plugin-faker": "^3.0"
+        "pestphp/pest": "^2.36",
+        "pestphp/pest-plugin": "^2.1",
+        "pestphp/pest-plugin-faker": "^2.0"
     },
     "autoload": {
         "files": [
