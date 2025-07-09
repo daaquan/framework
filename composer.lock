@@ -195,12 +195,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dotenv.git",
-                "reference": "ebba9fe62f10f9831fb05b52142a7e785001fc0d"
+                "reference": "32f9fa5f4ae0047b3157cf2d88eecd410d99b780"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dotenv/zipball/ebba9fe62f10f9831fb05b52142a7e785001fc0d",
-                "reference": "ebba9fe62f10f9831fb05b52142a7e785001fc0d",
+                "url": "https://api.github.com/repos/symfony/dotenv/zipball/32f9fa5f4ae0047b3157cf2d88eecd410d99b780",
+                "reference": "32f9fa5f4ae0047b3157cf2d88eecd410d99b780",
                 "shasum": ""
             },
             "require": {
@@ -261,7 +261,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-06-09T15:40:54+00:00"
+            "time": "2025-07-08T09:31:55+00:00"
         },
         {
             "name": "symfony/error-handler",
@@ -269,17 +269,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/error-handler.git",
-                "reference": "e69aa41f6970a53eb96cd154e64c9d70ceb60c91"
+                "reference": "37cb740158920b74e9dd699938a436cb71aedb57"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/error-handler/zipball/e69aa41f6970a53eb96cd154e64c9d70ceb60c91",
-                "reference": "e69aa41f6970a53eb96cd154e64c9d70ceb60c91",
+                "url": "https://api.github.com/repos/symfony/error-handler/zipball/37cb740158920b74e9dd699938a436cb71aedb57",
+                "reference": "37cb740158920b74e9dd699938a436cb71aedb57",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.2",
                 "psr/log": "^1|^2|^3",
+                "symfony/polyfill-php85": "^1.32",
                 "symfony/var-dumper": "^6.4|^7.0|^8.0"
             },
             "conflict": {
@@ -338,7 +339,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-07-07T08:24:36+00:00"
+            "time": "2025-07-08T17:39:48+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -420,6 +421,82 @@
                 }
             ],
             "time": "2024-12-23T08:48:59+00:00"
+        },
+        {
+            "name": "symfony/polyfill-php85",
+            "version": "v1.32.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-php85.git",
+                "reference": "6fedf31ce4e3648f4ff5ca58bfd53127d38f05fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-php85/zipball/6fedf31ce4e3648f4ff5ca58bfd53127d38f05fd",
+                "reference": "6fedf31ce4e3648f4ff5ca58bfd53127d38f05fd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php85\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 8.5+ features to lower PHP versions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php85/tree/v1.32.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2025-05-02T08:40:52+00:00"
         },
         {
             "name": "symfony/var-dumper",
@@ -2159,12 +2236,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "f3fe666f96693fe3d783fba9c8b64bc7cf6d6956"
+                "reference": "6a7d793187876a049536e23a50c31bcd0fcdc32c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/f3fe666f96693fe3d783fba9c8b64bc7cf6d6956",
-                "reference": "f3fe666f96693fe3d783fba9c8b64bc7cf6d6956",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6a7d793187876a049536e23a50c31bcd0fcdc32c",
+                "reference": "6a7d793187876a049536e23a50c31bcd0fcdc32c",
                 "shasum": ""
             },
             "require": {
@@ -2210,7 +2287,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-06T17:52:58+00:00"
+            "time": "2025-07-08T14:25:42+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -4540,10 +4617,10 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "phalcon/ide-stubs": 20,
-        "phpstan/phpstan": 20,
         "laravel/pint": 20,
-        "mockery/mockery": 20
+        "mockery/mockery": 20,
+        "phalcon/ide-stubs": 20,
+        "phpstan/phpstan": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
@@ -4562,6 +4639,6 @@
         "ext-zlib": "*",
         "ext-phalcon": "^5.9.3"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

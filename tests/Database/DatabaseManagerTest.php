@@ -42,7 +42,7 @@ test('transaction rolls back on exception', function () {
 })->throws(Exception::class);
 
 test('setupDatabases registers singleton for db DB', function () {
-    // Application::singleton をモックして呼び出し確認する場合は、Spy に切り替える
+    // Switch to a spy if you need to verify the Application::singleton call
     $this->appMock->shouldReceive('singleton')->once()->withArgs(function ($name, $closure) {
         return $name === 'db' && is_callable($closure);
     });
@@ -56,7 +56,7 @@ test('getConnection throws exception when no type but read/write separation conf
 test('finalizeTransactions commits all transactions', function () {
     $this->dbManager->startTransactions(['db']);
     $this->dbManager->finalizeTransactions();
-    // トランザクションマネージャのモックが必要な場合はさらに追加
+    // Add mocks for the transaction manager if needed
 });
 
 test('undoTransactions rolls back all transactions', function () {
@@ -67,7 +67,7 @@ test('undoTransactions rolls back all transactions', function () {
 test('clearTransactions clears state', function () {
     $this->dbManager->startTransactions(['db']);
     $this->dbManager->clearTransactions();
-    // privateプロパティ確認にはリフレクション必要（必要に応じて）
+    // Use reflection to inspect private properties if required
 });
 
 test('attachModelToTransaction works correctly', function () {
