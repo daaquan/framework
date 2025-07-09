@@ -4,9 +4,9 @@ namespace Phare\Providers;
 
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\ServiceProviderInterface;
+use Phare\Foundation\AbstractApplication as Application;
 use Pheanstalk\Pheanstalk;
 use Pheanstalk\Values\TubeName;
-use Phare\Foundation\AbstractApplication as Application;
 
 class QueueServiceProvider implements ServiceProviderInterface
 {
