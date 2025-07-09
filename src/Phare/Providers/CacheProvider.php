@@ -5,8 +5,8 @@ namespace Phare\Providers;
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\ServiceProviderInterface;
 use Phare\Cache\CacheManager;
-use Phare\Foundation\Cache as CacheRepository;
 use Phare\Foundation\AbstractApplication as Application;
+use Phare\Foundation\Cache as CacheRepository;
 
 class CacheProvider implements ServiceProviderInterface
 {
