@@ -36,6 +36,6 @@ class BinderTest extends TestCase
         $app->mount($collection);
         $response = $app->handle('/index/1?foo=bar');
 
-        dd($response);
+        $this->assertIsArray($response);
     }
 }
