@@ -4,7 +4,7 @@ use Phalcon\Mvc\Model\Resultset;
 use Tests\Mock\Models\User;
 
 beforeEach(function () {
-    /** @var Phare\Database\MySql\DatabaseManager $dbManager */
+    /** @var \Phare\Database\MySql\DatabaseManager $dbManager */
     $dbManager = Phalcon\Di\Di::getDefault()->getShared('dbManager');
 
     // Migration
