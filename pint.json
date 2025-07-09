@@ -1,0 +1,29 @@
+{
+  "preset": "laravel",
+  "rules": {
+    "simplified_null_return": true,
+    "braces": true,
+    "new_with_braces": {
+      "anonymous_class": true,
+      "named_class": true
+    },
+    "not_operator_with_successor_space": false,
+    "concat_space": {
+      "spacing": "one"
+    },
+    "cast_spaces": {
+      "space": "none"
+    },
+    "phpdoc_align": {
+      "align": "left"
+    }
+  },
+  "exclude": [
+    "bootstrap/cache",
+    "docker",
+    "resources",
+    "storage",
+    "node_modules",
+    "vendor"
+  ]
+}

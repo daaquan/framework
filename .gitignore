@@ -1,30 +1,31 @@
-/vendor/
-node_modules/
+# Please do not use this ignore file to define platform specific files.
+#
+# For these purposes create a global .gitignore file, which is a list of rules
+# for ignoring files in every Git repository on your computer.
+#
+# https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
+
+/node_modules
+/vendor
 npm-debug.log
 yarn-error.log
 
-# Laravel 4 specific
-bootstrap/compiled.php
-app/storage/
+/tests/Mock/bootstrap/cache/*
+/tests/Mock/storage/framework/cache/*
+/tests/Mock/storage/framework/sessions/*
+/tests/Mock/storage/framework/testing/*
+/tests/Mock/storage/framework/views/*
+/tests/Mock/storage/logs/*
+/tests/Mock/database/*.sqlite
 
-# Laravel 5 & Lumen specific
-public/storage
-public/hot
-
-# Laravel 5 & Lumen specific with changed public path
-public_html/storage
-public_html/hot
-
-storage/*.key
 .env
-Homestead.yaml
-Homestead.json
-/.vagrant
+storage/*.key
 .phpunit.result.cache
 
-/public/build
-/storage/pail
+/.idea
+/.fleet
+/.vscode
+
 .env.backup
 .env.production
-.phpactor.json
 auth.json
