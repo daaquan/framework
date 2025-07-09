@@ -1,0 +1,66 @@
+<?php
+
+namespace Phare\Support\Facades;
+
+/**
+ * @method static array all()
+ * @method static mixed get($name, $filters = null, $defaultValue = null, $notAllowEmpty = false, $noRecursive = false)
+ * @method static array getAcceptableContent()
+ * @method static array|null getBasicAuth()
+ * @method static string getBestAccept()
+ * @method static string getBestCharset()
+ * @method static string getBestLanguage()
+ * @method static bool|string getClientAddress($trustForwardedHeader = false)
+ * @method static array getClientCharsets()
+ * @method static null|string getContentType()
+ * @method static array getDigestAuth()
+ * @method static string getHeader($header)
+ * @method static array getHeaders()
+ * @method static string getHttpHost()
+ * @method static string getHTTPReferer()
+ * @method static array|bool|\stdClass getJsonRawBody($associative = false)
+ * @method static array getLanguages()
+ * @method static string getMethod()
+ * @method static int getPort()
+ * @method static string getURI($onlyPath = false)
+ * @method static mixed getPost($name, $filters = null, $defaultValue = null, $notAllowEmpty = false, $noRecursive = false)
+ * @method static mixed getPut($name, $filters = null, $defaultValue = null, $notAllowEmpty = false, $noRecursive = false)
+ * @method static mixed getQuery($name, $filters = null, $defaultValue = null, $notAllowEmpty = false, $noRecursive = false)
+ * @method static string getRawBody()
+ * @method static string getScheme()
+ * @method static null|string getServer($name)
+ * @method static string getServerAddress()
+ * @method static string getServerName()
+ * @method static array|\Phalcon\Http\Request\FileInterface[] getUploadedFiles($onlySuccessful = false, $namedKeys = false)
+ * @method static string getUserAgent()
+ * @method static bool has($name)
+ * @method static bool hasFiles()
+ * @method static bool hasHeader($header)
+ * @method static bool hasQuery($name)
+ * @method static bool hasPost($name)
+ * @method static bool hasPut($name)
+ * @method static bool hasServer($name)
+ * @method static string input($name = null, $defaultValue = null)
+ * @method static bool isAjax()
+ * @method static bool isConnect()
+ * @method static bool isDelete()
+ * @method static bool isGet()
+ * @method static bool isHead()
+ * @method static bool isMethod($methods, $strict = false)
+ * @method static bool isOptions()
+ * @method static bool isPost()
+ * @method static bool isPurge()
+ * @method static bool isPut()
+ * @method static bool isSecure()
+ * @method static bool isSoap()
+ * @method static bool isTrace()
+ * @method static int numFiles($onlySuccessful = false)
+ * @method static only($keys)
+ */
+class Request extends Facade
+{
+    protected static function getFacadeAccessor()
+    {
+        return 'request';
+    }
+}
