@@ -1,0 +1,74 @@
+{
+    "name": "phare/framework",
+    "description": "A PHP framework built with Phalcon.",
+    "type": "library",
+    "keywords": [
+        "phalcon",
+        "framework"
+    ],
+    "homepage": "https://github.com/phareframework/framework",
+    "support": {
+        "issues": "https://github.com/phareframework/framework/issues",
+        "source": "https://github.com/phareframework/framework"
+    },
+    "repositories": [
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.4",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-intl": "*",
+        "ext-pdo": "*",
+        "ext-gmp": "*",
+        "ext-bcmath": "*",
+        "ext-redis": "*",
+        "ext-zip": "*",
+        "ext-zlib": "*",
+        "ext-phalcon": "^5.9.3",
+        "symfony/dotenv": "^v7.4",
+        "symfony/error-handler": "^7.4",
+        "pda/pheanstalk": "v5.0"
+    },
+    "require-dev": {
+        "phalcon/ide-stubs": "dev-master",
+        "phpstan/phpstan": "2.1.x-dev",
+        "laravel/pint": "dev-main",
+        "mockery/mockery": "2.0.x-dev",
+        "pestphp/pest": "^3.8",
+        "pestphp/pest-plugin-faker": "^3.0"
+    },
+    "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
+        "psr-4": {
+            "Phare\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "prefer-stable": true,
+            "pestphp/pest-plugin": true
+        }
+    },
+    "suggest": {
+        "ext-redis": "Required to use Redis cache",
+        "ext-msgpack:": "Required to use msgpack serializer",
+        "ext-yaml:": "Required to use yaml serializer",
+        "ext-sqids": "Required to use id generator. Install it from php-ext/sqids-ext.",
+        "ext-chronos": "Required to use chronos DateTime library. Install it from php-ext/chronos-ext.",
+        "pda/pheanstalk": "Required to use Beanstalkd queue",
+        "aws/aws-sdk-php": "Required to use the AWS integration"
+    }
+}
