@@ -16,6 +16,20 @@ Phare is a lightweight PHP framework built on top of the [Phalcon](https://phalc
 composer require phare/framework
 ```
 
+## Docker
+
+The repository provides a simple Docker setup. After installing
+[Docker](https://www.docker.com/) run the following command to build and
+start a container:
+
+```
+docker compose run --build app
+```
+
+This will compile the necessary PHP extensions, including the Phalcon
+extension, and drop you into a container where you can run the framework
+or its test suite.
+
 ## License
 
 This project is open-sourced under the MIT license.
