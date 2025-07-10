@@ -16,6 +16,18 @@ Phare は [Phalcon](https://phalcon.io/) 拡張を基盤とした軽量な PHP �
 composer require phare/framework
 ```
 
+## Docker 環境
+
+本リポジトリには簡単な Docker 設定が付属しています。Docker をインストール後、
+以下のコマンドでコンテナをビルドして実行できます。
+
+```
+docker compose run --build app
+```
+
+Phalcon 拡張など必要な PHP 拡張がビルドされ、フレームワークやテストを
+コンテナ内で実行できます。
+
 ## ライセンス
 
 このプロジェクトは MIT ライセンスの下で公開されています。
