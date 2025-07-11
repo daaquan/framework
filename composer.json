@@ -28,7 +28,7 @@
         "ext-redis": "*",
         "ext-zip": "*",
         "ext-zlib": "*",
-        "ext-phalcon": "^5.9.3",
+        "ext-phalcon": "^5.9.2",
         "symfony/dotenv": "^v7.4",
         "symfony/error-handler": "^7.4",
         "pda/pheanstalk": "v5.0",
