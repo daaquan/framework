@@ -25,7 +25,6 @@
         "ext-pdo": "*",
         "ext-gmp": "*",
         "ext-bcmath": "*",
-        "ext-redis": "*",
         "ext-zip": "*",
         "ext-zlib": "*",
         "ext-phalcon": "^5.9.2",
