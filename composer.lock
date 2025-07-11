@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "990e296daed67a7c67f29828027911e6",
+    "content-hash": "5061844cd4aabcb5cebf1036ee882c54",
     "packages": [
         {
             "name": "pda/pheanstalk",
@@ -1037,12 +1037,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/pint.git",
-                "reference": "4f607c8f1190c6fcd652d0afb3ea57f7c54a93d1"
+                "reference": "4efb0b292253c0d10d4ff6798459a8f744a27434"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/pint/zipball/4f607c8f1190c6fcd652d0afb3ea57f7c54a93d1",
-                "reference": "4f607c8f1190c6fcd652d0afb3ea57f7c54a93d1",
+                "url": "https://api.github.com/repos/laravel/pint/zipball/4efb0b292253c0d10d4ff6798459a8f744a27434",
+                "reference": "4efb0b292253c0d10d4ff6798459a8f744a27434",
                 "shasum": ""
             },
             "require": {
@@ -1053,7 +1053,7 @@
                 "php": "^8.2.0"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.80.0",
+                "friendsofphp/php-cs-fixer": "^3.82.2",
                 "illuminate/view": "^11.45.1",
                 "larastan/larastan": "^3.5.0",
                 "laravel-zero/framework": "^11.45.0",
@@ -1099,7 +1099,7 @@
                 "issues": "https://github.com/laravel/pint/issues",
                 "source": "https://github.com/laravel/pint"
             },
-            "time": "2025-07-07T14:02:41+00:00"
+            "time": "2025-07-10T18:12:47+00:00"
         },
         {
             "name": "mockery/mockery",
@@ -2211,12 +2211,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "6a7d793187876a049536e23a50c31bcd0fcdc32c"
+                "reference": "5d8c209fe7aa9af0045913b399ae4bf778004be1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6a7d793187876a049536e23a50c31bcd0fcdc32c",
-                "reference": "6a7d793187876a049536e23a50c31bcd0fcdc32c",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/5d8c209fe7aa9af0045913b399ae4bf778004be1",
+                "reference": "5d8c209fe7aa9af0045913b399ae4bf778004be1",
                 "shasum": ""
             },
             "require": {
@@ -2262,7 +2262,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-08T14:25:42+00:00"
+            "time": "2025-07-10T21:59:30+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -4461,7 +4461,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.4",
+        "php": "^8.3",
         "ext-curl": "*",
         "ext-json": "*",
         "ext-mbstring": "*",
@@ -4473,7 +4473,7 @@
         "ext-redis": "*",
         "ext-zip": "*",
         "ext-zlib": "*",
-        "ext-phalcon": "^5.9.3"
+        "ext-phalcon": "^5.9.2"
     },
     "platform-dev": {},
     "plugin-api-version": "2.6.0"
