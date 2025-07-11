@@ -22,9 +22,6 @@ class LoadEnvironmentVariables
      */
     public function bootstrap(Application $app): void
     {
-        (new Dotenv())->usePutenv()
-            ->load($app->basePath() . '/.env');
-        return;
         try {
             (new Dotenv())->usePutenv()
                 ->load($app->basePath() . '/.env');
