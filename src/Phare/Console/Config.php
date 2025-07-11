@@ -54,7 +54,7 @@ class Config extends Injectable
     }
 
     /** Set the configuration */
-    public function setConfig(array|string|PhalconConfig|null $userConfig = null, bool $merge = true): static
+    public function setConfig($userConfig = null, bool $merge = true): static
     {
         $this->config = Di::getDefault()->get('config');
 
