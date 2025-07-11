@@ -111,7 +111,7 @@ class Config extends Injectable
     }
 
     /** Array access (get) */
-    public function get(string|array $key): mixed
+    public function get($key)
     {
         if (is_array($key)) {
             return $this->getNested($key);
@@ -121,7 +121,7 @@ class Config extends Injectable
     }
 
     /** Array access (set) */
-    public function set(string|array $keys, mixed $value): mixed
+    public function set($keys, $value)
     {
         $temp = &$this->config;
         $keys = $this->makeArray($keys);
@@ -144,7 +144,7 @@ class Config extends Injectable
     }
 
     /** Array access (unset) */
-    public function remove(string|array $keys): void
+    public function remove($keys): void
     {
         $temp = &$this->config;
         $keys = $this->makeArray($keys);
