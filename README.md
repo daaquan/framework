@@ -30,6 +30,14 @@ This will compile the necessary PHP extensions, including the Phalcon
 extension, and drop you into a container where you can run the framework
 or its test suite.
 
+## Testing
+
+Run the test suite using the helper script to hide PHP deprecation warnings:
+
+```
+bin/pest
+```
+
 ## License
 
 This project is open-sourced under the MIT license.
