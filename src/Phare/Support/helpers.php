@@ -2,7 +2,7 @@
 
 // config()
 if (!function_exists('config')) {
-    function config(array|string|null $key = null, mixed $default = null): mixed
+    function config($key = null, $default = null)
     {
         $config = app('config');
         if (!$config) {
@@ -60,7 +60,7 @@ if (!function_exists('app')) {
 // response()
 if (!function_exists('response')) {
     function response(
-        array|string|null $content = null,
+        $content = null,
         \Phare\Foundation\Http\ResponseStatusCode $statusCode = \Phare\Foundation\Http\ResponseStatusCode::OK
     ): \Phare\Contracts\Http\Response {
         $response = app('response');

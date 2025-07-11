@@ -2,9 +2,9 @@
 
 namespace Phare\Foundation\Bootstrap;
 
+use Phalcon\Config\Config;
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\ServiceProviderInterface;
-use Phare\Config\Repository;
 use Phare\Foundation\AbstractApplication as Application;
 
 /**
@@ -19,7 +19,7 @@ class LoadConfiguration implements ServiceProviderInterface
      */
     public function register(Application|DiInterface $app): void
     {
-        $app->singleton('config', Repository::class);
+        $app->singleton('config', Config::class);
 
         $this->compiledFilePath = $app->getCachedConfigPath();
 
@@ -39,7 +39,7 @@ class LoadConfiguration implements ServiceProviderInterface
     /**
      * Determine whether the cache is outdated.
      *
-     * @param Application|DiInterface $app
+     * @param  Application|DiInterface  $app
      */
     private function isConfigOutdated(Application $app): bool
     {
