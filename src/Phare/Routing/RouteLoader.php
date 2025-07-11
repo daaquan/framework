@@ -8,7 +8,7 @@ abstract class RouteLoader
 {
     protected string $path;
 
-    protected string|array|null $route = null;
+    protected $route;
 
     protected static ?RouteLoader $instance = null;
 
