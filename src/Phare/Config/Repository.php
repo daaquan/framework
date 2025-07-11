@@ -10,11 +10,4 @@ use Phalcon\Config\Config;
  */
 class Repository extends Config
 {
-    /**
-     * Retrieve an item from the configuration using "dot" notation.
-     */
-    public function get(string $key, mixed $default = null): mixed
-    {
-        return $this->path($key, $default);
-    }
 }
