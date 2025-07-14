@@ -2,7 +2,7 @@
 
 namespace Phare\Console;
 
-use Phalcon\Config as PhalconConfig;
+use Phalcon\Config\Config as PhalconConfig;
 use Phalcon\Di\Di;
 use Phalcon\Di\Injectable;
 use Phare\Console\Exceptions\InvalidConfig;
