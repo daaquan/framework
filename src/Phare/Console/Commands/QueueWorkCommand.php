@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class QueueWorkCommand extends Command
 {
-    private const int DEFAULT_RETRY_LIMIT = 3;
+    private const DEFAULT_RETRY_LIMIT = 3;
 
     protected function configure(): void
     {
