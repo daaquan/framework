@@ -23,7 +23,7 @@ class HandleExceptions
 
         // Configure error reporting level
         // Phalcon uses some calls deprecated in PHP 8.2 and above, so exclude E_DEPRECATED
-        error_reporting($debugEnabled ? E_ALL & E_DEPRECATED & E_STRICT : -1);
+        error_reporting($debugEnabled ? E_ALL & E_DEPRECATED : -1);
 
         // Configure error display
         ini_set('display_errors', $debugEnabled ? 'On' : 'Off');
