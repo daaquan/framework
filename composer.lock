@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5061844cd4aabcb5cebf1036ee882c54",
+    "content-hash": "ceefe362414abbef08f7df2371589344",
     "packages": [
         {
             "name": "pda/pheanstalk",
@@ -4461,7 +4461,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.3",
+        "php": "^8.2",
         "ext-curl": "*",
         "ext-json": "*",
         "ext-mbstring": "*",
