@@ -50,8 +50,10 @@ abstract class Creator
      */
     protected function outputNothingCreated(array $bools): void
     {
-        if (array_any($bools, fn ($bool) => $bool)) {
-            return;
+        foreach ($bools as $bool) {
+            if ($bool) {
+                return;
+            }
         }
 
         $this->output->writeComment(
