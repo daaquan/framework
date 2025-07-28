@@ -1,5 +1,19 @@
 <?php
 
+// Polyfills for PHP 8.4 functions
+if (!function_exists('array_any')) {
+    function array_any(array $array, callable $callback): bool
+    {
+        foreach ($array as $key => $value) {
+            if ($callback($value, $key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 // config()
 if (!function_exists('config')) {
     function config($key = null, $default = null)
@@ -271,49 +285,49 @@ if (!function_exists('session')) {
 
 // Path helpers
 if (!function_exists('base_path')) {
-    function base_path($path = "")
+    function base_path($path = '')
     {
-        return app()->basePath("" . $path);
+        return app()->basePath('' . $path);
     }
 }
 if (!function_exists('storage_path')) {
-    function storage_path($path = "")
+    function storage_path($path = '')
     {
-        return app()->basePath("storage/" . $path);
+        return app()->basePath('storage/' . $path);
     }
 }
 if (!function_exists('database_path')) {
-    function database_path($path = "")
+    function database_path($path = '')
     {
-        return app()->basePath("database/" . $path);
+        return app()->basePath('database/' . $path);
     }
 }
 if (!function_exists('public_path')) {
-    function public_path($path = "")
+    function public_path($path = '')
     {
-        return app()->basePath("public/" . $path);
+        return app()->basePath('public/' . $path);
     }
 }
 if (!function_exists('resource_path')) {
-    function resource_path($path = "")
+    function resource_path($path = '')
     {
-        return app()->basePath("resource/" . $path);
+        return app()->basePath('resource/' . $path);
     }
 }
 if (!function_exists('lang_path')) {
-    function lang_path($path = "")
+    function lang_path($path = '')
     {
-        return app()->basePath("lang/" . $path);
+        return app()->basePath('lang/' . $path);
     }
 }
 if (!function_exists('config_path')) {
-    function config_path($path = "")
+    function config_path($path = '')
     {
         return app()->configPath($path);
     }
 }
 if (!function_exists('bootstrap_path')) {
-    function bootstrap_path($path = "")
+    function bootstrap_path($path = '')
     {
         return app()->bootstrapPath($path);
     }
