@@ -112,7 +112,13 @@ class ControllerRouteLoader extends RouteLoader
 
     private function isUnderPaths(string $filePath, array $paths): bool
     {
-        return array_any($paths, fn ($path) => str_starts_with($filePath, $path));
+        foreach ($paths as $path) {
+            if (str_starts_with($filePath, $path)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function buildClassName($file, string $baseDir, string $namespace): ?string
