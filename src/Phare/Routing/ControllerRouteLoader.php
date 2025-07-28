@@ -140,7 +140,7 @@ class ControllerRouteLoader extends RouteLoader
     private function buildRoutePattern($file, string $baseDir, string $pattern): string
     {
         $relativePath = trim(substr($file->getPath(), strlen($baseDir)), '/');
-        $prefix = Str::kebabCase($relativePath);
+        $prefix = strtolower(Str::kebabCase($relativePath));
 
         return trim($prefix . '/' . $pattern, '/');
     }
