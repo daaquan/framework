@@ -10,7 +10,7 @@ Run `./vendor/bin/pint` to format PHP code.
 
 ## Dependencies
 
-If dependencies are missing, run `composer install --ignore-platform-req=ext-gmp --ignore-platform-req=ext-phalcon --ignore-platform-req=ext-redis`.
+If dependencies are missing, run `composer install`.
 
 ## PR Message
 
