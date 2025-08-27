@@ -120,13 +120,14 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         return $this->getHeaders();
     }
 
-    public function bearerToken()
+    public function bearerToken(): ?string
     {
         $authHeader = $this->getHeader('Authorization');
-        if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+        if ($authHeader && preg_match('/Bearer\s+(\S+)/', $authHeader, $matches)) {
             return $matches[1];
         }
 
+        return null;
     }
 
     public function url()
@@ -134,8 +135,77 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         return $this->getURI();
     }
 
-    public function fullUrl()
+    public function fullUrl(): string
     {
         return $this->getURI(true);
+    }
+
+    public function has(string|array $key): bool
+    {
+        if (is_array($key)) {
+            foreach ($key as $k) {
+                if (!$this->has($k)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return isset($this->data[$key]);
+    }
+
+    public function filled(string|array $key): bool
+    {
+        if (is_array($key)) {
+            foreach ($key as $k) {
+                if (!$this->filled($k)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return $this->has($key) && !empty($this->data[$key]);
+    }
+
+    public function missing(string $key): bool
+    {
+        return !$this->has($key);
+    }
+
+    public function except(array $keys): array
+    {
+        return array_diff_key($this->data, array_flip($keys));
+    }
+
+    public function query(?string $key = null, mixed $default = null): mixed
+    {
+        if ($key === null) {
+            return $this->getQuery();
+        }
+
+        return $this->getQuery($key, null, $default);
+    }
+
+    public function isJson(): bool
+    {
+        return str_contains($this->header('Content-Type', ''), '/json');
+    }
+
+    public function wantsJson(): bool
+    {
+        return $this->isJson() || str_contains($this->header('Accept', ''), '/json');
+    }
+
+    public function isMethod(string $method): bool
+    {
+        return strtoupper($this->getMethod()) === strtoupper($method);
+    }
+
+    public function route(?string $param = null): mixed
+    {
+        // This would need to be implemented based on your routing system
+        // For now, return null as placeholder
+        return null;
     }
 }
