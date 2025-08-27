@@ -16,6 +16,11 @@ uses(Tests\TestCase::class)
         $this->setUpApplication();
     })->in('Database', 'Eloquent');
 
+uses()
+    ->beforeEach(function () {
+        // Set up for unit tests that don't need the full application
+    })->in('Http', 'Collections');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
