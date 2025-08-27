@@ -43,6 +43,13 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     protected ?\Closure $notFoundHandler = null;
 
     /**
+     * The application's registered callbacks.
+     *
+     * @var array<string, array>
+     */
+    protected array $appCallbacks = [];
+
+    /**
      * Create a new AbstractApplication instance.
      *
      * @param string $basePath The full path to the application directory.
@@ -246,11 +253,15 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function bootstrapWith(array $bootstrappers)
     {
-        $this->hasBeenBootstrapped = true;
+        $this->fireAppCallbacks('booting');
 
         foreach ($bootstrappers as $bootstrapper) {
             $this->make($bootstrapper)->register($this);
         }
+
+        $this->hasBeenBootstrapped = true;
+        
+        $this->fireAppCallbacks('booted');
     }
 
     /**
@@ -389,5 +400,46 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     public function version(): string
     {
         return static::VERSION;
+    }
+
+    /**
+     * Register a callback to be called before the application is booted.
+     */
+    public function booting(\Closure $callback): void
+    {
+        $this->appCallbacks['booting'][] = $callback;
+    }
+
+    /**
+     * Register a callback to be called after the application is booted.
+     */
+    public function booted(\Closure $callback): void
+    {
+        $this->appCallbacks['booted'][] = $callback;
+    }
+
+    /**
+     * Fire the registered callbacks for the given event.
+     */
+    protected function fireAppCallbacks(string $event): void
+    {
+        if (isset($this->appCallbacks[$event])) {
+            foreach ($this->appCallbacks[$event] as $callback) {
+                $callback($this);
+            }
+        }
+
+        // Fire event if event dispatcher is available
+        if ($this->bound('events')) {
+            $eventClass = match($event) {
+                'booting' => \Phare\Foundation\Events\ApplicationBooting::class,
+                'booted' => \Phare\Foundation\Events\ApplicationBooted::class,
+                default => null,
+            };
+
+            if ($eventClass) {
+                $this['events']->dispatch(new $eventClass($this));
+            }
+        }
     }
 }
