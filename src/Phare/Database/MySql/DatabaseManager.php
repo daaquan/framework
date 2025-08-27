@@ -105,7 +105,13 @@ class DatabaseManager
 
     protected function isWriteOperation(): bool
     {
-        // @todo Implement logic to determine whether the current operation is a write
-        return true; // Default to write operations
+        // Check if we're in a transaction (writes typically need to go to the write server)
+        if ($this->inTransaction()) {
+            return true;
+        }
+
+        // Default to read operations unless explicitly told otherwise
+        // This can be overridden by specific implementations or middleware
+        return false;
     }
 }

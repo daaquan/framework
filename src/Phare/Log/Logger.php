@@ -61,9 +61,10 @@ class Logger implements \Psr\Log\LoggerInterface, LoggerInterface
 
     public function channel(string $name)
     {
-        // @todo: Implement
-        // return config("logging.channels.$name");
-        return $this->logger;
+        // For now, return the same logger instance
+        // In a full implementation, this would return a new logger instance
+        // configured for the specified channel
+        return $this;
     }
 
     public function info($message, array $context = []): void
