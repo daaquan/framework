@@ -7,6 +7,7 @@ use Phare\Foundation\Http\Validation\ValidationException;
 
 class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request, \Phare\Contracts\Http\Validation\Validator
 {
+    use FileHelpers;
     public static array $validators = [
         'required' => \Phalcon\Filter\Validation\Validator\PresenceOf::class,
         'numeric' => \Phalcon\Filter\Validation\Validator\Numericality::class,

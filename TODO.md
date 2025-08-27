@@ -27,12 +27,12 @@ This document lists the missing features that need to be implemented to make Pha
 
 - [x] Create file system abstraction
 - [ ] Add cloud storage integration (S3, GCS)
-- [ ] Implement file upload handling
+- [x] Implement file upload handling
 
 ## HTTP Features
 
-- [ ] Add rate limiting functionality
-- [ ] Create API resources for JSON transformation
+- [x] Add rate limiting functionality
+- [x] Create API resources for JSON transformation
 - [x] Implement pagination system
 - [ ] Add file downloads/streaming support
 
@@ -56,7 +56,7 @@ This document lists the missing features that need to be implemented to make Pha
 
 ## CLI & Commands
 
-- [ ] Create make commands (controller, model, middleware)
+- [x] Create make commands (controller, model, middleware)
 - [x] Add database commands (migrate, seed)
 - [ ] Create clear commands (cache, config)
 
