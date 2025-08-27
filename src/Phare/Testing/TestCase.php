@@ -16,6 +16,12 @@ abstract class TestCase extends BaseTestCase
 
     abstract public function createApplication(): Application;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpApplication();
+    }
+
     public function setUpApplication(): void
     {
         if (!defined('APP_RUNNING_UNIT_TEST')) {

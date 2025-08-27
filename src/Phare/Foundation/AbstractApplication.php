@@ -206,7 +206,10 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     public function registerConfiguredAliases()
     {
         $config = $this['config'];
-        foreach ($config->path('app.aliases', []) as $alias => $facadeClass) {
+        $appAliases = $config->path('app.aliases', []);
+        $appAliases = is_array($appAliases) ? $appAliases : $appAliases->toArray();
+        
+        foreach ($appAliases as $alias => $facadeClass) {
             if (class_exists($alias)) {
                 continue;
             }
@@ -227,7 +230,9 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         /** @var Config $config */
         $config = $this['config'];
 
-        $appProviders = $config->path('app.providers', [])?->toArray() ?? [];
+        $appProviders = $config->path('app.providers', []);
+        $appProviders = is_array($appProviders) ? $appProviders : $appProviders->toArray();
+        
         foreach ($appProviders as $providerClass) {
             (new $providerClass())->register($this);
         }
