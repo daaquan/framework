@@ -2,6 +2,7 @@
     "name": "phare/framework",
     "description": "A PHP framework built with Phalcon.",
     "type": "library",
+    "license": "MIT",
     "keywords": [
         "phalcon",
         "framework"
