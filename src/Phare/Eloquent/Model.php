@@ -120,56 +120,83 @@ class Model extends PhModel implements \ArrayAccess
     }
 
     /**
-     * @param string $attribute
-     * @param mixed $value
-     * @return mixed
-     *
-     * @todo: Implement
+     * Cast an attribute to a native PHP type.
      */
-    protected function cast($attribute, $value)
+    protected function cast(string $attribute, mixed $value): mixed
     {
-        if (!isset($this->casts[$attribute])) {
+        if (!isset($this->casts[$attribute]) || $value === null) {
             return $value;
         }
 
         return match ($this->casts[$attribute]) {
-            'int', 'integer' => (int)$value,
-            'real', 'float', 'double' => (float)$value,
-            'string' => (string)$value,
-            'bool', 'boolean' => (bool)$value,
-            'object' => unserialize($value, ['allowed_classes' => true]),
-            'array', 'json' => (array)$value,
-            'collection' => new Collection($value),
-            'date', 'datetime', 'timestamp' => new \DateTime($value),
+            'int', 'integer' => (int) $value,
+            'real', 'float', 'double' => (float) $value,
+            'decimal' => number_format((float) $value, 2, '.', ''),
+            'string' => (string) $value,
+            'bool', 'boolean' => (bool) $value,
+            'object' => is_string($value) ? unserialize($value, ['allowed_classes' => true]) : $value,
+            'array' => is_string($value) ? json_decode($value, true) : (array) $value,
+            'json' => is_string($value) ? json_decode($value, true) : $value,
+            'collection' => new Collection(is_string($value) ? json_decode($value, true) : $value),
+            'date' => $this->asDate($value),
+            'datetime', 'timestamp' => $this->asDateTime($value),
             default => $value,
         };
     }
 
     /**
-     * @param string $attribute
-     * @param mixed $value
-     * @return bool|float|int|string
-     *
-     * @todo: Implement
+     * Cast an attribute to its database representation.
      */
-    protected function decast($attribute, $value)
+    protected function decast(string $attribute, mixed $value): mixed
     {
-        if (!isset($this->casts[$attribute])) {
+        if (!isset($this->casts[$attribute]) || $value === null) {
             return $value;
         }
 
         return match ($this->casts[$attribute]) {
-            'int', 'integer' => (int)$value,
-            'real', 'float', 'double' => (float)$value,
-            'string' => (string)$value,
-            'bool', 'boolean' => (bool)$value, // tinyint(1)
-            'object' => is_object($value) ? serialize($value) : $value, // serializable \Closure
+            'int', 'integer' => (int) $value,
+            'real', 'float', 'double', 'decimal' => (float) $value,
+            'string' => (string) $value,
+            'bool', 'boolean' => (bool) $value,
+            'object' => is_object($value) ? serialize($value) : $value,
             'array', 'json' => is_array($value) ? json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $value,
-            'collection' => $value instanceof Collection ? serialize($value) : $value,
-            'date', => $value instanceof \DateTime ? $value->format('Y-m-d') : $value,
+            'collection' => $value instanceof Collection ? json_encode($value->toArray(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $value,
+            'date' => $value instanceof \DateTime ? $value->format('Y-m-d') : $value,
             'datetime', 'timestamp' => $value instanceof \DateTime ? $value->format('Y-m-d H:i:s') : $value,
             default => $value,
         };
+    }
+
+    /**
+     * Return a date as a DateTime object.
+     */
+    protected function asDate(mixed $value): ?\DateTime
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if ($value instanceof \DateTime) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return new \DateTime('@' . $value);
+        }
+
+        if (is_string($value)) {
+            return new \DateTime($value);
+        }
+
+        return null;
+    }
+
+    /**
+     * Return a datetime as a DateTime object.
+     */
+    protected function asDateTime(mixed $value): ?\DateTime
+    {
+        return $this->asDate($value);
     }
 
     public function fill(array $data): static
@@ -257,10 +284,7 @@ class Model extends PhModel implements \ArrayAccess
 
     public function __get(string $property)
     {
-        if (in_array($property, $this->fillable, true)) {
-            return $this->cast($property, parent::__get($property));
-        }
-
+        // Check if it's an appended attribute first
         if (in_array($property, $this->appends, true)) {
             $method = 'get' . Str::studly($property) . 'Attribute';
             if (!method_exists($this, $method)) {
@@ -270,12 +294,20 @@ class Model extends PhModel implements \ArrayAccess
             return $this->$method();
         }
 
-        return parent::__get($property);
+        $value = parent::__get($property);
+
+        // Apply casting if attribute is in casts array
+        if (isset($this->casts[$property])) {
+            return $this->cast($property, $value);
+        }
+
+        return $value;
     }
 
     public function __set(string $property, $value)
     {
-        if (in_array($property, $this->fillable, true)) {
+        // Apply decasting if attribute is in casts array
+        if (isset($this->casts[$property])) {
             $value = $this->decast($property, $value);
         }
 
@@ -286,10 +318,27 @@ class Model extends PhModel implements \ArrayAccess
     {
         $data = parent::toArray($columns, $useGetter);
 
+        // Apply casting to all attributes
+        foreach ($data as $key => $value) {
+            if (isset($this->casts[$key])) {
+                $data[$key] = $this->cast($key, $value);
+            }
+        }
+
+        // Add appended attributes
+        foreach ($this->appends as $append) {
+            $method = 'get' . Str::studly($append) . 'Attribute';
+            if (method_exists($this, $method)) {
+                $data[$append] = $this->$method();
+            }
+        }
+
+        // Remove password attributes
         foreach ($this->passwordAttributes as $passwordAttribute) {
             unset($data[$passwordAttribute]);
         }
 
+        // Remove hidden attributes
         foreach ($this->hidden as $hidden) {
             unset($data[$hidden]);
         }
