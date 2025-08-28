@@ -5,6 +5,7 @@ namespace Phare\Mail;
 class Mailer
 {
     protected array $config;
+
     protected array $sentMails = [];
 
     public function __construct(array $config = [])
@@ -18,8 +19,8 @@ class Mailer
             'password' => '',
             'from' => [
                 'address' => 'noreply@example.com',
-                'name' => 'Phare Application'
-            ]
+                'name' => 'Phare Application',
+            ],
         ], $config);
     }
 
@@ -27,7 +28,7 @@ class Mailer
     {
         try {
             $mailable->build();
-            
+
             // Store mail for testing/logging purposes
             $this->sentMails[] = [
                 'to' => $mailable->getTo(),
@@ -39,7 +40,7 @@ class Mailer
                 'textBody' => $mailable->hasText() ? $mailable->getTextBody() : null,
                 'attachments' => $mailable->getAttachments(),
                 'headers' => $mailable->getHeaders(),
-                'sent_at' => date('Y-m-d H:i:s')
+                'sent_at' => date('Y-m-d H:i:s'),
             ];
 
             return true;
@@ -54,6 +55,7 @@ class Mailer
         $callback($message);
 
         $mailable = new RawMailable($text, $message);
+
         return $this->send($mailable);
     }
 
@@ -63,6 +65,7 @@ class Mailer
         $callback($message);
 
         $mailable = new HtmlMailable($html, $message);
+
         return $this->send($mailable);
     }
 

@@ -7,7 +7,9 @@ use Phare\Contracts\Foundation\Application;
 class Csrf
 {
     protected Application $app;
+
     protected string $sessionKey = '_csrf_token';
+
     protected int $tokenLength = 40;
 
     public function __construct(Application $app)
@@ -22,6 +24,7 @@ class Csrf
     {
         $token = bin2hex(random_bytes($this->tokenLength / 2));
         $this->storeToken($token);
+
         return $token;
     }
 
@@ -69,6 +72,7 @@ class Csrf
     protected function getSessionToken(): ?string
     {
         $session = $this->app->make('session');
+
         return $session->get($this->sessionKey);
     }
 
@@ -96,7 +100,7 @@ class Csrf
     {
         $token = $this->getToken();
         $name = $this->getTokenName();
-        
+
         return '<input type="hidden" name="' . $name . '" value="' . $token . '">';
     }
 
@@ -106,7 +110,7 @@ class Csrf
     public function metaTag(): string
     {
         $token = $this->getToken();
-        
+
         return '<meta name="csrf-token" content="' . $token . '">';
     }
 }

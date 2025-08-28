@@ -7,6 +7,7 @@ use Phare\Console\Command;
 class MakeMigrationCommand extends Command
 {
     protected string $signature = 'make:migration {name : The migration name} {--create= : Create a new table} {--table= : Modify an existing table}';
+
     protected string $description = 'Create a new migration file';
 
     public function handle(): int
@@ -14,25 +15,26 @@ class MakeMigrationCommand extends Command
         $name = $this->argument('name');
         $table = $this->option('table');
         $create = $this->option('create');
-        
+
         $migrationName = $this->getMigrationName($name);
         $fileName = $this->getMigrationFileName($name);
         $path = $this->getApplication()->databasePath('migrations') . '/' . $fileName;
-        
+
         if (file_exists($path)) {
             $this->error("Migration {$fileName} already exists!");
+
             return 1;
         }
-        
+
         $this->ensureMigrationDirectory();
-        
+
         $stub = $this->getStub($create, $table);
         $content = $this->populateStub($stub, $migrationName, $create ?: $table);
-        
+
         file_put_contents($path, $content);
-        
+
         $this->info("Migration {$fileName} created successfully.");
-        
+
         return 0;
     }
 
@@ -44,28 +46,29 @@ class MakeMigrationCommand extends Command
     protected function getMigrationFileName(string $name): string
     {
         $timestamp = date('Y_m_d_His');
+
         return "{$timestamp}_{$name}.php";
     }
 
     protected function ensureMigrationDirectory(): void
     {
         $dir = $this->getApplication()->databasePath('migrations');
-        
+
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
     }
 
-    protected function getStub(string $create = null, string $table = null): string
+    protected function getStub(?string $create = null, ?string $table = null): string
     {
         if ($create) {
             return $this->getCreateStub();
         }
-        
+
         if ($table) {
             return $this->getUpdateStub();
         }
-        
+
         return $this->getBlankStub();
     }
 
@@ -145,7 +148,7 @@ return new class extends Migration
 STUB;
     }
 
-    protected function populateStub(string $stub, string $className, string $table = null): string
+    protected function populateStub(string $stub, string $className, ?string $table = null): string
     {
         $replacements = [
             '{{class}}' => $className,

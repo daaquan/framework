@@ -1,9 +1,9 @@
 <?php
 
-use Phare\Cache\CacheManager;
-use Phalcon\Cache\Adapter\Stream;
-use Phalcon\Cache\Adapter\Redis;
 use InvalidArgumentException;
+use Phalcon\Cache\Adapter\Redis;
+use Phalcon\Cache\Adapter\Stream;
+use Phare\Cache\CacheManager;
 use Tests\TestCase;
 
 uses(TestCase::class)->beforeEach(function () {

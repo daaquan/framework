@@ -5,8 +5,11 @@ namespace Phare\Notifications;
 abstract class Notification
 {
     protected string $id;
+
     protected array $data = [];
+
     protected ?\DateTimeInterface $readAt = null;
+
     protected \DateTimeInterface $createdAt;
 
     public function __construct()
@@ -79,6 +82,7 @@ abstract class Notification
     public function with(array $data): static
     {
         $this->data = array_merge($this->data, $data);
+
         return $this;
     }
 
@@ -96,6 +100,7 @@ abstract class Notification
     public function setId(string $id): static
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -153,6 +158,7 @@ abstract class Notification
     public function setReadAt(?\DateTimeInterface $readAt): static
     {
         $this->readAt = $readAt;
+
         return $this;
     }
 }

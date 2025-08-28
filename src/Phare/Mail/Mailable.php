@@ -5,16 +5,27 @@ namespace Phare\Mail;
 abstract class Mailable
 {
     protected array $to = [];
+
     protected array $cc = [];
+
     protected array $bcc = [];
+
     protected array $replyTo = [];
+
     protected string $subject = '';
+
     protected array $attachments = [];
+
     protected array $headers = [];
+
     protected array $data = [];
+
     protected ?string $view = null;
+
     protected ?string $textView = null;
+
     protected ?string $htmlContent = null;
+
     protected ?string $textContent = null;
 
     public function to(string|array $address, ?string $name = null): static
@@ -24,6 +35,7 @@ abstract class Mailable
         } else {
             $this->to[$address] = $name;
         }
+
         return $this;
     }
 
@@ -34,6 +46,7 @@ abstract class Mailable
         } else {
             $this->cc[$address] = $name;
         }
+
         return $this;
     }
 
@@ -44,6 +57,7 @@ abstract class Mailable
         } else {
             $this->bcc[$address] = $name;
         }
+
         return $this;
     }
 
@@ -54,18 +68,21 @@ abstract class Mailable
         } else {
             $this->replyTo[$address] = $name;
         }
+
         return $this;
     }
 
     public function subject(string $subject): static
     {
         $this->subject = $subject;
+
         return $this;
     }
 
     public function setSubject(string $subject): static
     {
         $this->subject = $subject;
+
         return $this;
     }
 
@@ -74,8 +91,9 @@ abstract class Mailable
         $this->attachments[] = [
             'path' => $path,
             'name' => $name,
-            'type' => $type
+            'type' => $type,
         ];
+
         return $this;
     }
 
@@ -84,8 +102,9 @@ abstract class Mailable
         $this->attachments[] = [
             'data' => $data,
             'name' => $name,
-            'type' => $type
+            'type' => $type,
         ];
+
         return $this;
     }
 
@@ -96,6 +115,7 @@ abstract class Mailable
         } else {
             $this->data[$key] = $value;
         }
+
         return $this;
     }
 
@@ -103,24 +123,28 @@ abstract class Mailable
     {
         $this->view = $view;
         $this->textView = $textView;
+
         return $this;
     }
 
     public function html(string $html): static
     {
         $this->htmlContent = $html;
+
         return $this;
     }
 
     public function text(string $text): static
     {
         $this->textContent = $text;
+
         return $this;
     }
 
     public function header(string $name, string $value): static
     {
         $this->headers[$name] = $value;
+
         return $this;
     }
 
@@ -214,9 +238,9 @@ abstract class Mailable
         // Simple template rendering - in a full implementation this would
         // integrate with the view system
         $content = $view;
-        
+
         foreach ($this->data as $key => $value) {
-            $content = str_replace('{{ $' . $key . ' }}', (string) $value, $content);
+            $content = str_replace('{{ $' . $key . ' }}', (string)$value, $content);
         }
 
         return $content;

@@ -7,11 +7,11 @@ class Xss
     protected static array $allowedTags = [
         'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'ul', 'ol', 'li',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre',
-        'a', 'img', 'div', 'span'
+        'a', 'img', 'div', 'span',
     ];
 
     protected static array $allowedAttributes = [
-        'href', 'src', 'alt', 'title', 'class', 'id'
+        'href', 'src', 'alt', 'title', 'class', 'id',
     ];
 
     protected static array $dangerousPatterns = [
@@ -22,10 +22,10 @@ class Xss
         '/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/mi',
         '/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/mi',
         '/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/mi',
-        '/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/mi'
+        '/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/mi',
     ];
 
-    public static function clean(string $input, array $allowedTags = null, array $allowedAttributes = null): string
+    public static function clean(string $input, ?array $allowedTags = null, ?array $allowedAttributes = null): string
     {
         $allowedTags = $allowedTags ?? static::$allowedTags;
         $allowedAttributes = $allowedAttributes ?? static::$allowedAttributes;
@@ -96,8 +96,10 @@ class Xss
                 $tag = $matches[1];
                 $cleanTag = preg_replace('/\s+(\w+)=("[^"]*"|\'[^\']*\'|[^\s>]+)/', function ($attrMatches) use ($allowedAttributes) {
                     $attr = $attrMatches[1];
+
                     return in_array($attr, $allowedAttributes) ? $attrMatches[0] : '';
                 }, $tag);
+
                 return '<' . $cleanTag . '>';
             }, $input);
         }
@@ -117,7 +119,7 @@ class Xss
     public static function sanitizeUrl(string $url): string
     {
         $url = filter_var($url, FILTER_SANITIZE_URL);
-        
+
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             return '';
         }

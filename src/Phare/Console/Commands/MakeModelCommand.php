@@ -7,6 +7,7 @@ use Phare\Console\Command;
 class MakeModelCommand extends Command
 {
     protected string $signature = 'make:model {name : The name of the model} {--migration : Create a migration file} {--factory : Create a factory file}';
+
     protected string $description = 'Create a new Eloquent model class';
 
     public function handle(): int
@@ -20,6 +21,7 @@ class MakeModelCommand extends Command
 
         if ($this->files->exists($path)) {
             $this->error("Model [{$modelName}] already exists.");
+
             return 1;
         }
 
@@ -53,6 +55,7 @@ class MakeModelCommand extends Command
     protected function getModelPath(string $name): string
     {
         $path = str_replace('\\', '/', $name) . '.php';
+
         return $this->app->basePath('app/Models/' . $path);
     }
 
@@ -75,7 +78,7 @@ class MakeModelCommand extends Command
     {
         $parts = explode('\\', $name);
         array_pop($parts); // Remove class name
-        
+
         $namespace = 'App\\Models';
         if (!empty($parts)) {
             $namespace .= '\\' . implode('\\', $parts);
@@ -93,7 +96,7 @@ class MakeModelCommand extends Command
     {
         // Convert PascalCase to snake_case and pluralize
         $tableName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $className));
-        
+
         // Simple pluralization
         if (str_ends_with($tableName, 'y')) {
             return substr($tableName, 0, -1) . 'ies';

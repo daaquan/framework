@@ -10,7 +10,7 @@ class ScheduleServiceProvider extends ServiceProvider
     {
         $this->app->singleton('schedule', function ($app) {
             $schedule = new Schedule();
-            
+
             // Set timezone from config
             $timezone = $app['config']['app.timezone'] ?? 'UTC';
             $schedule->timezone($timezone);
@@ -27,7 +27,8 @@ class ScheduleServiceProvider extends ServiceProvider
     {
         // Register schedule helper functions
         if (!function_exists('schedule')) {
-            function schedule(): Schedule {
+            function schedule(): Schedule
+            {
                 return app('schedule');
             }
         }

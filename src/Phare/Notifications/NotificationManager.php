@@ -2,13 +2,15 @@
 
 namespace Phare\Notifications;
 
-use Phare\Notifications\Channels\ChannelManager;
 use Phare\Events\EventDispatcher;
+use Phare\Notifications\Channels\ChannelManager;
 
 class NotificationManager
 {
     protected ChannelManager $channelManager;
+
     protected ?EventDispatcher $events;
+
     protected array $sentNotifications = [];
 
     public function __construct(ChannelManager $channelManager, ?EventDispatcher $events = null)
@@ -54,7 +56,7 @@ class NotificationManager
         $this->dispatchEvent('notification.sending', [
             'notifiable' => $notifiable,
             'notification' => $notification,
-            'channels' => $channels
+            'channels' => $channels,
         ]);
 
         foreach ($channels as $channel) {
@@ -69,9 +71,9 @@ class NotificationManager
                     'notifiable' => $notifiable,
                     'notification' => $notification,
                     'channel' => $channel,
-                    'error' => $e
+                    'error' => $e,
                 ]);
-                
+
                 // Re-throw the exception if not handling it
                 throw $e;
             }
@@ -80,7 +82,7 @@ class NotificationManager
         $this->dispatchEvent('notification.sent', [
             'notifiable' => $notifiable,
             'notification' => $notification,
-            'channels' => $channels
+            'channels' => $channels,
         ]);
 
         // Track sent notifications for testing purposes
@@ -88,7 +90,7 @@ class NotificationManager
             'notifiable' => $notifiable,
             'notification' => $notification,
             'channels' => $channels,
-            'sent_at' => new \DateTime()
+            'sent_at' => new \DateTime(),
         ];
     }
 

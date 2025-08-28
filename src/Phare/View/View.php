@@ -2,14 +2,16 @@
 
 namespace Phare\View;
 
-use Closure;
 use Phare\Container\Container;
 
 class View
 {
     protected array $data = [];
+
     protected array $shared = [];
+
     protected ?string $view = null;
+
     public Container $container;
 
     public function __construct(Container $container)
@@ -61,6 +63,7 @@ class View
     public function setView(string $view): static
     {
         $this->view = $view;
+
         return $this;
     }
 

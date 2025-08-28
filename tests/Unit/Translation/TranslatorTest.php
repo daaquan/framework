@@ -1,16 +1,16 @@
 <?php
 
-use Phare\Translation\Translator;
 use Phare\Filesystem\Filesystem;
+use Phare\Translation\Translator;
 
 function createTestTranslations($langPath, $files)
 {
     $enPath = $langPath . '/en';
     $esPath = $langPath . '/es';
-    
+
     $files->makeDirectory($enPath, 0755, true);
     $files->makeDirectory($esPath, 0755, true);
-    
+
     // English messages
     $files->put($enPath . '/messages.php', '<?php return [
         "welcome" => "Welcome to our application",
@@ -23,12 +23,12 @@ function createTestTranslations($langPath, $files)
             ]
         ]
     ];');
-    
+
     $files->put($enPath . '/validation.php', '<?php return [
         "required" => "The :attribute field is required.",
         "email" => "The :attribute must be a valid email address."
     ];');
-    
+
     // Spanish messages
     $files->put($esPath . '/messages.php', '<?php return [
         "welcome" => "Bienvenido a nuestra aplicación",
@@ -40,13 +40,13 @@ function createTestTranslations($langPath, $files)
 beforeEach(function () {
     $this->translator = new Translator('en', 'en');
     $this->files = new Filesystem();
-    
+
     // Create test translation directory
     $this->langPath = __DIR__ . '/../../Mock/resources/lang';
     if (!$this->files->isDirectory($this->langPath)) {
         $this->files->makeDirectory($this->langPath, 0755, true);
     }
-    
+
     // Create test translations
     createTestTranslations($this->langPath, $this->files);
     $this->translator->addPath($this->langPath);
@@ -80,7 +80,7 @@ test('returns key when translation not found', function () {
 test('falls back to fallback locale', function () {
     $translator = new Translator('fr', 'en');
     $translator->addPath($this->langPath);
-    
+
     expect($translator->get('messages.welcome'))->toBe('Welcome to our application');
 });
 
@@ -103,10 +103,10 @@ test('can check if translation exists', function () {
 test('can flush loaded translations', function () {
     // Load translations
     $this->translator->get('messages.welcome');
-    
+
     // Flush
     $this->translator->flush();
-    
+
     // Should reload translations
     expect($this->translator->get('messages.welcome'))->toBe('Welcome to our application');
 });
@@ -140,17 +140,17 @@ test('transChoice method works as alias', function () {
 test('handles case variations in replacements', function () {
     $result = $this->translator->get('validation.required', ['attribute' => 'email']);
     expect($result)->toBe('The email field is required.');
-    
+
     // Laravel-style case variations - based on the placeholder case
     $this->files->put($this->langPath . '/en/test.php', '<?php return [
         "uppercase" => "The :ATTRIBUTE field is required.",
         "lowercase" => "The :attribute field is required.",
         "title" => "The :Attribute field is required."
     ];');
-    
+
     // Flush to force reload
     $this->translator->flush();
-    
+
     expect($this->translator->get('test.uppercase', ['ATTRIBUTE' => 'email']))->toBe('The EMAIL field is required.');
     expect($this->translator->get('test.lowercase', ['attribute' => 'email']))->toBe('The email field is required.');
     expect($this->translator->get('test.title', ['Attribute' => 'email']))->toBe('The Email field is required.');
@@ -159,7 +159,7 @@ test('handles case variations in replacements', function () {
 test('handles missing translation files gracefully', function () {
     $translator = new Translator('fr', 'en');
     $translator->addPath(__DIR__ . '/nonexistent');
-    
+
     expect($translator->get('messages.test'))->toBe('messages.test');
 });
 
@@ -169,11 +169,11 @@ test('can add multiple paths', function () {
     $this->files->put($secondPath . '/en/custom.php', '<?php return [
         "message" => "Custom message"
     ];');
-    
+
     $this->translator->addPath($secondPath);
-    
+
     expect($this->translator->get('custom.message'))->toBe('Custom message');
-    
+
     // Cleanup
     $this->files->deleteDirectory($secondPath);
 });
@@ -181,6 +181,6 @@ test('can add multiple paths', function () {
 test('handles invalid translation files', function () {
     $invalidPath = $this->langPath . '/en/invalid.php';
     $this->files->put($invalidPath, '<?php return "not an array";');
-    
+
     expect($this->translator->get('invalid.test'))->toBe('invalid.test');
 });

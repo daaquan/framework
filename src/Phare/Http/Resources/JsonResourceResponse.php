@@ -7,6 +7,7 @@ use Phalcon\Http\Response;
 class JsonResourceResponse
 {
     protected JsonResource $resource;
+
     protected ?Response $response = null;
 
     public function __construct(JsonResource $resource)
@@ -17,7 +18,7 @@ class JsonResourceResponse
     public function toResponse(): Response
     {
         $response = new Response();
-        
+
         $data = $this->wrap(
             $this->resource->resolve(),
             $this->resource->with(),
@@ -53,7 +54,7 @@ class JsonResourceResponse
 
     protected function haveAdditionalInformationAndDataIsUnwrapped(array $data, array $with, array $additional): bool
     {
-        return (!$this->isAssoc($data) || $this->wrapper()) && 
+        return (!$this->isAssoc($data) || $this->wrapper()) &&
                (count($with) || count($additional));
     }
 
@@ -70,6 +71,7 @@ class JsonResourceResponse
     public function withResponse(Response $response): static
     {
         $this->response = $response;
+
         return $this;
     }
 

@@ -40,13 +40,9 @@ it('can create an alias for a binding', function () {
 });
 
 it('can bind and resolve concrete implementations', function () {
-    interface LoggerInterface
-    {
-    }
+    interface LoggerInterface {}
 
-    class FileLogger implements LoggerInterface
-    {
-    }
+    class FileLogger implements LoggerInterface {}
 
     $container = new Container();
 
@@ -78,15 +74,11 @@ it('resolves dependencies automatically', function () {
     $container = new Container();
 
     // Sample class with dependencies
-    class A
-    {
-    }
+    class A {}
 
     class B
     {
-        public function __construct(public A $a)
-        {
-        }
+        public function __construct(public A $a) {}
     }
 
     $b = $container->make(B::class);
@@ -106,9 +98,7 @@ it('throws exception when a non-existent class is resolved', function () {
 it('throws exception when binding a non-instantiable interface without concrete implementation', function () {
     $container = new Container();
 
-    interface SampleInterface
-    {
-    }
+    interface SampleInterface {}
 
     $container->bind('SampleInterface', SampleInterface::class);
 

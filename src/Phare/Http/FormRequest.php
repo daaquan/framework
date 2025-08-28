@@ -2,13 +2,14 @@
 
 namespace Phare\Http;
 
-use Phare\Validation\Validator;
-use Phare\Validation\ValidationException;
 use Phare\Contracts\Foundation\Application;
+use Phare\Validation\ValidationException;
+use Phare\Validation\Validator;
 
 abstract class FormRequest extends Request
 {
     protected Application $app;
+
     protected Validator $validator;
 
     public function __construct()
@@ -57,8 +58,8 @@ abstract class FormRequest extends Request
     {
         if (!$this->authorize()) {
             throw new \Phare\Foundation\Http\Validation\ValidationException(
-                Validator::make([], []), 
-                'This action is unauthorized.', 
+                Validator::make([], []),
+                'This action is unauthorized.',
                 403
             );
         }

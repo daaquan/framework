@@ -13,30 +13,30 @@ beforeEach(function () {
 });
 
 it('filters items with callback', function () {
-    $filtered = $this->collection->filter(fn($item) => $item > 3);
+    $filtered = $this->collection->filter(fn ($item) => $item > 3);
     expect($filtered->toArray())->toBe([3 => 4, 4 => 5]);
 });
 
 it('maps over items', function () {
-    $mapped = $this->collection->map(fn($item) => $item * 2);
+    $mapped = $this->collection->map(fn ($item) => $item * 2);
     expect($mapped->toArray())->toBe([2, 4, 6, 8, 10]);
 });
 
 it('maps with keys', function () {
-    $mapped = $this->collection->mapWithKey(fn($value, $key) => $value + $key);
+    $mapped = $this->collection->mapWithKey(fn ($value, $key) => $value + $key);
     expect($mapped->toArray())->toBe([1, 3, 5, 7, 9]);
 });
 
 it('gets first item with callback', function () {
-    $first = $this->collection->first(fn($item) => $item > 3);
+    $first = $this->collection->first(fn ($item) => $item > 3);
     expect($first)->toBe(4);
 
-    $firstDefault = $this->collection->first(fn($item) => $item > 10, 'default');
+    $firstDefault = $this->collection->first(fn ($item) => $item > 10, 'default');
     expect($firstDefault)->toBe('default');
 });
 
 it('gets last item with callback', function () {
-    $last = $this->collection->last(fn($item) => $item < 4);
+    $last = $this->collection->last(fn ($item) => $item < 4);
     expect($last)->toBe(3);
 });
 
@@ -85,7 +85,7 @@ it('sorts collection', function () {
 });
 
 it('sorts collection by callback', function () {
-    $sortedByAge = $this->userCollection->sortBy(fn($user) => $user['age']);
+    $sortedByAge = $this->userCollection->sortBy(fn ($user) => $user['age']);
     expect($sortedByAge->toArray()[0]['name'])->toBe('Jane');
 });
 
@@ -126,17 +126,17 @@ it('merges with another collection', function () {
 it('zips with arrays', function () {
     $letters = ['a', 'b', 'c'];
     $numbers = [1, 2, 3];
-    
+
     $collection = new Collection($letters);
     $zipped = $collection->zip($numbers);
-    
+
     expect($zipped->toArray())->toBe([['a', 1], ['b', 2], ['c', 3]]);
 });
 
 it('executes callback when condition is true', function () {
     $originalCollection = clone $this->collection;
     $result = $originalCollection->when(true, function ($collection) {
-        $collection->map(fn($item) => $item * 2);
+        $collection->map(fn ($item) => $item * 2);
     });
 
     expect($result)->toBeInstanceOf(Collection::class);
@@ -145,7 +145,7 @@ it('executes callback when condition is true', function () {
 it('executes callback unless condition is true', function () {
     $originalCollection = clone $this->collection;
     $result = $originalCollection->unless(false, function ($collection) {
-        $collection->map(fn($item) => $item * 2);
+        $collection->map(fn ($item) => $item * 2);
     });
 
     expect($result)->toBeInstanceOf(Collection::class);

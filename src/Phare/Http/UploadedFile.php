@@ -7,11 +7,17 @@ use Phare\Filesystem\Filesystem;
 class UploadedFile
 {
     protected string $path;
+
     protected ?string $originalName;
+
     protected ?string $mimeType;
+
     protected ?int $size;
+
     protected int $error;
+
     protected bool $test = false;
+
     protected Filesystem $files;
 
     public function __construct(
@@ -67,7 +73,7 @@ class UploadedFile
             if ($this->test) {
                 return $this->files->put($destination, $this->getContent()) ? $destination : false;
             }
-            
+
             return move_uploaded_file($this->path, $destination) ? $destination : false;
         }
 
@@ -82,6 +88,7 @@ class UploadedFile
         if ($this->isValid()) {
             if ($this->test || move_uploaded_file($this->path, $destination)) {
                 $this->path = $destination;
+
                 return $this;
             }
         }
@@ -121,7 +128,7 @@ class UploadedFile
     public function guessExtension(): ?string
     {
         $mimeType = $this->getMimeType();
-        
+
         if (!$mimeType) {
             return null;
         }
@@ -161,7 +168,7 @@ class UploadedFile
     {
         $extension = $this->guessExtension() ?: $this->getClientOriginalExtension();
         $hash = hash('sha256', uniqid('', true));
-        
+
         if ($path) {
             return $path . '/' . $hash . ($extension ? '.' . $extension : '');
         }
