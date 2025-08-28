@@ -38,7 +38,7 @@
         "phalcon/ide-stubs": "dev-master",
         "phpstan/phpstan": "2.1.x-dev",
         "laravel/pint": "dev-main",
-        "mockery/mockery": "2.0.x-dev",
+        "mockery/mockery": "^1.6.12",
         "pestphp/pest": "^2.36",
         "pestphp/pest-plugin": "^2.1",
         "pestphp/pest-plugin-faker": "^2.0"
