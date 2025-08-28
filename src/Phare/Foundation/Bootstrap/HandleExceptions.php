@@ -189,39 +189,134 @@ class HandleExceptions
         http_response_code(500);
         
         if ($isDebug) {
-            // Show detailed error in debug mode
-            echo '<!DOCTYPE html>';
-            echo '<html><head><title>Application Error</title>';
-            echo '<style>body{font-family:monospace;margin:20px;}pre{background:#f5f5f5;padding:10px;border:1px solid #ddd;overflow:auto;}</style>';
-            echo '</head><body>';
-            echo '<h1>Application Error</h1>';
-            echo '<p><strong>Exception:</strong> ' . htmlspecialchars(get_class($e)) . '</p>';
-            echo '<p><strong>Message:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
-            echo '<p><strong>File:</strong> ' . htmlspecialchars($e->getFile()) . '</p>';
-            echo '<p><strong>Line:</strong> ' . $e->getLine() . '</p>';
-            echo '<h2>Stack Trace:</h2>';
-            echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
-            
-            // Show previous exception if exists
-            if ($previous = $e->getPrevious()) {
-                echo '<h2>Previous Exception:</h2>';
-                echo '<p><strong>Exception:</strong> ' . htmlspecialchars(get_class($previous)) . '</p>';
-                echo '<p><strong>Message:</strong> ' . htmlspecialchars($previous->getMessage()) . '</p>';
-                echo '<p><strong>File:</strong> ' . htmlspecialchars($previous->getFile()) . '</p>';
-                echo '<p><strong>Line:</strong> ' . $previous->getLine() . '</p>';
+            // Try to use Whoops if available
+            if ($this->renderWithWhoops($e)) {
+                return;
             }
             
-            echo '</body></html>';
+            // Fallback to custom detailed error page
+            $this->renderDetailedError($e);
         } else {
             // Simple error page for production
-            echo '<!DOCTYPE html>';
-            echo '<html><head><title>Internal Server Error</title></head>';
-            echo '<body><h1>Internal Server Error</h1>';
-            echo '<p>The server encountered an error and could not complete your request.</p>';
-            echo '</body></html>';
+            $this->renderSimpleError();
         }
         
         exit(1);
+    }
+
+    /**
+     * Attempt to render error using Whoops if available.
+     *
+     * @param \Throwable $e
+     * @return bool True if Whoops was used, false otherwise
+     */
+    protected function renderWithWhoops(\Throwable $e): bool
+    {
+        if (!class_exists('\Whoops\Run')) {
+            return false;
+        }
+
+        try {
+            $whoops = new \Whoops\Run;
+            $whoops->allowQuit(false);
+            $whoops->writeToOutput(false);
+            
+            // Add pretty page handler for web requests
+            $handler = new \Whoops\Handler\PrettyPageHandler;
+            
+            // Set application name if available
+            try {
+                $appName = $this->app['config']?->path('app.name') ?? 'Phare Application';
+                $handler->setApplicationName($appName);
+            } catch (\Throwable $configException) {
+                $handler->setApplicationName('Phare Application');
+            }
+            
+            // Add custom CSS for better styling
+            $handler->addResourcePath(__DIR__ . '/../../../../resources/whoops');
+            
+            $whoops->prependHandler($handler);
+            
+            // Generate and output the error page
+            $output = $whoops->handleException($e);
+            echo $output;
+            
+            return true;
+            
+        } catch (\Throwable $whoopsException) {
+            // If Whoops fails, log the error and return false to use fallback
+            error_log("Whoops rendering failed: " . $whoopsException->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Render detailed error page (fallback when Whoops is not available).
+     *
+     * @param \Throwable $e
+     * @return void
+     */
+    protected function renderDetailedError(\Throwable $e): void
+    {
+        echo '<!DOCTYPE html>';
+        echo '<html><head><title>Application Error</title>';
+        echo '<meta charset="utf-8">';
+        echo '<style>';
+        echo 'body{font-family:sans-serif;margin:0;padding:20px;background:#f8f9fa;}';
+        echo '.container{max-width:1200px;margin:0 auto;background:white;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);}';
+        echo 'h1{color:#dc3545;margin-top:0;}';
+        echo '.exception-info{background:#f8f9fa;padding:15px;border-radius:4px;margin:20px 0;}';
+        echo '.exception-info strong{color:#495057;}';
+        echo 'pre{background:#212529;color:#f8f9fa;padding:15px;border-radius:4px;overflow:auto;font-size:14px;line-height:1.4;}';
+        echo '.previous-exception{margin-top:30px;padding-top:20px;border-top:2px solid #dee2e6;}';
+        echo '</style>';
+        echo '</head><body>';
+        echo '<div class="container">';
+        echo '<h1>Application Error</h1>';
+        
+        echo '<div class="exception-info">';
+        echo '<p><strong>Exception:</strong> ' . htmlspecialchars(get_class($e)) . '</p>';
+        echo '<p><strong>Message:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
+        echo '<p><strong>File:</strong> ' . htmlspecialchars($e->getFile()) . '</p>';
+        echo '<p><strong>Line:</strong> ' . $e->getLine() . '</p>';
+        echo '</div>';
+        
+        echo '<h2>Stack Trace</h2>';
+        echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+        
+        // Show previous exception if exists
+        if ($previous = $e->getPrevious()) {
+            echo '<div class="previous-exception">';
+            echo '<h2>Previous Exception</h2>';
+            echo '<div class="exception-info">';
+            echo '<p><strong>Exception:</strong> ' . htmlspecialchars(get_class($previous)) . '</p>';
+            echo '<p><strong>Message:</strong> ' . htmlspecialchars($previous->getMessage()) . '</p>';
+            echo '<p><strong>File:</strong> ' . htmlspecialchars($previous->getFile()) . '</p>';
+            echo '<p><strong>Line:</strong> ' . $previous->getLine() . '</p>';
+            echo '</div>';
+            echo '<pre>' . htmlspecialchars($previous->getTraceAsString()) . '</pre>';
+            echo '</div>';
+        }
+        
+        echo '</div>';
+        echo '</body></html>';
+    }
+
+    /**
+     * Render simple error page for production.
+     *
+     * @return void
+     */
+    protected function renderSimpleError(): void
+    {
+        echo '<!DOCTYPE html>';
+        echo '<html><head><title>Internal Server Error</title><meta charset="utf-8">';
+        echo '<style>body{font-family:sans-serif;text-align:center;padding:50px;background:#f8f9fa;}</style>';
+        echo '</head><body>';
+        echo '<h1>Internal Server Error</h1>';
+        echo '<p>The server encountered an error and could not complete your request.</p>';
+        echo '<p>Please try again later.</p>';
+        echo '</body></html>';
     }
 
     /**
