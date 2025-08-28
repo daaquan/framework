@@ -51,16 +51,23 @@ class Response extends \Phalcon\Http\Response implements \Phare\Contracts\Http\R
         return $this;
     }
 
-    public function redirect(string $location, int $status = 302): static
+    public function redirect($location = null, bool $externalRedirect = false, int $statusCode = 302): \Phalcon\Http\ResponseInterface
     {
-        $this->redirect($location, true, $status);
-        return $this;
+        return parent::redirect($location, $externalRedirect, $statusCode);
     }
 
-    public function back(int $status = 302): static
+    public function back(int $status = 302): \Phalcon\Http\ResponseInterface
     {
         // Get the referrer from the request or use a default fallback
         $referer = $_SERVER['HTTP_REFERER'] ?? '/';
-        return $this->redirect($referer, $status);
+        return $this->redirect($referer, false, $status);
+    }
+
+    /**
+     * Convenience method for Laravel-style redirects
+     */
+    public function redirectTo(string $location, int $status = 302): \Phalcon\Http\ResponseInterface
+    {
+        return $this->redirect($location, false, $status);
     }
 }
