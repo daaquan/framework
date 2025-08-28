@@ -19,7 +19,7 @@ class HandleExceptions
     {
         $this->app = $app;
 
-        $debugEnabled = $app->environment('testing') || $app['config']?->path('app.debug');
+        $debugEnabled = $this->shouldEnableDebug($app);
 
         // Configure error reporting level
         // Phalcon uses some calls deprecated in PHP 8.2 and above, so exclude E_DEPRECATED
@@ -27,7 +27,7 @@ class HandleExceptions
 
         // Configure error display
         ini_set('display_errors', $debugEnabled ? 'On' : 'Off');
-        ini_set('phalcon.warning.enable', $debugEnabled ? ($app['config']?->path('app.phalcon')['warning.enable'] ?? false) : false);
+        ini_set('phalcon.warning.enable', $debugEnabled ? $this->getPhalconWarningEnabled($app) : false);
 
         // Register error handler
         set_error_handler([$this, 'handleError']);
@@ -123,14 +123,22 @@ class HandleExceptions
     {
         try {
             $this->getExceptionHandler()->report($e);
-        } catch (\Exception $e) {
-            //
+        } catch (\Exception $reportException) {
+            // If reporting fails, log to error_log as fallback
+            error_log("Exception reporting failed: " . $reportException->getMessage());
+            error_log("Original exception: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
         }
 
-        if ($this->app->runningInConsole()) {
-            $this->renderForConsole($e);
-        } else {
-            $this->renderHttpResponse($e);
+        try {
+            if ($this->app->runningInConsole()) {
+                $this->renderForConsole($e);
+            } else {
+                $this->renderHttpResponse($e);
+            }
+        } catch (\Throwable $renderException) {
+            // If rendering fails, use fallback error display
+            error_log("Exception rendering failed: " . $renderException->getMessage());
+            $this->renderFallbackError($e);
         }
     }
 
@@ -141,7 +149,15 @@ class HandleExceptions
      */
     protected function renderForConsole(\Throwable $e)
     {
-        $this->getExceptionHandler()->renderForConsole(new ConsoleOutput(), $e);
+        try {
+            $this->getExceptionHandler()->renderForConsole(new ConsoleOutput(), $e);
+        } catch (\Throwable $renderException) {
+            // Fallback console rendering
+            echo "Fatal Error: " . $e->getMessage() . "\n";
+            echo "File: " . $e->getFile() . "\n";
+            echo "Line: " . $e->getLine() . "\n";
+            echo "Trace:\n" . $e->getTraceAsString() . "\n";
+        }
     }
 
     /**
@@ -151,7 +167,61 @@ class HandleExceptions
      */
     protected function renderHttpResponse(\Throwable $e)
     {
-        $this->getExceptionHandler()->render($this->app['request'], $e)->send();
+        try {
+            $this->getExceptionHandler()->render($this->app['request'], $e)->send();
+        } catch (\Throwable $renderException) {
+            // If exception handler fails, use fallback
+            $this->renderFallbackError($e);
+        }
+    }
+
+    /**
+     * Render a fallback error response when normal rendering fails.
+     *
+     * @param \Throwable $e
+     * @return void
+     */
+    protected function renderFallbackError(\Throwable $e): void
+    {
+        $isDebug = $this->shouldEnableDebug($this->app);
+        
+        header('Content-Type: text/html; charset=utf-8');
+        http_response_code(500);
+        
+        if ($isDebug) {
+            // Show detailed error in debug mode
+            echo '<!DOCTYPE html>';
+            echo '<html><head><title>Application Error</title>';
+            echo '<style>body{font-family:monospace;margin:20px;}pre{background:#f5f5f5;padding:10px;border:1px solid #ddd;overflow:auto;}</style>';
+            echo '</head><body>';
+            echo '<h1>Application Error</h1>';
+            echo '<p><strong>Exception:</strong> ' . htmlspecialchars(get_class($e)) . '</p>';
+            echo '<p><strong>Message:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
+            echo '<p><strong>File:</strong> ' . htmlspecialchars($e->getFile()) . '</p>';
+            echo '<p><strong>Line:</strong> ' . $e->getLine() . '</p>';
+            echo '<h2>Stack Trace:</h2>';
+            echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+            
+            // Show previous exception if exists
+            if ($previous = $e->getPrevious()) {
+                echo '<h2>Previous Exception:</h2>';
+                echo '<p><strong>Exception:</strong> ' . htmlspecialchars(get_class($previous)) . '</p>';
+                echo '<p><strong>Message:</strong> ' . htmlspecialchars($previous->getMessage()) . '</p>';
+                echo '<p><strong>File:</strong> ' . htmlspecialchars($previous->getFile()) . '</p>';
+                echo '<p><strong>Line:</strong> ' . $previous->getLine() . '</p>';
+            }
+            
+            echo '</body></html>';
+        } else {
+            // Simple error page for production
+            echo '<!DOCTYPE html>';
+            echo '<html><head><title>Internal Server Error</title></head>';
+            echo '<body><h1>Internal Server Error</h1>';
+            echo '<p>The server encountered an error and could not complete your request.</p>';
+            echo '</body></html>';
+        }
+        
+        exit(1);
     }
 
     /**
@@ -207,5 +277,72 @@ class HandleExceptions
     protected function getExceptionHandler()
     {
         return $this->app->make(ExceptionHandler::class);
+    }
+
+    /**
+     * Determine if debug mode should be enabled.
+     * Safe method that handles missing config gracefully.
+     *
+     * @param Application|DiInterface $app
+     * @return bool
+     */
+    protected function shouldEnableDebug($app): bool
+    {
+        try {
+            // Check testing environment first
+            if ($app->environment('testing')) {
+                return true;
+            }
+
+            // Try to get debug setting from config
+            if (isset($app['config']) && $app['config'] !== null) {
+                $debug = $app['config']->path('app.debug');
+                if ($debug !== null) {
+                    return (bool) $debug;
+                }
+            }
+
+            // Fallback to environment variables
+            $envDebug = $_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG');
+            if ($envDebug !== false) {
+                return in_array(strtolower($envDebug), ['true', '1', 'on', 'yes']);
+            }
+
+            // Check if we're in a local/development environment
+            $envEnv = $_ENV['APP_ENV'] ?? getenv('APP_ENV');
+            if (in_array($envEnv, ['local', 'development', 'dev'])) {
+                return true;
+            }
+
+            // Default to false for production safety
+            return false;
+
+        } catch (\Throwable $e) {
+            // If anything goes wrong, log it and default to safe mode
+            error_log("Debug detection failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get Phalcon warning setting safely.
+     *
+     * @param Application|DiInterface $app
+     * @return bool
+     */
+    protected function getPhalconWarningEnabled($app): bool
+    {
+        try {
+            if (isset($app['config']) && $app['config'] !== null) {
+                $phalconConfig = $app['config']->path('app.phalcon');
+                if (is_array($phalconConfig)) {
+                    return $phalconConfig['warning.enable'] ?? false;
+                }
+            }
+            return false;
+        } catch (\Throwable $e) {
+            error_log("Phalcon warning config detection failed: " . $e->getMessage());
+            return false;
+        }
     }
 }
