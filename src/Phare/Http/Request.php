@@ -8,6 +8,7 @@ use Phare\Foundation\Http\Validation\ValidationException;
 class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request, \Phare\Contracts\Http\Validation\Validator
 {
     use FileHelpers;
+
     public static array $validators = [
         'required' => \Phalcon\Filter\Validation\Validator\PresenceOf::class,
         'numeric' => \Phalcon\Filter\Validation\Validator\Numericality::class,
@@ -149,6 +150,7 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -163,6 +165,7 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -203,7 +206,7 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         if (is_string($methods)) {
             return strtoupper($this->getMethod()) === strtoupper($methods);
         }
-        
+
         if (is_array($methods)) {
             $currentMethod = strtoupper($this->getMethod());
             foreach ($methods as $method) {
@@ -211,9 +214,10 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
                     return true;
                 }
             }
+
             return false;
         }
-        
+
         return false;
     }
 

@@ -2,12 +2,13 @@
 
 namespace Phare\Database;
 
-use Phare\Contracts\Foundation\Application;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
+use Phare\Contracts\Foundation\Application;
 
 abstract class Seeder
 {
     protected Application $app;
+
     protected AbstractPdo $db;
 
     public function __construct(Application $app)
@@ -21,12 +22,12 @@ abstract class Seeder
     protected function call(string|array $seeders): void
     {
         $seeders = is_array($seeders) ? $seeders : [$seeders];
-        
+
         foreach ($seeders as $seeder) {
             if (is_string($seeder)) {
                 $seeder = new $seeder($this->app);
             }
-            
+
             $seeder->run();
         }
     }
@@ -44,7 +45,7 @@ abstract class Seeder
         foreach ($records as $record) {
             $columns = implode(', ', array_map([$this, 'wrapColumn'], array_keys($record)));
             $placeholders = implode(', ', array_fill(0, count($record), '?'));
-            
+
             $sql = "INSERT INTO {$this->wrapTable($table)} ({$columns}) VALUES ({$placeholders})";
             $this->db->execute($sql, array_values($record));
         }
@@ -74,6 +75,7 @@ abstract class Seeder
 class SeederTable
 {
     protected AbstractPdo $db;
+
     protected string $table;
 
     public function __construct(AbstractPdo $db, string $table)
@@ -92,9 +94,9 @@ class SeederTable
         $records = $isMultiple ? $data : [$data];
 
         foreach ($records as $record) {
-            $columns = implode(', ', array_map(fn($col) => "`{$col}`", array_keys($record)));
+            $columns = implode(', ', array_map(fn ($col) => "`{$col}`", array_keys($record)));
             $placeholders = implode(', ', array_fill(0, count($record), '?'));
-            
+
             $sql = "INSERT INTO `{$this->table}` ({$columns}) VALUES ({$placeholders})";
             $this->db->execute($sql, array_values($record));
         }

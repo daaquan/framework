@@ -4,9 +4,6 @@ namespace Phare\Foundation\Testing\Concerns;
 
 use Phare\Testing\TestResponse;
 
-use function Phare\Foundation\Testing\Concerns\msgpack_pack;
-use function Phare\Foundation\Testing\Concerns\protobuf_pack;
-
 trait MakesHttpRequests
 {
     public function get(string $uri, array $headers = [])

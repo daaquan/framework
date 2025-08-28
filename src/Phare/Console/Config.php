@@ -135,7 +135,6 @@ class Config extends Injectable
             $temp = &$temp[$key];
         }
 
-        return null;
     }
 
     protected function makeArray(mixed $value): array

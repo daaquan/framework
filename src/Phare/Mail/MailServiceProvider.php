@@ -10,6 +10,7 @@ class MailServiceProvider extends ServiceProvider
     {
         $this->app->singleton('mailer', function ($app) {
             $config = $app['config']['mail'] ?? [];
+
             return new Mailer($config);
         });
 
@@ -22,7 +23,8 @@ class MailServiceProvider extends ServiceProvider
     {
         // Register mail helper functions
         if (!function_exists('mail')) {
-            function mail(): Mailer {
+            function mail(): Mailer
+            {
                 return app('mailer');
             }
         }

@@ -2,8 +2,8 @@
 
 namespace Phare\Queue\Connectors;
 
-use Phare\Queue\QueueInterface;
 use Phare\Queue\DatabaseQueue;
+use Phare\Queue\QueueInterface;
 
 class DatabaseConnector implements ConnectorInterface
 {

@@ -10,7 +10,7 @@ class TranslationServiceProvider extends ServiceProvider
     {
         $this->app->singleton('translator', function ($app) {
             $config = $app['config'] ?? [];
-            
+
             $translator = new Translator(
                 $config['app.locale'] ?? 'en',
                 $config['app.fallback_locale'] ?? 'en'
@@ -35,19 +35,22 @@ class TranslationServiceProvider extends ServiceProvider
     {
         // Register translation helper functions
         if (!function_exists('trans')) {
-            function trans(string $key, array $replace = [], ?string $locale = null): string {
+            function trans(string $key, array $replace = [], ?string $locale = null): string
+            {
                 return app('translator')->trans($key, $replace, $locale);
             }
         }
 
         if (!function_exists('trans_choice')) {
-            function trans_choice(string $key, int $number, array $replace = [], ?string $locale = null): string {
+            function trans_choice(string $key, int $number, array $replace = [], ?string $locale = null): string
+            {
                 return app('translator')->transChoice($key, $number, $replace, $locale);
             }
         }
 
         if (!function_exists('__')) {
-            function __(string $key, array $replace = [], ?string $locale = null): string {
+            function __(string $key, array $replace = [], ?string $locale = null): string
+            {
                 return app('translator')->trans($key, $replace, $locale);
             }
         }

@@ -5,7 +5,9 @@ namespace Phare\Hashing;
 class ArgonHasher implements HasherInterface
 {
     protected int $memory = 1024;
+
     protected int $time = 2;
+
     protected int $threads = 2;
 
     public function __construct(array $options = [])

@@ -2,7 +2,7 @@
 
 namespace Phare\Config;
 
-use Phare\Support\Arr;
+use Phare\Collections\Arr;
 
 class Repository
 {

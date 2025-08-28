@@ -7,11 +7,17 @@ use Phare\View\Factory;
 class TemplateEngine
 {
     protected Factory $factory;
+
     protected array $sections = [];
+
     protected array $sectionStack = [];
+
     protected array $layouts = [];
+
     protected ?string $extends = null;
+
     protected array $yields = [];
+
     protected array $includes = [];
 
     public function __construct(Factory $factory)
@@ -44,10 +50,10 @@ class TemplateEngine
         }
 
         $last = array_pop($this->sectionStack);
-        
+
         if (ob_get_level()) {
             $content = ob_get_clean();
-            
+
             if ($overwrite || !isset($this->sections[$last])) {
                 $this->sections[$last] = $content;
             } else {
@@ -68,14 +74,14 @@ class TemplateEngine
         }
 
         $last = array_pop($this->sectionStack);
-        
+
         if (ob_get_level()) {
             $content = ob_get_clean();
-            
+
             if (!isset($this->sections[$last])) {
                 $this->sections[$last] = '';
             }
-            
+
             $this->sections[$last] .= $content;
         }
 
@@ -112,6 +118,7 @@ class TemplateEngine
     public function include(string $view, array $data = []): string
     {
         $viewInstance = $this->factory->make($view, $data);
+
         return $viewInstance->render();
     }
 
@@ -193,7 +200,7 @@ class TemplateEngine
     /**
      * Start injecting content into a push stack.
      */
-    public function startPush(string $section, string $content = null): void
+    public function startPush(string $section, ?string $content = null): void
     {
         if ($content === null) {
             if (ob_get_level()) {
@@ -215,7 +222,7 @@ class TemplateEngine
         }
 
         $last = array_pop($this->sectionStack);
-        
+
         if (ob_get_level()) {
             $content = ob_get_clean();
             $this->push($last, $content);
@@ -266,7 +273,7 @@ class TemplateEngine
 
         $last = array_pop($this->sectionStack);
         $section = str_replace('.prepend', '', $last);
-        
+
         if (ob_get_level()) {
             $content = ob_get_clean();
             $this->prepend($section, $content);

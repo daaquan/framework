@@ -5,7 +5,7 @@ namespace Phare\Config;
 class ConfigCache
 {
     protected string $cachePath;
-    
+
     public function __construct(string $cachePath)
     {
         $this->cachePath = $cachePath;
@@ -17,9 +17,9 @@ class ConfigCache
     public function cache(array $config): void
     {
         $this->ensureCacheDirectoryExists();
-        
+
         $content = "<?php\n\nreturn " . var_export($config, true) . ";\n";
-        
+
         file_put_contents($this->cachePath, $content, LOCK_EX);
     }
 
@@ -89,7 +89,7 @@ class ConfigCache
     protected function ensureCacheDirectoryExists(): void
     {
         $directory = dirname($this->cachePath);
-        
+
         if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
         }

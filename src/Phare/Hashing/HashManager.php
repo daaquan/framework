@@ -5,6 +5,7 @@ namespace Phare\Hashing;
 class HashManager
 {
     protected array $drivers = [];
+
     protected string $defaultDriver = 'bcrypt';
 
     public function __construct(string $defaultDriver = 'bcrypt')

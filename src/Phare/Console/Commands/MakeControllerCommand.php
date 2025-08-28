@@ -7,6 +7,7 @@ use Phare\Console\Command;
 class MakeControllerCommand extends Command
 {
     protected string $signature = 'make:controller {name : The name of the controller} {--resource : Generate a resource controller}';
+
     protected string $description = 'Create a new controller class';
 
     public function handle(): int
@@ -19,6 +20,7 @@ class MakeControllerCommand extends Command
 
         if ($this->files->exists($path)) {
             $this->error("Controller [{$controllerName}] already exists.");
+
             return 1;
         }
 
@@ -37,7 +39,7 @@ class MakeControllerCommand extends Command
     protected function getControllerName(string $name): string
     {
         $name = trim(str_replace('/', '\\', $name), '\\');
-        
+
         if (!str_ends_with($name, 'Controller')) {
             $name .= 'Controller';
         }
@@ -48,6 +50,7 @@ class MakeControllerCommand extends Command
     protected function getControllerPath(string $name): string
     {
         $path = str_replace('\\', '/', $name) . '.php';
+
         return $this->app->basePath('app/Controllers/' . $path);
     }
 
@@ -68,7 +71,7 @@ class MakeControllerCommand extends Command
     {
         $parts = explode('\\', $name);
         array_pop($parts); // Remove class name
-        
+
         $namespace = 'App\\Controllers';
         if (!empty($parts)) {
             $namespace .= '\\' . implode('\\', $parts);
@@ -198,9 +201,6 @@ class {{ class }} extends Controller
     public function destroy(int $id): Response
     {
         return response()->json(['message' => "Resource {$id} deleted"]);
-    }
-}
-STUB;
     }
 }
 STUB;

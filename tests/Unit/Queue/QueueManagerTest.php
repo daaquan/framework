@@ -1,15 +1,16 @@
 <?php
 
-use Phare\Queue\QueueManager;
-use Phare\Queue\Job;
-use Phare\Queue\SyncQueue;
 use Phare\Queue\DatabaseQueue;
+use Phare\Queue\Job;
+use Phare\Queue\QueueManager;
 use Phare\Queue\RedisQueue;
+use Phare\Queue\SyncQueue;
 
 // Test job for queue manager
 class QueueTestJob extends Job
 {
     public bool $handled = false;
+
     public ?\Exception $exception = null;
 
     public function __construct(public string $message = 'Queue test')
@@ -50,7 +51,7 @@ beforeEach(function () {
             'sync' => ['driver' => 'sync'],
             'database' => ['driver' => 'database', 'table' => 'jobs'],
             'redis' => ['driver' => 'redis'],
-        ]
+        ],
     ];
 
     $this->manager = new QueueManager($this->config);
@@ -92,7 +93,7 @@ test('queue manager returns default connection when none specified', function ()
 test('queue manager can push job', function () {
     $job = new QueueTestJob('Push test');
     $jobId = $this->manager->push($job);
-    
+
     expect($jobId)->toBeString();
     expect($job->handled)->toBeTrue(); // Sync queue executes immediately
 });
@@ -100,7 +101,7 @@ test('queue manager can push job', function () {
 test('queue manager can push job with delay', function () {
     $job = new QueueTestJob('Delayed test');
     $jobId = $this->manager->later($job, 60);
-    
+
     expect($jobId)->toBeString();
     expect($job->getDelay())->toBe(60);
 });
@@ -108,7 +109,7 @@ test('queue manager can push job with delay', function () {
 test('queue manager can push job to specific queue', function () {
     $job = new QueueTestJob('Queue test');
     $jobId = $this->manager->push($job, 'high-priority');
-    
+
     expect($jobId)->toBeString();
     expect($job->getQueue())->toBe('high-priority');
 });
@@ -116,7 +117,7 @@ test('queue manager can push job to specific queue', function () {
 test('queue manager can push job to specific connection', function () {
     $job = new QueueTestJob('Connection test');
     $jobId = $this->manager->push($job, null, 'database');
-    
+
     expect($jobId)->toBeString();
 });
 
@@ -135,15 +136,36 @@ test('queue manager can clear queue', function () {
 
 test('queue manager can extend with custom driver', function () {
     $this->manager->extend('custom', function ($config) {
-        return new class implements \Phare\Queue\Connectors\ConnectorInterface {
+        return new class() implements \Phare\Queue\Connectors\ConnectorInterface
+        {
             public function connect(array $config): \Phare\Queue\QueueInterface
             {
-                return new class implements \Phare\Queue\QueueInterface {
-                    public function push(Job $job, ?string $queue = null): string { return 'custom-id'; }
-                    public function pop(?string $queue = null): ?Job { return null; }
-                    public function size(?string $queue = null): int { return 0; }
-                    public function clear(?string $queue = null): int { return 0; }
-                    public function delete(Job $job): bool { return true; }
+                return new class() implements \Phare\Queue\QueueInterface
+                {
+                    public function push(Job $job, ?string $queue = null): string
+                    {
+                        return 'custom-id';
+                    }
+
+                    public function pop(?string $queue = null): ?Job
+                    {
+                        return null;
+                    }
+
+                    public function size(?string $queue = null): int
+                    {
+                        return 0;
+                    }
+
+                    public function clear(?string $queue = null): int
+                    {
+                        return 0;
+                    }
+
+                    public function delete(Job $job): bool
+                    {
+                        return true;
+                    }
                 };
             }
         };
@@ -153,8 +175,8 @@ test('queue manager can extend with custom driver', function () {
     $manager = new QueueManager([
         'default' => 'custom',
         'connections' => [
-            'custom' => ['driver' => 'custom']
-        ]
+            'custom' => ['driver' => 'custom'],
+        ],
     ]);
 
     $connection = $manager->connection('custom');
@@ -165,8 +187,8 @@ test('queue manager throws exception for unknown driver', function () {
     $manager = new QueueManager([
         'default' => 'unknown',
         'connections' => [
-            'unknown' => ['driver' => 'unknown']
-        ]
+            'unknown' => ['driver' => 'unknown'],
+        ],
     ]);
 
     expect(function () use ($manager) {
@@ -178,7 +200,7 @@ test('queue manager can get all connections', function () {
     // Create some connections
     $this->manager->connection('sync');
     $this->manager->connection('database');
-    
+
     $connections = $this->manager->getConnections();
     expect($connections)->toBeArray();
     expect($connections)->toHaveKey('sync');
@@ -211,19 +233,19 @@ test('queue manager handles job failures correctly', function () {
     $exception = new \Exception('Test failure');
 
     $method->invoke($this->manager, $job, $exception);
-    
+
     expect($job->getRetries())->toBe(1);
 });
 
 test('queue manager can work with max jobs limit', function () {
     // This is a basic test - full testing would require integration
     expect(method_exists($this->manager, 'work'))->toBeTrue();
-    
+
     // Verify method signature by creating a basic mock
     $reflection = new ReflectionClass($this->manager);
     $method = $reflection->getMethod('work');
     $parameters = $method->getParameters();
-    
+
     expect($parameters)->toHaveCount(3);
     expect($parameters[0]->getName())->toBe('queue');
     expect($parameters[1]->getName())->toBe('connection');
@@ -233,13 +255,13 @@ test('queue manager can work with max jobs limit', function () {
 test('queue manager reuses connection instances', function () {
     $connection1 = $this->manager->connection('sync');
     $connection2 = $this->manager->connection('sync');
-    
+
     expect($connection1)->toBe($connection2); // Same instance
 });
 
 test('queue manager different connections are different instances', function () {
     $syncConnection = $this->manager->connection('sync');
     $databaseConnection = $this->manager->connection('database');
-    
+
     expect($syncConnection)->not->toBe($databaseConnection);
 });

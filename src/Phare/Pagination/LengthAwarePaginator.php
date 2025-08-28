@@ -7,6 +7,7 @@ use Phare\Collections\Collection;
 class LengthAwarePaginator extends Paginator
 {
     protected int $total;
+
     protected int $lastPage;
 
     public function __construct($items, int $total, int $perPage, ?int $currentPage = null, array $options = [])
@@ -14,11 +15,11 @@ class LengthAwarePaginator extends Paginator
         $this->total = $total;
         $this->perPage = $perPage;
         $this->currentPage = $this->setCurrentPage($currentPage);
-        $this->lastPage = max((int) ceil($total / $perPage), 1);
+        $this->lastPage = max((int)ceil($total / $perPage), 1);
 
         $this->items = $items instanceof Collection ? $items : new Collection($items);
         $this->options = $options;
-        
+
         $this->path = $this->options['path'] ?? $this->resolveCurrentPath();
         $this->pageName = $this->options['pageName'] ?? 'page';
     }
@@ -51,6 +52,7 @@ class LengthAwarePaginator extends Paginator
     public function through(callable $callback): static
     {
         $this->items = $this->items->map($callback);
+
         return $this;
     }
 
@@ -89,7 +91,7 @@ class LengthAwarePaginator extends Paginator
             }
         }
 
-        // Next Page Link  
+        // Next Page Link
         if ($this->hasMorePages()) {
             $links[] = '<a href="' . $this->nextPageUrl() . '">Next &raquo;</a>';
         } else {
@@ -161,7 +163,7 @@ class LengthAwarePaginator extends Paginator
         foreach (range(1, $this->lastPage()) as $page) {
             $links->push([
                 'url' => $page == $this->currentPage() ? null : $this->url($page),
-                'label' => (string) $page,
+                'label' => (string)$page,
                 'active' => $page == $this->currentPage(),
             ]);
         }

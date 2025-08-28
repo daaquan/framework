@@ -2,8 +2,8 @@
 
 namespace Phare\Notifications\Channels;
 
-use Phare\Notifications\Notification;
 use Phare\Notifications\Messages\SmsMessage;
+use Phare\Notifications\Notification;
 
 class SmsChannel implements ChannelInterface
 {
@@ -31,7 +31,7 @@ class SmsChannel implements ChannelInterface
             'to' => $to,
             'message' => $message->getContent(),
             'from' => $message->getFrom(),
-            'sent_at' => new \DateTime()
+            'sent_at' => new \DateTime(),
         ];
     }
 

@@ -2,7 +2,6 @@
 
 use Phare\Http\Resources\JsonResource;
 use Phare\Http\Resources\ResourceCollection;
-use Phare\Collections\Collection;
 
 // Create test resource classes
 class UserResource extends JsonResource
@@ -24,7 +23,7 @@ class UserCollection extends ResourceCollection
 }
 
 beforeEach(function () {
-    $this->userData = (object) [
+    $this->userData = (object)[
         'id' => 1,
         'name' => 'John Doe',
         'email' => 'john@example.com',
@@ -35,7 +34,7 @@ beforeEach(function () {
 it('transforms single resource to array', function () {
     $resource = new UserResource($this->userData);
     $array = $resource->toArray();
-    
+
     expect($array)->toHaveKey('id');
     expect($array)->toHaveKey('name');
     expect($array)->toHaveKey('email');
@@ -45,25 +44,26 @@ it('transforms single resource to array', function () {
 
 it('creates resource using make method', function () {
     $resource = UserResource::make($this->userData);
-    
+
     expect($resource)->toBeInstanceOf(UserResource::class);
     expect($resource->toArray()['name'])->toBe('John Doe');
 });
 
 it('creates collection from array', function () {
     $users = [
-        (object) ['id' => 1, 'name' => 'John', 'email' => 'john@example.com'],
-        (object) ['id' => 2, 'name' => 'Jane', 'email' => 'jane@example.com'],
+        (object)['id' => 1, 'name' => 'John', 'email' => 'john@example.com'],
+        (object)['id' => 2, 'name' => 'Jane', 'email' => 'jane@example.com'],
     ];
-    
+
     $collection = UserResource::collection($users);
-    
+
     expect($collection)->toBeInstanceOf(ResourceCollection::class);
     expect($collection->count())->toBe(2);
 });
 
 it('handles when conditions', function () {
-    $resource = new class($this->userData) extends JsonResource {
+    $resource = new class($this->userData) extends JsonResource
+    {
         public function toArray(): array
         {
             return [
@@ -74,14 +74,15 @@ it('handles when conditions', function () {
             ];
         }
     };
-    
+
     $array = $resource->toArray();
     expect($array)->not->toHaveKey('admin');
     expect($array['verified'])->toBe('is verified');
 });
 
 it('handles whenHas conditions', function () {
-    $resource = new class($this->userData) extends JsonResource {
+    $resource = new class($this->userData) extends JsonResource
+    {
         public function toArray(): array
         {
             return [
@@ -93,7 +94,7 @@ it('handles whenHas conditions', function () {
             ];
         }
     };
-    
+
     $array = $resource->toArray();
     expect($array['created_at'])->toBe('2023-01-01');
     expect($array['updated_at'])->toBe('fallback');
@@ -103,7 +104,7 @@ it('handles whenHas conditions', function () {
 it('serializes to JSON', function () {
     $resource = new UserResource($this->userData);
     $json = $resource->toJson();
-    
+
     $decoded = json_decode($json, true);
     expect($decoded)->toHaveKey('id');
     expect($decoded['name'])->toBe('John Doe');
@@ -112,7 +113,7 @@ it('serializes to JSON', function () {
 it('implements JsonSerializable', function () {
     $resource = new UserResource($this->userData);
     $serialized = $resource->jsonSerialize();
-    
+
     expect($serialized)->toBeArray();
     expect($serialized)->toHaveKey('id');
 });
@@ -120,33 +121,34 @@ it('implements JsonSerializable', function () {
 it('handles additional data', function () {
     $resource = new UserResource($this->userData);
     $resource->additional(['meta' => 'additional data']);
-    
+
     $response = $resource->response();
     expect($response)->toBeInstanceOf(\Phare\Http\Resources\JsonResourceResponse::class);
 });
 
 it('allows custom wrapping', function () {
     JsonResource::wrap('custom_data');
-    
+
     $resource = new UserResource($this->userData);
     $serialized = $resource->jsonSerialize();
-    
+
     // Reset to default
     JsonResource::wrap('data');
 });
 
 it('disables wrapping', function () {
     JsonResource::withoutWrapping();
-    
+
     $resource = new UserResource($this->userData);
     $serialized = $resource->jsonSerialize();
-    
+
     // Reset to default
     JsonResource::wrap('data');
 });
 
 it('handles null values with whenNotNull', function () {
-    $resource = new class($this->userData) extends JsonResource {
+    $resource = new class($this->userData) extends JsonResource
+    {
         public function toArray(): array
         {
             return [
@@ -156,27 +158,28 @@ it('handles null values with whenNotNull', function () {
             ];
         }
     };
-    
+
     $array = $resource->toArray();
     expect($array['name'])->toBe('John Doe');
     expect($array['phone'])->toBe('no phone');
 });
 
 it('merges data conditionally', function () {
-    $resource = new class($this->userData) extends JsonResource {
+    $resource = new class($this->userData) extends JsonResource
+    {
         public function toArray(): array
         {
             return array_merge([
                 'id' => $this->id,
                 'name' => $this->name,
             ], $this->mergeWhen(true, [
-                'email' => $this->email
+                'email' => $this->email,
             ]), $this->mergeWhen(false, [
-                'password' => 'secret'
+                'password' => 'secret',
             ]));
         }
     };
-    
+
     $array = $resource->toArray();
     expect($array)->toHaveKey('email');
     expect($array)->not->toHaveKey('password');

@@ -5,6 +5,7 @@ namespace Phare\Queue;
 class RedisQueue implements QueueInterface
 {
     protected array $config;
+
     protected array $queues = []; // Mock Redis storage
 
     public function __construct(array $config = [])
@@ -80,7 +81,7 @@ class RedisQueue implements QueueInterface
     protected function moveDelayedJobs(string $queue): void
     {
         $delayedQueue = "delayed:{$queue}";
-        
+
         if (!isset($this->queues[$delayedQueue])) {
             return;
         }
@@ -113,7 +114,7 @@ class RedisQueue implements QueueInterface
     public function size(?string $queue = null): int
     {
         $queue = $queue ?: $this->config['queue'];
-        
+
         return isset($this->queues[$queue]) ? count($this->queues[$queue]) : 0;
     }
 
@@ -123,10 +124,10 @@ class RedisQueue implements QueueInterface
     public function clear(?string $queue = null): int
     {
         $queue = $queue ?: $this->config['queue'];
-        
+
         $count = $this->size($queue);
         $this->queues[$queue] = [];
-        
+
         // Also clear delayed queue
         $delayedQueue = "delayed:{$queue}";
         if (isset($this->queues[$delayedQueue])) {
@@ -151,6 +152,7 @@ class RedisQueue implements QueueInterface
                 if ($payload['job_id'] === $jobId) {
                     unset($this->queues[$queue][$index]);
                     $this->queues[$queue] = array_values($this->queues[$queue]);
+
                     return true;
                 }
             }
@@ -164,6 +166,7 @@ class RedisQueue implements QueueInterface
                 if ($payload['job_id'] === $jobId) {
                     unset($this->queues[$delayedQueue][$index]);
                     $this->queues[$delayedQueue] = array_values($this->queues[$delayedQueue]);
+
                     return true;
                 }
             }

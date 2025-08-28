@@ -5,13 +5,21 @@ namespace Phare\Queue;
 abstract class Job
 {
     protected string $jobId;
+
     protected string $queue = 'default';
+
     protected int $delay = 0;
+
     protected int $timeout = 60;
+
     protected int $retries = 0;
+
     protected int $maxRetries = 3;
+
     protected array $data = [];
+
     protected ?\DateTimeInterface $availableAt = null;
+
     protected ?\DateTimeInterface $createdAt = null;
 
     public function __construct()
@@ -47,6 +55,7 @@ abstract class Job
     public function onQueue(string $queue): static
     {
         $this->queue = $queue;
+
         return $this;
     }
 
@@ -57,6 +66,7 @@ abstract class Job
     {
         $this->delay = $seconds;
         $this->availableAt = new \DateTime('+' . $seconds . ' seconds');
+
         return $this;
     }
 
@@ -66,6 +76,7 @@ abstract class Job
     public function timeout(int $seconds): static
     {
         $this->timeout = $seconds;
+
         return $this;
     }
 
@@ -75,6 +86,7 @@ abstract class Job
     public function retries(int $retries): static
     {
         $this->maxRetries = $retries;
+
         return $this;
     }
 
@@ -84,6 +96,7 @@ abstract class Job
     public function withData(array $data): static
     {
         $this->data = array_merge($this->data, $data);
+
         return $this;
     }
 

@@ -5,8 +5,11 @@ namespace Phare\RateLimit;
 class Limit
 {
     public int $maxAttempts;
+
     public int $decayMinutes;
+
     public string $key;
+
     public ?\Closure $responseCallback = null;
 
     public function __construct(int $maxAttempts = 60, int $decayMinutes = 1)
@@ -43,12 +46,14 @@ class Limit
     public function by(string $key): static
     {
         $this->key = $key;
+
         return $this;
     }
 
     public function response(\Closure $callback): static
     {
         $this->responseCallback = $callback;
+
         return $this;
     }
 }

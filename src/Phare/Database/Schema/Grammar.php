@@ -32,7 +32,7 @@ abstract class Grammar
 
         foreach ($blueprint->getCommands() as $command) {
             $method = 'compile' . ucfirst($command['type']);
-            
+
             if (method_exists($this, $method)) {
                 $sql = $this->$method($blueprint, $command);
                 if ($sql) {
@@ -93,24 +93,27 @@ abstract class Grammar
             return "'{$value}'";
         }
 
-        return (string) $value;
+        return (string)$value;
     }
 
     protected function compilePrimary(Blueprint $blueprint, array $command): string
     {
         $columns = implode(', ', array_map([$this, 'wrap'], $command['columns']));
+
         return "ALTER TABLE {$this->wrapTable($blueprint->getTable())} ADD PRIMARY KEY ({$columns})";
     }
 
     protected function compileUnique(Blueprint $blueprint, array $command): string
     {
         $columns = implode(', ', array_map([$this, 'wrap'], $command['columns']));
+
         return "ALTER TABLE {$this->wrapTable($blueprint->getTable())} ADD UNIQUE {$this->wrap($command['index'])} ({$columns})";
     }
 
     protected function compileIndex(Blueprint $blueprint, array $command): string
     {
         $columns = implode(', ', array_map([$this, 'wrap'], $command['columns']));
+
         return "ALTER TABLE {$this->wrapTable($blueprint->getTable())} ADD INDEX {$this->wrap($command['index'])} ({$columns})";
     }
 
@@ -118,7 +121,7 @@ abstract class Grammar
     {
         $foreign = $command['foreign'];
         $table = $this->wrapTable($blueprint->getTable());
-        
+
         return "ALTER TABLE {$table} ADD CONSTRAINT {$this->wrap($foreign->getName())} " .
                "FOREIGN KEY ({$this->wrap($foreign->getColumn())}) " .
                "REFERENCES {$this->wrapTable($foreign->getTable())} ({$this->wrap($foreign->getReferences())}) " .
@@ -128,6 +131,7 @@ abstract class Grammar
     protected function compileDropColumn(Blueprint $blueprint, array $command): string
     {
         $columns = implode(', ', array_map([$this, 'wrap'], $command['columns']));
+
         return "ALTER TABLE {$this->wrapTable($blueprint->getTable())} DROP COLUMN {$columns}";
     }
 

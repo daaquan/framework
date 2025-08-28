@@ -9,16 +9,17 @@ use Tests\TestCase;
 class MigrationTest extends TestCase
 {
     protected Migrator $migrator;
+
     protected SchemaBuilder $schema;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $connection = $this->app->make('db');
         $this->migrator = new Migrator($this->app, $connection);
         $this->schema = new SchemaBuilder($connection);
-        
+
         // Clean up any existing test tables
         if ($this->schema->hasTable('test_table')) {
             $this->schema->drop('test_table');
@@ -77,7 +78,8 @@ class MigrationTest extends TestCase
 
     public function test_migration_class_works()
     {
-        $migration = new class($this->schema) extends Migration {
+        $migration = new class($this->schema) extends Migration
+        {
             public function up(): void
             {
                 $this->create('users', function (Blueprint $table) {

@@ -2,14 +2,14 @@
 
 namespace Phare\Validation;
 
-class MessageBag implements \Countable, \JsonSerializable, \ArrayAccess
+class MessageBag implements \ArrayAccess, \Countable, \JsonSerializable
 {
     protected array $messages = [];
 
     public function __construct(array $messages = [])
     {
         foreach ($messages as $key => $value) {
-            $this->messages[$key] = (array) $value;
+            $this->messages[$key] = (array)$value;
         }
     }
 
@@ -33,7 +33,7 @@ class MessageBag implements \Countable, \JsonSerializable, \ArrayAccess
         foreach ($messages as $key => $value) {
             $this->messages[$key] = array_merge(
                 $this->messages[$key] ?? [],
-                (array) $value
+                (array)$value
             );
         }
 
@@ -45,7 +45,7 @@ class MessageBag implements \Countable, \JsonSerializable, \ArrayAccess
         return isset($this->messages[$key]) && !empty($this->messages[$key]);
     }
 
-    public function first(string $key = null): ?string
+    public function first(?string $key = null): ?string
     {
         if ($key === null) {
             return $this->firstOfAll();
@@ -54,18 +54,18 @@ class MessageBag implements \Countable, \JsonSerializable, \ArrayAccess
         return $this->messages[$key][0] ?? null;
     }
 
-    public function get(string $key, string $format = null): array
+    public function get(string $key, ?string $format = null): array
     {
         $messages = $this->messages[$key] ?? [];
 
         if ($format !== null) {
-            $messages = array_map(fn($message) => str_replace(':message', $message, $format), $messages);
+            $messages = array_map(fn ($message) => str_replace(':message', $message, $format), $messages);
         }
 
         return $messages;
     }
 
-    public function all(string $format = null): array
+    public function all(?string $format = null): array
     {
         $all = [];
 
@@ -74,7 +74,7 @@ class MessageBag implements \Countable, \JsonSerializable, \ArrayAccess
         }
 
         if ($format !== null) {
-            $all = array_map(fn($message) => str_replace(':message', $message, $format), $all);
+            $all = array_map(fn ($message) => str_replace(':message', $message, $format), $all);
         }
 
         return $all;

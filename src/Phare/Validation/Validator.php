@@ -7,10 +7,15 @@ use Phare\Contracts\Http\Validation\Validator as ValidatorContract;
 class Validator implements ValidatorContract
 {
     protected array $data;
+
     protected array $rules;
+
     protected array $messages;
+
     protected array $customAttributes;
+
     protected array $errors = [];
+
     protected array $customRules = [];
 
     public function __construct(array $data, array $rules, array $messages = [], array $customAttributes = [])
@@ -98,6 +103,7 @@ class Validator implements ValidatorContract
     {
         if (str_contains($rule, ':')) {
             [$rule, $parameter] = explode(':', $rule, 2);
+
             return [$rule, explode(',', $parameter)];
         }
 
@@ -118,7 +124,7 @@ class Validator implements ValidatorContract
     protected function getMessage(string $attribute, string $rule, array $parameters): string
     {
         $key = "{$attribute}.{$rule}";
-        
+
         if (isset($this->messages[$key])) {
             return $this->messages[$key];
         }
@@ -194,46 +200,52 @@ class Validator implements ValidatorContract
     protected function validateMin(string $attribute, $value, array $parameters): bool
     {
         $size = $this->getSize($attribute, $value);
+
         return $size >= $parameters[0];
     }
 
     protected function validateMax(string $attribute, $value, array $parameters): bool
     {
         $size = $this->getSize($attribute, $value);
+
         return $size <= $parameters[0];
     }
 
     protected function validateBetween(string $attribute, $value, array $parameters): bool
     {
         $size = $this->getSize($attribute, $value);
+
         return $size >= $parameters[0] && $size <= $parameters[1];
     }
 
     protected function validateIn(string $attribute, $value, array $parameters): bool
     {
-        return in_array((string) $value, $parameters);
+        return in_array((string)$value, $parameters);
     }
 
     protected function validateNotIn(string $attribute, $value, array $parameters): bool
     {
-        return !in_array((string) $value, $parameters);
+        return !in_array((string)$value, $parameters);
     }
 
     protected function validateConfirmed(string $attribute, $value, array $parameters): bool
     {
         $confirmation = $this->getValue($attribute . '_confirmation');
+
         return $value === $confirmation;
     }
 
     protected function validateSame(string $attribute, $value, array $parameters): bool
     {
         $other = $this->getValue($parameters[0]);
+
         return $value === $other;
     }
 
     protected function validateDifferent(string $attribute, $value, array $parameters): bool
     {
         $other = $this->getValue($parameters[0]);
+
         return $value !== $other;
     }
 
@@ -274,7 +286,7 @@ class Validator implements ValidatorContract
     protected function getSize(string $attribute, $value): int|float
     {
         if (is_numeric($value)) {
-            return (float) $value;
+            return (float)$value;
         }
 
         if (is_array($value)) {

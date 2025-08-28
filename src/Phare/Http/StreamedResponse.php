@@ -7,15 +7,16 @@ use Phalcon\Http\Response;
 class StreamedResponse extends Response
 {
     protected \Closure $callback;
+
     protected bool $streamed = false;
 
     public function __construct(\Closure $callback, int $status = 200, array $headers = [])
     {
         parent::__construct();
-        
+
         $this->callback = $callback;
         $this->setStatusCode($status);
-        
+
         foreach ($headers as $name => $value) {
             $this->setHeader($name, $value);
         }
@@ -37,7 +38,7 @@ class StreamedResponse extends Response
         // Send headers
         if (!headers_sent()) {
             http_response_code($this->getStatusCode());
-            
+
             foreach ($this->getHeaders() as $header) {
                 header($header->getName() . ': ' . $header->getValue());
             }
@@ -52,6 +53,7 @@ class StreamedResponse extends Response
     public function setCallback(\Closure $callback): static
     {
         $this->callback = $callback;
+
         return $this;
     }
 

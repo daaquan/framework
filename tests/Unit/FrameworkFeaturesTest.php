@@ -13,16 +13,17 @@ it('demonstrates Laravel-style Collection features', function () {
 
     // Test chaining Laravel-style methods
     $result = $collection
-        ->filter(fn($user) => $user['age'] > 25)
-        ->sortBy(fn($user) => $user['age'])
+        ->filter(fn ($user) => $user['age'] > 25)
+        ->sortBy(fn ($user) => $user['age'])
         ->pluck('name');
 
     expect($result->toArray())->toBe(['John', 'Bob']);
 });
 
 it('demonstrates Request helper methods', function () {
-    $request = new class extends Request {
-        public function __construct() 
+    $request = new class() extends Request
+    {
+        public function __construct()
         {
             $this->data = ['name' => 'John', 'email' => 'john@test.com', 'empty' => ''];
         }
@@ -38,40 +39,62 @@ it('demonstrates Request helper methods', function () {
 });
 
 it('demonstrates Response helper methods', function () {
-    $response = new class extends Response {
+    $response = new class() extends Response
+    {
         protected array $statusCode = [200];
+
         protected array $headers = [];
-        
+
         public function __construct() {}
-        
-        public function setStatusCode($code, $message = null) {
+
+        public function setStatusCode($code, $message = null)
+        {
             $this->statusCode = [$code, $message];
+
             return $this;
         }
-        
-        public function setHeader($name, $value) {
+
+        public function setHeader($name, $value)
+        {
             $this->headers[$name] = $value;
+
             return $this;
         }
-        
-        public function setJsonContent($data) {
+
+        public function setJsonContent($data)
+        {
             $this->content = json_encode($data);
+
             return $this;
         }
-        
-        public function setContentType($contentType, $charset = null) {
+
+        public function setContentType($contentType, $charset = null)
+        {
             $this->headers['Content-Type'] = $contentType . ($charset ? '; charset=' . $charset : '');
+
             return $this;
         }
-        
-        public function getCookies() {
-            return new class {
-                public function set() { return true; }
+
+        public function getCookies()
+        {
+            return new class()
+            {
+                public function set()
+                {
+                    return true;
+                }
             };
         }
-        
-        public function getTestHeaders() { return $this->headers; }
-        public function getTestStatusCode() { return $this->statusCode; }
+
+        public function getTestHeaders()
+        {
+            return $this->headers;
+        }
+
+        public function getTestStatusCode()
+        {
+            return $this->statusCode;
+        }
     };
 
     $chainedResponse = $response
@@ -87,7 +110,7 @@ it('demonstrates Response helper methods', function () {
 it('shows framework provides Laravel-like features', function () {
     // Collection methods work like Laravel Collections
     $numbers = new Collection([1, 2, 3, 4, 5]);
-    expect($numbers->filter(fn($n) => $n > 3)->sum())->toBe(9); // 4 + 5
+    expect($numbers->filter(fn ($n) => $n > 3)->sum())->toBe(9); // 4 + 5
 
     // Basic collection operations
     expect($numbers->count())->toBe(5);

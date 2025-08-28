@@ -139,7 +139,7 @@ test('event can set timezone', function () {
 test('event can set user', function () {
     $user = (new ReflectionClass($this->event))->getProperty('user');
     $user->setAccessible(true);
-    
+
     $this->event->user('www-data');
     expect($user->getValue($this->event))->toBe('www-data');
 });
@@ -147,7 +147,7 @@ test('event can set user', function () {
 test('event can set environments', function () {
     $environments = (new ReflectionClass($this->event))->getProperty('environments');
     $environments->setAccessible(true);
-    
+
     $this->event->environments(['production', 'staging']);
     expect($environments->getValue($this->event))->toBe(['production', 'staging']);
 });
@@ -155,7 +155,7 @@ test('event can set environments', function () {
 test('event can set single environment', function () {
     $environments = (new ReflectionClass($this->event))->getProperty('environments');
     $environments->setAccessible(true);
-    
+
     $this->event->environments('production');
     expect($environments->getValue($this->event))->toBe(['production']);
 });
@@ -163,7 +163,7 @@ test('event can set single environment', function () {
 test('event can run in maintenance mode', function () {
     $maintenance = (new ReflectionClass($this->event))->getProperty('evenInMaintenanceMode');
     $maintenance->setAccessible(true);
-    
+
     $this->event->evenInMaintenanceMode();
     expect($maintenance->getValue($this->event))->toBeTrue();
 });
@@ -171,7 +171,7 @@ test('event can run in maintenance mode', function () {
 test('event can run in background', function () {
     $background = (new ReflectionClass($this->event))->getProperty('runInBackground');
     $background->setAccessible(true);
-    
+
     $this->event->runInBackground();
     expect($background->getValue($this->event))->toBeTrue();
 });
@@ -179,7 +179,7 @@ test('event can run in background', function () {
 test('event can set output file', function () {
     $output = (new ReflectionClass($this->event))->getProperty('output');
     $output->setAccessible(true);
-    
+
     $this->event->sendOutputTo('/var/log/task.log');
     expect($output->getValue($this->event))->toBe('/var/log/task.log');
 });
@@ -189,7 +189,7 @@ test('event can append output to file', function () {
     $shouldAppend = (new ReflectionClass($this->event))->getProperty('shouldAppendOutput');
     $output->setAccessible(true);
     $shouldAppend->setAccessible(true);
-    
+
     $this->event->appendOutputTo('/var/log/task.log');
     expect($output->getValue($this->event))->toBe('/var/log/task.log');
     expect($shouldAppend->getValue($this->event))->toBeTrue();
@@ -198,8 +198,8 @@ test('event can append output to file', function () {
 test('event can register before callback', function () {
     $beforeCallback = (new ReflectionClass($this->event))->getProperty('beforeCallback');
     $beforeCallback->setAccessible(true);
-    
-    $callback = fn() => 'before';
+
+    $callback = fn () => 'before';
     $this->event->before($callback);
     expect($beforeCallback->getValue($this->event))->toBe($callback);
 });
@@ -207,8 +207,8 @@ test('event can register before callback', function () {
 test('event can register after callback', function () {
     $afterCallback = (new ReflectionClass($this->event))->getProperty('afterCallback');
     $afterCallback->setAccessible(true);
-    
-    $callback = fn() => 'after';
+
+    $callback = fn () => 'after';
     $this->event->after($callback);
     expect($afterCallback->getValue($this->event))->toBe($callback);
 });
@@ -216,8 +216,8 @@ test('event can register after callback', function () {
 test('event can register when filter', function () {
     $filters = (new ReflectionClass($this->event))->getProperty('filters');
     $filters->setAccessible(true);
-    
-    $callback = fn() => true;
+
+    $callback = fn () => true;
     $this->event->when($callback);
     expect($filters->getValue($this->event))->toContain($callback);
 });
@@ -225,8 +225,8 @@ test('event can register when filter', function () {
 test('event can register skip filter', function () {
     $rejects = (new ReflectionClass($this->event))->getProperty('rejects');
     $rejects->setAccessible(true);
-    
-    $callback = fn() => false;
+
+    $callback = fn () => false;
     $this->event->skip($callback);
     expect($rejects->getValue($this->event))->toContain($callback);
 });
@@ -237,12 +237,12 @@ test('event is due when filters pass', function () {
 });
 
 test('event is not due when when filter fails', function () {
-    $this->event->everyMinute()->when(fn() => false);
+    $this->event->everyMinute()->when(fn () => false);
     expect($this->event->isDue())->toBeFalse();
 });
 
 test('event is not due when skip filter passes', function () {
-    $this->event->everyMinute()->skip(fn() => true);
+    $this->event->everyMinute()->skip(fn () => true);
     expect($this->event->isDue())->toBeFalse();
 });
 
@@ -256,15 +256,15 @@ test('event can chain method calls', function () {
         ->daily()
         ->timezone('UTC')
         ->user('www-data')
-        ->when(fn() => true);
-    
+        ->when(fn () => true);
+
     expect($result)->toBe($this->event);
     expect($this->event->getExpression())->toBe('0 0 * * *');
 });
 
 test('windows os helper function works', function () {
     expect(function_exists('Phare\Console\Scheduling\windows_os'))->toBeTrue();
-    
+
     $isWindows = \Phare\Console\Scheduling\windows_os();
     expect($isWindows)->toBeBool();
 });

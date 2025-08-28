@@ -5,6 +5,7 @@ namespace Phare\Encryption;
 class Encrypter
 {
     protected string $key;
+
     protected string $cipher;
 
     protected static array $supportedCiphers = [
@@ -17,7 +18,7 @@ class Encrypter
     public function __construct(string $key, string $cipher = 'aes-256-cbc')
     {
         $this->validateKey($key, $cipher);
-        
+
         $this->key = $key;
         $this->cipher = $cipher;
     }
@@ -25,9 +26,9 @@ class Encrypter
     public function encrypt(mixed $value, bool $serialize = true): string
     {
         $iv = random_bytes(openssl_cipher_iv_length($this->cipher));
-        
-        $value = $serialize ? serialize($value) : (string) $value;
-        
+
+        $value = $serialize ? serialize($value) : (string)$value;
+
         if ($this->isAEAD()) {
             $tag = null;
             $encrypted = openssl_encrypt($value, $this->cipher, $this->key, 0, $iv, $tag);
@@ -61,11 +62,11 @@ class Encrypter
 
         if ($this->isAEAD()) {
             $decrypted = openssl_decrypt(
-                $payload['value'], 
-                $this->cipher, 
-                $this->key, 
-                0, 
-                $iv, 
+                $payload['value'],
+                $this->cipher,
+                $this->key,
+                0,
+                $iv,
                 base64_decode($payload['tag'])
             );
         } else {
@@ -97,7 +98,7 @@ class Encrypter
         }
 
         $expectedSize = static::$supportedCiphers[$cipher]['size'];
-        
+
         if (strlen($key) !== $expectedSize) {
             throw new \InvalidArgumentException(
                 "Key length must be {$expectedSize} bytes for cipher {$cipher}"
@@ -118,7 +119,7 @@ class Encrypter
     protected function validateMac(array $payload): void
     {
         $calculated = $this->createMac($payload['iv'], $payload['value']);
-        
+
         if (!hash_equals($calculated, $payload['mac'])) {
             throw new DecryptException('MAC verification failed.');
         }
@@ -130,9 +131,9 @@ class Encrypter
         if ($decoded === false) {
             throw new DecryptException('Invalid base64 encoding.');
         }
-        
+
         $payload = json_decode($decoded, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE || !is_array($payload)) {
             throw new DecryptException('Invalid JSON payload.');
         }
@@ -147,7 +148,7 @@ class Encrypter
     protected function validPayload(array $payload): bool
     {
         $required = $this->isAEAD() ? ['iv', 'value', 'tag'] : ['iv', 'value', 'mac'];
-        
+
         foreach ($required as $key) {
             if (!isset($payload[$key]) || !is_string($payload[$key])) {
                 return false;
@@ -171,7 +172,7 @@ class Encrypter
         if (!isset(static::$supportedCiphers[$cipher])) {
             throw new \InvalidArgumentException("Unsupported cipher: {$cipher}");
         }
-        
+
         return base64_encode(random_bytes(static::$supportedCiphers[$cipher]['size']));
     }
 

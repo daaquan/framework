@@ -9,7 +9,7 @@ use Phare\Database\Schema\Grammar;
 class MySqlGrammar extends Grammar
 {
     protected array $modifiers = [
-        'Unsigned', 'Charset', 'Collate', 'Nullable', 'Default', 'Increment', 'Comment', 'After', 'First'
+        'Unsigned', 'Charset', 'Collate', 'Nullable', 'Default', 'Increment', 'Comment', 'After', 'First',
     ];
 
     protected array $serialCommands = ['create', 'add'];
@@ -18,7 +18,7 @@ class MySqlGrammar extends Grammar
     {
         $table = $this->wrapTable($blueprint->getTable());
         $columns = implode(', ', $this->getColumns($blueprint));
-        
+
         return "CREATE TABLE {$table} ({$columns})";
     }
 
@@ -50,7 +50,7 @@ class MySqlGrammar extends Grammar
     {
         $from = $this->wrapTable($blueprint->getTable());
         $to = $this->wrapTable($to);
-        
+
         return "RENAME TABLE {$from} TO {$to}";
     }
 
@@ -73,7 +73,7 @@ class MySqlGrammar extends Grammar
             'timestamp' => 'TIMESTAMP',
             'json' => 'JSON',
             'binary' => 'BLOB',
-            'enum' => 'ENUM(' . implode(',', array_map(fn($v) => "'{$v}'", $column->getAttributes()['values'] ?? [])) . ')',
+            'enum' => 'ENUM(' . implode(',', array_map(fn ($v) => "'{$v}'", $column->getAttributes()['values'] ?? [])) . ')',
             default => 'VARCHAR(255)',
         };
     }
@@ -118,7 +118,7 @@ class MySqlGrammar extends Grammar
     {
         if (array_key_exists('default', $column->getAttributes())) {
             $default = $column->getAttributes()['default'];
-            
+
             if ($column->getAttributes()['useCurrent'] ?? false) {
                 return $sql . ' DEFAULT CURRENT_TIMESTAMP';
             }

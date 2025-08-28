@@ -8,8 +8,11 @@ use Phare\Contracts\Support\Jsonable;
 abstract class JsonResource implements \JsonSerializable, Arrayable, Jsonable
 {
     protected mixed $resource;
+
     protected ?array $with = null;
+
     protected ?array $additional = null;
+
     public static ?string $wrap = 'data';
 
     public function __construct(mixed $resource)
@@ -37,6 +40,7 @@ abstract class JsonResource implements \JsonSerializable, Arrayable, Jsonable
     public function additional(array $data): static
     {
         $this->additional = $data;
+
         return $this;
     }
 
@@ -78,7 +82,7 @@ abstract class JsonResource implements \JsonSerializable, Arrayable, Jsonable
             $data = $data->toArray();
         }
 
-        return $this->filter((array) $data);
+        return $this->filter((array)$data);
     }
 
     protected function filter(array $data): array
@@ -152,7 +156,7 @@ abstract class JsonResource implements \JsonSerializable, Arrayable, Jsonable
             return $this->resource->relationLoaded($relationship);
         }
 
-        return property_exists($this->resource, $relationship) && 
+        return property_exists($this->resource, $relationship) &&
                !is_null($this->resource->{$relationship});
     }
 
@@ -163,7 +167,7 @@ abstract class JsonResource implements \JsonSerializable, Arrayable, Jsonable
         }
 
         if (is_object($this->resource)) {
-            return property_exists($this->resource, $offset) || 
+            return property_exists($this->resource, $offset) ||
                    (method_exists($this->resource, '__isset') && $this->resource->__isset($offset));
         }
 

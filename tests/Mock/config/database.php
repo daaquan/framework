@@ -54,7 +54,7 @@ return [
             'engine' => 'InnoDB', // Storage engine used when creating tables
             'charset' => 'utf8mb4', // Character set used when creating tables
             'collation' => 'utf8mb4_bin', // Collation used when creating tables (case-sensitive)
-            //'collation' => 'utf8mb4_unicode_ci', // Case-insensitive collation (slower)
+            // 'collation' => 'utf8mb4_unicode_ci', // Case-insensitive collation (slower)
         ],
 
         'mysql_test' => [

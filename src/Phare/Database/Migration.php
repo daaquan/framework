@@ -2,7 +2,6 @@
 
 namespace Phare\Database;
 
-use Phare\Database\Schema\Blueprint;
 use Phare\Database\Schema\SchemaBuilder;
 
 abstract class Migration

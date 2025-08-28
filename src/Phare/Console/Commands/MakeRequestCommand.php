@@ -7,6 +7,7 @@ use Phare\Console\Command;
 class MakeRequestCommand extends Command
 {
     protected string $signature = 'make:request {name : The name of the form request}';
+
     protected string $description = 'Create a new form request class';
 
     public function handle(): int
@@ -18,6 +19,7 @@ class MakeRequestCommand extends Command
 
         if ($this->files->exists($path)) {
             $this->error("Request [{$requestName}] already exists.");
+
             return 1;
         }
 
@@ -36,7 +38,7 @@ class MakeRequestCommand extends Command
     protected function getRequestName(string $name): string
     {
         $name = trim(str_replace('/', '\\', $name), '\\');
-        
+
         if (!str_ends_with($name, 'Request')) {
             $name .= 'Request';
         }
@@ -47,6 +49,7 @@ class MakeRequestCommand extends Command
     protected function getRequestPath(string $name): string
     {
         $path = str_replace('\\', '/', $name) . '.php';
+
         return $this->app->basePath('app/Requests/' . $path);
     }
 
@@ -67,7 +70,7 @@ class MakeRequestCommand extends Command
     {
         $parts = explode('\\', $name);
         array_pop($parts); // Remove class name
-        
+
         $namespace = 'App\\Requests';
         if (!empty($parts)) {
             $namespace .= '\\' . implode('\\', $parts);

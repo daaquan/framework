@@ -7,6 +7,7 @@ use Phare\Console\Command;
 class ScheduleListCommand extends Command
 {
     protected string $name = 'schedule:list';
+
     protected string $description = 'List all scheduled commands';
 
     public function handle(): int
@@ -16,6 +17,7 @@ class ScheduleListCommand extends Command
 
         if (empty($events)) {
             $this->info('No scheduled commands found.');
+
             return 0;
         }
 
@@ -34,7 +36,7 @@ class ScheduleListCommand extends Command
         }
 
         $this->table([
-            '#', 'Cron', 'Command', 'Timezone', 'Due'
+            '#', 'Cron', 'Command', 'Timezone', 'Due',
         ], $rows);
 
         return 0;

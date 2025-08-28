@@ -2,24 +2,27 @@
 
 namespace Phare\Http;
 
-use Phare\Filesystem\Filesystem;
 use Phalcon\Http\Response;
+use Phare\Filesystem\Filesystem;
 
 class FileResponse extends Response
 {
     protected string $file;
+
     protected ?string $name = null;
+
     protected bool $deleteFileAfterSend = false;
+
     protected Filesystem $files;
 
     public function __construct(string $file, ?string $name = null, array $headers = [], ?string $disposition = null)
     {
         parent::__construct();
-        
+
         $this->files = new Filesystem();
         $this->file = $file;
         $this->name = $name ?? basename($file);
-        
+
         $this->setHeaders($headers);
         $this->setContentDisposition($disposition ?? 'attachment');
     }
@@ -62,13 +65,13 @@ class FileResponse extends Response
     protected function setContentDisposition(string $disposition): void
     {
         $filename = $this->name;
-        
+
         // Handle special characters in filename
         if (preg_match('/[^\x20-\x7e]|[%"]/', $filename)) {
             $fallbackName = preg_replace('/[^\x20-\x7e]/', '', $filename);
             $encodedName = rawurlencode($filename);
-            
-            $this->setHeader('Content-Disposition', 
+
+            $this->setHeader('Content-Disposition',
                 "{$disposition}; filename=\"{$fallbackName}\"; filename*=UTF-8''{$encodedName}");
         } else {
             $this->setHeader('Content-Disposition', "{$disposition}; filename=\"{$filename}\"");
@@ -78,7 +81,7 @@ class FileResponse extends Response
     protected function sendFile(): void
     {
         $handle = fopen($this->file, 'rb');
-        
+
         if (!$handle) {
             throw new \RuntimeException("Cannot open file for reading: {$this->file}");
         }
@@ -94,6 +97,7 @@ class FileResponse extends Response
     public function deleteFileAfterSend(bool $delete = true): static
     {
         $this->deleteFileAfterSend = $delete;
+
         return $this;
     }
 
@@ -108,6 +112,7 @@ class FileResponse extends Response
     {
         $this->name = $filename ?? $this->name;
         $this->setContentDisposition('inline');
+
         return $this;
     }
 
@@ -115,6 +120,7 @@ class FileResponse extends Response
     {
         $this->name = $filename ?? $this->name;
         $this->setContentDisposition('attachment');
+
         return $this;
     }
 
@@ -123,6 +129,7 @@ class FileResponse extends Response
         foreach ($headers as $key => $value) {
             $this->setHeader($key, $value);
         }
+
         return $this;
     }
 }

@@ -9,8 +9,6 @@ use Countable;
 use Exception;
 use InvalidArgumentException;
 
-use const Phare\View\BLADEONE_MODE;
-
 /**
  * BladeOne - A Blade Template implementation in a single file
  *

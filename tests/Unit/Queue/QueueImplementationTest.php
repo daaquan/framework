@@ -1,14 +1,15 @@
 <?php
 
-use Phare\Queue\SyncQueue;
 use Phare\Queue\DatabaseQueue;
-use Phare\Queue\RedisQueue;
 use Phare\Queue\Job;
+use Phare\Queue\RedisQueue;
+use Phare\Queue\SyncQueue;
 
 // Test job for queue implementations
 class QueueImplTestJob extends Job
 {
     public bool $executed = false;
+
     public ?\Exception $failedException = null;
 
     public function __construct(public string $data = 'test data', public bool $shouldFail = false)
@@ -21,7 +22,7 @@ class QueueImplTestJob extends Job
         if ($this->shouldFail) {
             throw new \Exception('Job intentionally failed');
         }
-        
+
         $this->executed = true;
     }
 
@@ -50,7 +51,7 @@ describe('SyncQueue', function () {
         expect(function () {
             $this->queue->push($job);
         })->toThrow(\Exception::class, 'Job intentionally failed');
-        
+
         expect($job->executed)->toBeFalse();
         expect($job->failedException)->toBeInstanceOf(\Exception::class);
     });
@@ -98,7 +99,7 @@ describe('DatabaseQueue', function () {
         $this->queue->push($originalJob);
 
         $poppedJob = $this->queue->pop('test-queue');
-        
+
         expect($poppedJob)->toBeInstanceOf(QueueImplTestJob::class);
         expect($poppedJob->data)->toBe('pop test');
     });
@@ -110,10 +111,10 @@ describe('DatabaseQueue', function () {
 
     test('database queue can get size', function () {
         expect($this->queue->size('test-queue'))->toBe(0);
-        
+
         $this->queue->push(new QueueImplTestJob('size test 1'));
         expect($this->queue->size('test-queue'))->toBe(1);
-        
+
         $this->queue->push(new QueueImplTestJob('size test 2'));
         expect($this->queue->size('test-queue'))->toBe(2);
     });
@@ -121,9 +122,9 @@ describe('DatabaseQueue', function () {
     test('database queue can clear jobs', function () {
         $this->queue->push(new QueueImplTestJob('clear test 1'));
         $this->queue->push(new QueueImplTestJob('clear test 2'));
-        
+
         expect($this->queue->size('test-queue'))->toBe(2);
-        
+
         $cleared = $this->queue->clear('test-queue');
         expect($cleared)->toBe(2);
         expect($this->queue->size('test-queue'))->toBe(0);
@@ -132,12 +133,12 @@ describe('DatabaseQueue', function () {
     test('database queue can delete specific job', function () {
         $job1 = new QueueImplTestJob('job 1');
         $job2 = new QueueImplTestJob('job 2');
-        
+
         $this->queue->push($job1);
         $this->queue->push($job2);
-        
+
         expect($this->queue->size('test-queue'))->toBe(2);
-        
+
         $deleted = $this->queue->delete($job1);
         expect($deleted)->toBeTrue();
         expect($this->queue->size('test-queue'))->toBe(1);
@@ -155,7 +156,7 @@ describe('DatabaseQueue', function () {
     test('database queue can flush all jobs', function () {
         $this->queue->push(new QueueImplTestJob('flush test 1'));
         $this->queue->push(new QueueImplTestJob('flush test 2'));
-        
+
         $this->queue->flush();
         expect($this->queue->getJobs())->toHaveCount(0);
     });
@@ -186,7 +187,7 @@ describe('RedisQueue', function () {
         $this->queue->push($originalJob);
 
         $poppedJob = $this->queue->pop('redis-test');
-        
+
         expect($poppedJob)->toBeInstanceOf(QueueImplTestJob::class);
         expect($poppedJob->data)->toBe('redis pop test');
     });
@@ -205,10 +206,10 @@ describe('RedisQueue', function () {
 
     test('redis queue can get size', function () {
         expect($this->queue->size('redis-test'))->toBe(0);
-        
+
         $this->queue->push(new QueueImplTestJob('size test 1'));
         expect($this->queue->size('redis-test'))->toBe(1);
-        
+
         $this->queue->push(new QueueImplTestJob('size test 2'));
         expect($this->queue->size('redis-test'))->toBe(2);
     });
@@ -216,9 +217,9 @@ describe('RedisQueue', function () {
     test('redis queue can clear jobs', function () {
         $this->queue->push(new QueueImplTestJob('clear test 1'));
         $this->queue->push(new QueueImplTestJob('clear test 2'));
-        
+
         expect($this->queue->size('redis-test'))->toBe(2);
-        
+
         $cleared = $this->queue->clear('redis-test');
         expect($cleared)->toBe(2);
         expect($this->queue->size('redis-test'))->toBe(0);
@@ -227,12 +228,12 @@ describe('RedisQueue', function () {
     test('redis queue can delete specific job', function () {
         $job1 = new QueueImplTestJob('redis job 1');
         $job2 = new QueueImplTestJob('redis job 2');
-        
+
         $this->queue->push($job1);
         $this->queue->push($job2);
-        
+
         expect($this->queue->size('redis-test'))->toBe(2);
-        
+
         $deleted = $this->queue->delete($job1);
         expect($deleted)->toBeTrue();
         expect($this->queue->size('redis-test'))->toBe(1);
@@ -249,7 +250,7 @@ describe('RedisQueue', function () {
     test('redis queue can flush all queues', function () {
         $this->queue->push(new QueueImplTestJob('flush test 1'));
         $this->queue->push(new QueueImplTestJob('flush test 2'));
-        
+
         $this->queue->flush();
         expect($this->queue->getQueues())->toHaveCount(0);
     });

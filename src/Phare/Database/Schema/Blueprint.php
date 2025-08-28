@@ -7,8 +7,11 @@ use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 class Blueprint
 {
     protected string $table;
+
     protected array $columns = [];
+
     protected array $commands = [];
+
     protected bool $updating = false;
 
     public function __construct(string $table, bool $updating = false)
@@ -144,6 +147,7 @@ class Blueprint
     {
         $foreign = new ForeignKeyDefinition($column);
         $this->commands[] = ['type' => 'foreign', 'foreign' => $foreign];
+
         return $foreign;
     }
 
@@ -152,11 +156,12 @@ class Blueprint
         return $this->bigInteger($column)->unsigned();
     }
 
-    public function foreignIdFor(string $model, string $column = null): ColumnDefinition
+    public function foreignIdFor(string $model, ?string $column = null): ColumnDefinition
     {
         if ($column === null) {
             $column = strtolower(class_basename($model)) . '_id';
         }
+
         return $this->foreignId($column);
     }
 
@@ -166,17 +171,17 @@ class Blueprint
         $this->indexCommand('primary', $columns);
     }
 
-    public function unique(array|string $columns, string $name = null): void
+    public function unique(array|string $columns, ?string $name = null): void
     {
         $this->indexCommand('unique', $columns, $name);
     }
 
-    public function index(array|string $columns, string $name = null): void
+    public function index(array|string $columns, ?string $name = null): void
     {
         $this->indexCommand('index', $columns, $name);
     }
 
-    public function fulltext(array|string $columns, string $name = null): void
+    public function fulltext(array|string $columns, ?string $name = null): void
     {
         $this->indexCommand('fulltext', $columns, $name);
     }
@@ -218,22 +223,24 @@ class Blueprint
     {
         $column = new ColumnDefinition($type, $name, $parameters);
         $this->columns[] = $column;
+
         return $column;
     }
 
-    protected function indexCommand(string $type, array|string $columns, string $name = null): void
+    protected function indexCommand(string $type, array|string $columns, ?string $name = null): void
     {
         $columns = is_array($columns) ? $columns : [$columns];
         $this->commands[] = [
             'type' => $type,
             'columns' => $columns,
-            'index' => $name ?: $this->createIndexName($type, $columns)
+            'index' => $name ?: $this->createIndexName($type, $columns),
         ];
     }
 
     protected function createIndexName(string $type, array $columns): string
     {
         $index = strtolower($this->table . '_' . implode('_', $columns) . '_' . $type);
+
         return str_replace(['-', '.'], '_', $index);
     }
 

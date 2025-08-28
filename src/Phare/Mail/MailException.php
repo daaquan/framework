@@ -2,6 +2,4 @@
 
 namespace Phare\Mail;
 
-class MailException extends \Exception
-{
-}
+class MailException extends \Exception {}

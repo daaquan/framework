@@ -22,9 +22,9 @@ it('creates uploaded file from array', function () {
         'size' => 12,
         'error' => UPLOAD_ERR_OK,
     ];
-    
+
     $file = UploadedFile::createFromArray($fileData);
-    
+
     expect($file->getClientOriginalName())->toBe('test.txt');
     expect($file->getMimeType())->toBe('text/plain');
     expect($file->getSize())->toBe(12);
@@ -34,7 +34,7 @@ it('creates uploaded file from array', function () {
 it('detects if file is valid', function () {
     $validFile = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK);
     expect($validFile->isValid())->toBeTrue();
-    
+
     $invalidFile = new UploadedFile('/nonexistent', 'test.txt', 'text/plain', 12, UPLOAD_ERR_NO_FILE);
     expect($invalidFile->isValid())->toBeFalse();
 });
@@ -58,7 +58,7 @@ it('detects mime type', function () {
 it('guesses file extension', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK);
     expect($file->guessExtension())->toBe('txt');
-    
+
     $imageFile = new UploadedFile($this->testFile, 'image.jpg', 'image/jpeg', 1000, UPLOAD_ERR_OK);
     expect($imageFile->guessExtension())->toBe('jpg');
 });
@@ -71,9 +71,9 @@ it('gets client original extension', function () {
 it('generates hash name', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK);
     $hashName = $file->hashName();
-    
+
     expect($hashName)->toMatch('/^[a-f0-9]{64}\.txt$/');
-    
+
     $hashNameWithPath = $file->hashName('uploads/docs');
     expect($hashNameWithPath)->toMatch('/^uploads\/docs\/[a-f0-9]{64}\.txt$/');
 });
@@ -81,12 +81,12 @@ it('generates hash name', function () {
 it('moves file to new location', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK, true);
     $destination = $this->tempDir . '/moved_file.txt';
-    
+
     $movedFile = $file->move($this->tempDir, 'moved_file.txt');
-    
+
     expect(file_exists($destination))->toBeTrue();
     expect($movedFile->getPath())->toBe($destination);
-    
+
     // Cleanup
     unlink($destination);
 });
@@ -94,14 +94,14 @@ it('moves file to new location', function () {
 it('stores file with custom name', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK, true);
     $path = $file->storeAs('uploads', 'custom_name.txt');
-    
+
     expect($path)->toBe('uploads/custom_name.txt');
 });
 
 it('stores file with generated name', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK, true);
     $path = $file->store('uploads');
-    
+
     expect($path)->toMatch('/^uploads\/[a-f0-9]{64}\.txt$/');
 });
 
@@ -113,7 +113,7 @@ it('provides error messages', function () {
 
 it('creates fake files for testing', function () {
     $fakeFile = UploadedFile::fake();
-    
+
     expect($fakeFile->getClientOriginalName())->toBe('fake.txt');
     expect($fakeFile->getMimeType())->toBe('text/plain');
     expect($fakeFile->getSize())->toBe(100);
@@ -122,11 +122,11 @@ it('creates fake files for testing', function () {
 it('gets max filesize from php ini', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK);
     $maxSize = $file->getMaxFilesize();
-    
+
     expect($maxSize)->toBeGreaterThan(0);
 });
 
 it('converts to string', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK);
-    expect((string) $file)->toBe($this->testFile);
+    expect((string)$file)->toBe($this->testFile);
 });

@@ -1,8 +1,8 @@
 <?php
 
-use Phare\Validation\Validator;
 use Phare\Validation\MessageBag;
 use Phare\Validation\ValidationException;
+use Phare\Validation\Validator;
 use PHPUnit\Framework\TestCase;
 
 class ValidatorTest extends TestCase
@@ -12,13 +12,13 @@ class ValidatorTest extends TestCase
         $data = [
             'name' => 'John Doe',
             'email' => 'john@example.com',
-            'age' => 25
+            'age' => 25,
         ];
 
         $rules = [
             'name' => 'required|string',
-            'email' => 'required|email', 
-            'age' => 'required|integer|min:18'
+            'email' => 'required|email',
+            'age' => 'required|integer|min:18',
         ];
 
         $validator = new Validator($data, $rules);
@@ -33,20 +33,20 @@ class ValidatorTest extends TestCase
         $data = [
             'name' => '',
             'email' => 'invalid-email',
-            'age' => 15
+            'age' => 15,
         ];
 
         $rules = [
             'name' => 'required|string',
             'email' => 'required|email',
-            'age' => 'required|integer|min:18'
+            'age' => 'required|integer|min:18',
         ];
 
         $validator = new Validator($data, $rules);
 
         $this->assertFalse($validator->passes());
         $this->assertTrue($validator->fails());
-        
+
         $errors = $validator->errors();
         $this->assertTrue($errors->has('name'));
         $this->assertTrue($errors->has('email'));
@@ -123,14 +123,14 @@ class ValidatorTest extends TestCase
     {
         $data = [
             'password' => 'secret',
-            'password_confirmation' => 'different'
+            'password_confirmation' => 'different',
         ];
         $validator = new Validator($data, ['password' => 'confirmed']);
         $this->assertTrue($validator->fails());
 
         $data = [
             'password' => 'secret',
-            'password_confirmation' => 'secret'
+            'password_confirmation' => 'secret',
         ];
         $validator = new Validator($data, ['password' => 'confirmed']);
         $this->assertTrue($validator->passes());
@@ -177,12 +177,12 @@ class ValidatorTest extends TestCase
         $data = [
             'name' => 'John Doe',
             'email' => 'john@example.com',
-            'extra' => 'should not be included'
+            'extra' => 'should not be included',
         ];
 
         $rules = [
             'name' => 'required|string',
-            'email' => 'required|email'
+            'email' => 'required|email',
         ];
 
         $validator = new Validator($data, $rules);
@@ -210,7 +210,7 @@ class ValidatorTest extends TestCase
     {
         $messages = new MessageBag([
             'name' => ['Name is required'],
-            'email' => ['Email is invalid', 'Email must be unique']
+            'email' => ['Email is invalid', 'Email must be unique'],
         ]);
 
         $this->assertTrue($messages->has('name'));

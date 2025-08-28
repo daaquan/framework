@@ -5,17 +5,29 @@ namespace Phare\Console\Scheduling;
 class Event
 {
     protected string $command;
+
     protected string $expression = '* * * * *';
+
     protected string $timezone;
+
     protected array $filters = [];
+
     protected array $rejects = [];
+
     protected ?string $user = null;
+
     protected array $environments = [];
+
     protected bool $evenInMaintenanceMode = false;
+
     protected bool $runInBackground = false;
+
     protected ?string $output = null;
+
     protected bool $shouldAppendOutput = false;
+
     protected $beforeCallback = null;
+
     protected $afterCallback = null;
 
     public function __construct(string $timezone, string $command)
@@ -30,6 +42,7 @@ class Event
     public function cron(string $expression): static
     {
         $this->expression = $expression;
+
         return $this;
     }
 
@@ -119,7 +132,7 @@ class Event
     public function daily(): static
     {
         return $this->spliceIntoPosition(1, 0)
-                    ->spliceIntoPosition(2, 0);
+            ->spliceIntoPosition(2, 0);
     }
 
     /**
@@ -128,9 +141,9 @@ class Event
     public function dailyAt(string $time): static
     {
         $segments = explode(':', $time);
-        
-        return $this->spliceIntoPosition(2, (int) $segments[0])
-                    ->spliceIntoPosition(1, count($segments) === 2 ? (int) $segments[1] : 0);
+
+        return $this->spliceIntoPosition(2, (int)$segments[0])
+            ->spliceIntoPosition(1, count($segments) === 2 ? (int)$segments[1] : 0);
     }
 
     /**
@@ -139,7 +152,7 @@ class Event
     public function twiceDaily(int $first = 1, int $second = 13): static
     {
         return $this->spliceIntoPosition(1, 0)
-                    ->spliceIntoPosition(2, "$first,$second");
+            ->spliceIntoPosition(2, "$first,$second");
     }
 
     /**
@@ -148,8 +161,8 @@ class Event
     public function weekly(): static
     {
         return $this->spliceIntoPosition(1, 0)
-                    ->spliceIntoPosition(2, 0)
-                    ->spliceIntoPosition(5, 0);
+            ->spliceIntoPosition(2, 0)
+            ->spliceIntoPosition(5, 0);
     }
 
     /**
@@ -158,7 +171,7 @@ class Event
     public function weeklyOn(int $day, string $time = '0:0'): static
     {
         $this->dailyAt($time);
-        
+
         return $this->spliceIntoPosition(5, $day);
     }
 
@@ -168,8 +181,8 @@ class Event
     public function monthly(): static
     {
         return $this->spliceIntoPosition(1, 0)
-                    ->spliceIntoPosition(2, 0)
-                    ->spliceIntoPosition(3, 1);
+            ->spliceIntoPosition(2, 0)
+            ->spliceIntoPosition(3, 1);
     }
 
     /**
@@ -178,7 +191,7 @@ class Event
     public function monthlyOn(int $day = 1, string $time = '0:0'): static
     {
         $this->dailyAt($time);
-        
+
         return $this->spliceIntoPosition(3, $day);
     }
 
@@ -188,9 +201,9 @@ class Event
     public function yearly(): static
     {
         return $this->spliceIntoPosition(1, 0)
-                    ->spliceIntoPosition(2, 0)
-                    ->spliceIntoPosition(3, 1)
-                    ->spliceIntoPosition(4, 1);
+            ->spliceIntoPosition(2, 0)
+            ->spliceIntoPosition(3, 1)
+            ->spliceIntoPosition(4, 1);
     }
 
     /**
@@ -225,6 +238,7 @@ class Event
     public function timezone(string $timezone): static
     {
         $this->timezone = $timezone;
+
         return $this;
     }
 
@@ -234,6 +248,7 @@ class Event
     public function user(string $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -243,6 +258,7 @@ class Event
     public function environments(array|string $environments): static
     {
         $this->environments = is_array($environments) ? $environments : [$environments];
+
         return $this;
     }
 
@@ -252,6 +268,7 @@ class Event
     public function evenInMaintenanceMode(): static
     {
         $this->evenInMaintenanceMode = true;
+
         return $this;
     }
 
@@ -261,6 +278,7 @@ class Event
     public function runInBackground(): static
     {
         $this->runInBackground = true;
+
         return $this;
     }
 
@@ -271,6 +289,7 @@ class Event
     {
         $this->output = $location;
         $this->shouldAppendOutput = $append;
+
         return $this;
     }
 
@@ -288,6 +307,7 @@ class Event
     public function before(callable $callback): static
     {
         $this->beforeCallback = $callback;
+
         return $this;
     }
 
@@ -297,6 +317,7 @@ class Event
     public function after(callable $callback): static
     {
         $this->afterCallback = $callback;
+
         return $this;
     }
 
@@ -306,6 +327,7 @@ class Event
     public function when(callable $callback): static
     {
         $this->filters[] = $callback;
+
         return $this;
     }
 
@@ -315,6 +337,7 @@ class Event
     public function skip(callable $callback): static
     {
         $this->rejects[] = $callback;
+
         return $this;
     }
 
@@ -324,11 +347,11 @@ class Event
     protected function spliceIntoPosition(int $position, string $value): static
     {
         $segments = explode(' ', $this->expression);
-        
-        $segments[$position - 1] = (string) $value;
-        
+
+        $segments[$position - 1] = (string)$value;
+
         $this->expression = implode(' ', $segments);
-        
+
         return $this;
     }
 
@@ -370,7 +393,7 @@ class Event
     protected function expressionPasses(): bool
     {
         $now = new \DateTime('now', new \DateTimeZone($this->timezone));
-        
+
         return $this->cronMatches($this->expression, $now);
     }
 
@@ -380,17 +403,17 @@ class Event
     protected function cronMatches(string $expression, \DateTime $dateTime): bool
     {
         $segments = explode(' ', $expression);
-        
+
         if (count($segments) !== 5) {
             return false;
         }
 
         $values = [
-            (int) $dateTime->format('i'), // minute
-            (int) $dateTime->format('G'), // hour
-            (int) $dateTime->format('j'), // day
-            (int) $dateTime->format('n'), // month
-            (int) $dateTime->format('w'), // day of week
+            (int)$dateTime->format('i'), // minute
+            (int)$dateTime->format('G'), // hour
+            (int)$dateTime->format('j'), // day
+            (int)$dateTime->format('n'), // month
+            (int)$dateTime->format('w'), // day of week
         ];
 
         foreach ($segments as $index => $segment) {
@@ -417,18 +440,19 @@ class Event
 
         if (str_contains($segment, '/')) {
             [$range, $step] = explode('/', $segment);
-            
+
             if ($range === '*') {
-                return $value % (int) $step === 0;
+                return $value % (int)$step === 0;
             }
         }
 
         if (str_contains($segment, '-')) {
             [$min, $max] = explode('-', $segment);
-            return $value >= (int) $min && $value <= (int) $max;
+
+            return $value >= (int)$min && $value <= (int)$max;
         }
 
-        return (int) $segment === $value;
+        return (int)$segment === $value;
     }
 
     /**
@@ -455,7 +479,7 @@ class Event
     protected function runCommand(): string
     {
         $command = $this->buildCommand();
-        
+
         if ($this->runInBackground) {
             $command .= ' > /dev/null 2>&1 &';
         }

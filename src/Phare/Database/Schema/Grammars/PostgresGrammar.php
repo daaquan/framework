@@ -9,14 +9,14 @@ use Phare\Database\Schema\Grammar;
 class PostgresGrammar extends Grammar
 {
     protected array $modifiers = [
-        'Nullable', 'Default', 'Increment'
+        'Nullable', 'Default', 'Increment',
     ];
 
     public function compileCreate(Blueprint $blueprint): string
     {
         $table = $this->wrapTable($blueprint->getTable());
         $columns = implode(', ', $this->getColumns($blueprint));
-        
+
         return "CREATE TABLE {$table} ({$columns})";
     }
 
@@ -48,7 +48,7 @@ class PostgresGrammar extends Grammar
     {
         $from = $this->wrapTable($blueprint->getTable());
         $to = $this->wrapTable($to);
-        
+
         return "ALTER TABLE {$from} RENAME TO {$to}";
     }
 
@@ -70,7 +70,7 @@ class PostgresGrammar extends Grammar
             'timestamp' => 'TIMESTAMP(0) WITHOUT TIME ZONE',
             'json' => 'JSON',
             'binary' => 'BYTEA',
-            'enum' => 'VARCHAR(255) CHECK(' . $this->wrap($column->getName()) . ' IN (' . implode(',', array_map(fn($v) => "'{$v}'", $column->getAttributes()['values'] ?? [])) . '))',
+            'enum' => 'VARCHAR(255) CHECK(' . $this->wrap($column->getName()) . ' IN (' . implode(',', array_map(fn ($v) => "'{$v}'", $column->getAttributes()['values'] ?? [])) . '))',
             default => 'VARCHAR(255)',
         };
     }
@@ -88,7 +88,7 @@ class PostgresGrammar extends Grammar
     {
         if (array_key_exists('default', $column->getAttributes())) {
             $default = $column->getAttributes()['default'];
-            
+
             if ($column->getAttributes()['useCurrent'] ?? false) {
                 return $sql . ' DEFAULT CURRENT_TIMESTAMP';
             }
@@ -118,12 +118,14 @@ class PostgresGrammar extends Grammar
     protected function compileDropColumn(Blueprint $blueprint, array $command): string
     {
         $columns = implode(', ', array_map([$this, 'wrap'], $command['columns']));
+
         return "ALTER TABLE {$this->wrapTable($blueprint->getTable())} DROP COLUMN {$columns}";
     }
 
     protected function compileDropPrimary(Blueprint $blueprint, array $command): string
     {
         $table = $blueprint->getTable();
+
         return "ALTER TABLE {$this->wrapTable($table)} DROP CONSTRAINT {$this->wrap($table . '_pkey')}";
     }
 

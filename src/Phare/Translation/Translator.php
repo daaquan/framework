@@ -7,9 +7,13 @@ use Phare\Filesystem\Filesystem;
 class Translator
 {
     protected array $loaded = [];
+
     protected string $locale;
+
     protected string $fallback;
+
     protected array $paths = [];
+
     protected Filesystem $files;
 
     public function __construct(string $locale = 'en', string $fallback = 'en')
@@ -27,7 +31,7 @@ class Translator
     public function get(string $key, array $replace = [], ?string $locale = null): string
     {
         $locale = $locale ?: $this->locale;
-        
+
         $this->load($locale);
 
         $line = $this->getLine($key, $locale);
@@ -36,6 +40,7 @@ class Translator
             if ($locale !== $this->fallback) {
                 return $this->get($key, $replace, $this->fallback);
             }
+
             return $key;
         }
 
@@ -81,11 +86,11 @@ class Translator
 
         foreach ($this->paths as $path) {
             $localeFiles = $this->files->glob("{$path}/{$locale}/*.php");
-            
+
             foreach ($localeFiles as $file) {
                 $namespace = $this->files->name($file);
                 $translations = include $file;
-                
+
                 if (is_array($translations)) {
                     $this->loaded[$locale][$namespace] = $translations;
                 }
@@ -124,7 +129,7 @@ class Translator
             $lowerKey = strtolower($key);
             $upperKey = strtoupper($key);
             $ucfirstKey = ucfirst($lowerKey);
-            
+
             $line = str_replace(
                 [':' . $lowerKey, ':' . $upperKey, ':' . $ucfirstKey, ':' . $key],
                 [$value, strtoupper($value), ucfirst($value), $value],
@@ -169,6 +174,7 @@ class Translator
     {
         $locale = $locale ?: $this->locale;
         $this->load($locale);
+
         return !is_null($this->getLine($key, $locale));
     }
 

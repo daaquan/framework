@@ -12,9 +12,7 @@ class DatabaseManager
 {
     use HandlesTransactions;
 
-    public function __construct(protected Application $app, protected array $databases)
-    {
-    }
+    public function __construct(protected Application $app, protected array $databases) {}
 
     public function getConnectionService(string $serviceName): string
     {

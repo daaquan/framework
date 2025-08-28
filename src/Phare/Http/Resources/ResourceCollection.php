@@ -3,19 +3,19 @@
 namespace Phare\Http\Resources;
 
 use Phare\Collections\Collection;
-use Phare\Contracts\Support\Arrayable;
 use Phare\Pagination\LengthAwarePaginator;
 use Phare\Pagination\Paginator;
 
-class ResourceCollection extends JsonResource implements \IteratorAggregate, \Countable
+class ResourceCollection extends JsonResource implements \Countable, \IteratorAggregate
 {
     public string $collects;
+
     protected iterable $collection;
 
     public function __construct(iterable $resource, ?string $collects = null)
     {
         parent::__construct($resource);
-        
+
         $this->collection = $resource;
         $this->collects = $collects ?? $this->guessResourceClass();
     }
@@ -23,7 +23,7 @@ class ResourceCollection extends JsonResource implements \IteratorAggregate, \Co
     protected function guessResourceClass(): string
     {
         $class = get_class($this);
-        
+
         if (str_ends_with($class, 'Collection')) {
             return substr($class, 0, -10);
         }
@@ -33,7 +33,7 @@ class ResourceCollection extends JsonResource implements \IteratorAggregate, \Co
 
     public function toArray(): array
     {
-        return $this->collection instanceof Collection 
+        return $this->collection instanceof Collection
             ? $this->collection->map([$this, 'mapIntoResource'])->toArray()
             : array_map([$this, 'mapIntoResource'], $this->collection);
     }
@@ -48,7 +48,7 @@ class ResourceCollection extends JsonResource implements \IteratorAggregate, \Co
             return (new $this->collects($item))->resolve();
         }
 
-        return is_array($item) ? $item : (array) $item;
+        return is_array($item) ? $item : (array)$item;
     }
 
     protected function collectResource(iterable $resource): Collection

@@ -6,24 +6,31 @@ use Phare\Collections\Collection;
 use Phare\Contracts\Support\Arrayable;
 use Phare\Contracts\Support\Jsonable;
 
-class Paginator implements Arrayable, Jsonable, \JsonSerializable, \IteratorAggregate, \Countable
+class Paginator implements \Countable, \IteratorAggregate, \JsonSerializable, Arrayable, Jsonable
 {
     protected Collection $items;
+
     protected int $perPage;
+
     protected int $currentPage;
+
     protected array $options;
+
     protected ?string $path = null;
+
     protected array $query = [];
+
     protected ?string $fragment = null;
+
     protected ?string $pageName = 'page';
-    
+
     public function __construct($items, int $perPage, ?int $currentPage = null, array $options = [])
     {
         $this->items = $items instanceof Collection ? $items : new Collection($items);
         $this->perPage = $perPage;
         $this->currentPage = $this->setCurrentPage($currentPage);
         $this->options = $options;
-        
+
         $this->path = $this->options['path'] ?? $this->resolveCurrentPath();
         $this->pageName = $this->options['pageName'] ?? 'page';
     }
@@ -31,12 +38,13 @@ class Paginator implements Arrayable, Jsonable, \JsonSerializable, \IteratorAggr
     protected function setCurrentPage(?int $currentPage): int
     {
         $currentPage = $currentPage ?: $this->resolveCurrentPage();
-        return $this->isValidPageNumber($currentPage) ? (int) $currentPage : 1;
+
+        return $this->isValidPageNumber($currentPage) ? (int)$currentPage : 1;
     }
 
     protected function resolveCurrentPage(): int
     {
-        return (int) ($_GET[$this->pageName] ?? 1);
+        return (int)($_GET[$this->pageName] ?? 1);
     }
 
     protected function resolveCurrentPath(): string
@@ -76,6 +84,7 @@ class Paginator implements Arrayable, Jsonable, \JsonSerializable, \IteratorAggr
     public function fragment(?string $fragment): static
     {
         $this->fragment = $fragment;
+
         return $this;
     }
 
@@ -165,6 +174,7 @@ class Paginator implements Arrayable, Jsonable, \JsonSerializable, \IteratorAggr
     public function setCollection(Collection $collection): static
     {
         $this->items = $collection;
+
         return $this;
     }
 

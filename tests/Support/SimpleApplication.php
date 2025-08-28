@@ -7,7 +7,9 @@ use Phare\Contracts\Foundation\Application;
 class SimpleApplication implements Application
 {
     private array $bindings = [];
+
     private array $singletons = [];
+
     private array $resolved = [];
 
     public function version(): string
@@ -85,7 +87,7 @@ class SimpleApplication implements Application
         // No-op for testing
     }
 
-    public function registerDeferredProvider(string $provider, string $service = null): void
+    public function registerDeferredProvider(string $provider, ?string $service = null): void
     {
         // No-op for testing
     }
@@ -212,7 +214,7 @@ class SimpleApplication implements Application
         return $instance;
     }
 
-    public function call($callback, array $parameters = [], string $defaultMethod = null): mixed
+    public function call($callback, array $parameters = [], ?string $defaultMethod = null): mixed
     {
         return call_user_func($callback);
     }
@@ -222,12 +224,12 @@ class SimpleApplication implements Application
         return isset($this->resolved[$abstract]);
     }
 
-    public function resolving($abstract, \Closure $callback = null): void
+    public function resolving($abstract, ?\Closure $callback = null): void
     {
         // No-op for testing
     }
 
-    public function afterResolving($abstract, \Closure $callback = null): void
+    public function afterResolving($abstract, ?\Closure $callback = null): void
     {
         // No-op for testing
     }

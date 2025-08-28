@@ -3,14 +3,17 @@
 namespace Phare\Database;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
-use Phare\Database\Schema\SchemaBuilder;
 use Phare\Contracts\Foundation\Application;
+use Phare\Database\Schema\SchemaBuilder;
 
 class Migrator
 {
     protected Application $app;
+
     protected AbstractPdo $connection;
+
     protected SchemaBuilder $schema;
+
     protected string $table = 'migrations';
 
     public function __construct(Application $app, AbstractPdo $connection)
@@ -18,7 +21,7 @@ class Migrator
         $this->app = $app;
         $this->connection = $connection;
         $this->schema = new SchemaBuilder($connection);
-        
+
         $this->ensureMigrationTable();
     }
 
@@ -70,13 +73,14 @@ class Migrator
     public function refresh(array $paths = []): array
     {
         $this->reset();
+
         return $this->run($paths);
     }
 
     protected function runMigration(string $file): void
     {
         $migration = $this->resolve($file);
-        
+
         try {
             $this->connection->begin();
             $migration->up();
@@ -91,14 +95,16 @@ class Migrator
     protected function runDown(string $file): bool
     {
         $migration = $this->resolve($file);
-        
+
         try {
             $this->connection->begin();
             $migration->down();
             $this->connection->commit();
+
             return true;
         } catch (\Exception $e) {
             $this->connection->rollback();
+
             return false;
         }
     }
@@ -106,7 +112,7 @@ class Migrator
     protected function resolve(string $file): Migration
     {
         $class = $this->getMigrationClass($file);
-        
+
         if (!class_exists($class)) {
             require_once $file;
         }
@@ -117,10 +123,10 @@ class Migrator
     protected function getMigrationClass(string $file): string
     {
         $name = basename($file, '.php');
-        
+
         // Remove timestamp prefix (e.g., "2023_10_20_000000_create_users_table" -> "create_users_table")
         $name = preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $name);
-        
+
         // Convert snake_case to PascalCase
         return str_replace(' ', '', ucwords(str_replace('_', ' ', $name)));
     }
@@ -132,7 +138,7 @@ class Migrator
         }
 
         $files = [];
-        
+
         foreach ($paths as $path) {
             if (is_dir($path)) {
                 $files = array_merge($files, glob($path . '/*.php'));
@@ -140,13 +146,14 @@ class Migrator
         }
 
         sort($files);
+
         return $files;
     }
 
     protected function hasRun(string $file): bool
     {
         $migration = basename($file, '.php');
-        
+
         return $this->connection->fetchOne(
             "SELECT COUNT(*) as count FROM {$this->table} WHERE migration = ?",
             [$migration]
@@ -157,7 +164,7 @@ class Migrator
     {
         $migration = basename($file, '.php');
         $batch = $this->getNextBatchNumber();
-        
+
         $this->connection->execute(
             "INSERT INTO {$this->table} (migration, batch) VALUES (?, ?)",
             [$migration, $batch]
@@ -185,7 +192,7 @@ class Migrator
 
         $batchNumbers = array_column($batches, 'batch');
         $placeholders = str_repeat('?,', count($batchNumbers) - 1) . '?';
-        
+
         return array_column(
             $this->connection->fetchAll(
                 "SELECT migration FROM {$this->table} WHERE batch IN ({$placeholders}) ORDER BY migration DESC",
@@ -208,13 +215,14 @@ class Migrator
     protected function getNextBatchNumber(): int
     {
         $result = $this->connection->fetchOne("SELECT MAX(batch) as max_batch FROM {$this->table}");
+
         return ($result['max_batch'] ?? 0) + 1;
     }
 
     protected function ensureMigrationTable(): void
     {
         if (!$this->schema->hasTable($this->table)) {
-            $this->schema->create($this->table, function($table) {
+            $this->schema->create($this->table, function ($table) {
                 $table->id();
                 $table->string('migration');
                 $table->integer('batch');

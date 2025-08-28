@@ -125,8 +125,8 @@ class HandleExceptions
             $this->getExceptionHandler()->report($e);
         } catch (\Exception $reportException) {
             // If reporting fails, log to error_log as fallback
-            error_log("Exception reporting failed: " . $reportException->getMessage());
-            error_log("Original exception: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+            error_log('Exception reporting failed: ' . $reportException->getMessage());
+            error_log('Original exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
         }
 
         try {
@@ -137,7 +137,7 @@ class HandleExceptions
             }
         } catch (\Throwable $renderException) {
             // If rendering fails, use fallback error display
-            error_log("Exception rendering failed: " . $renderException->getMessage());
+            error_log('Exception rendering failed: ' . $renderException->getMessage());
             $this->renderFallbackError($e);
         }
     }
@@ -153,9 +153,9 @@ class HandleExceptions
             $this->getExceptionHandler()->renderForConsole(new ConsoleOutput(), $e);
         } catch (\Throwable $renderException) {
             // Fallback console rendering
-            echo "Fatal Error: " . $e->getMessage() . "\n";
-            echo "File: " . $e->getFile() . "\n";
-            echo "Line: " . $e->getLine() . "\n";
+            echo 'Fatal Error: ' . $e->getMessage() . "\n";
+            echo 'File: ' . $e->getFile() . "\n";
+            echo 'Line: ' . $e->getLine() . "\n";
             echo "Trace:\n" . $e->getTraceAsString() . "\n";
         }
     }
@@ -177,37 +177,33 @@ class HandleExceptions
 
     /**
      * Render a fallback error response when normal rendering fails.
-     *
-     * @param \Throwable $e
-     * @return void
      */
     protected function renderFallbackError(\Throwable $e): void
     {
         $isDebug = $this->shouldEnableDebug($this->app);
-        
+
         header('Content-Type: text/html; charset=utf-8');
         http_response_code(500);
-        
+
         if ($isDebug) {
             // Try to use Whoops if available
             if ($this->renderWithWhoops($e)) {
                 return;
             }
-            
+
             // Fallback to custom detailed error page
             $this->renderDetailedError($e);
         } else {
             // Simple error page for production
             $this->renderSimpleError();
         }
-        
+
         exit(1);
     }
 
     /**
      * Attempt to render error using Whoops if available.
      *
-     * @param \Throwable $e
      * @return bool True if Whoops was used, false otherwise
      */
     protected function renderWithWhoops(\Throwable $e): bool
@@ -217,13 +213,13 @@ class HandleExceptions
         }
 
         try {
-            $whoops = new \Whoops\Run;
+            $whoops = new \Whoops\Run();
             $whoops->allowQuit(false);
             $whoops->writeToOutput(false);
-            
+
             // Add pretty page handler for web requests
-            $handler = new \Whoops\Handler\PrettyPageHandler;
-            
+            $handler = new \Whoops\Handler\PrettyPageHandler();
+
             // Set application name if available
             try {
                 $appName = $this->app['config']?->path('app.name') ?? 'Phare Application';
@@ -231,30 +227,27 @@ class HandleExceptions
             } catch (\Throwable $configException) {
                 $handler->setApplicationName('Phare Application');
             }
-            
+
             // Add custom CSS for better styling
             $handler->addResourcePath(__DIR__ . '/../../../../resources/whoops');
-            
+
             $whoops->prependHandler($handler);
-            
+
             // Generate and output the error page
             $output = $whoops->handleException($e);
             echo $output;
-            
+
             return true;
-            
         } catch (\Throwable $whoopsException) {
             // If Whoops fails, log the error and return false to use fallback
-            error_log("Whoops rendering failed: " . $whoopsException->getMessage());
+            error_log('Whoops rendering failed: ' . $whoopsException->getMessage());
+
             return false;
         }
     }
 
     /**
      * Render detailed error page (fallback when Whoops is not available).
-     *
-     * @param \Throwable $e
-     * @return void
      */
     protected function renderDetailedError(\Throwable $e): void
     {
@@ -273,17 +266,17 @@ class HandleExceptions
         echo '</head><body>';
         echo '<div class="container">';
         echo '<h1>Application Error</h1>';
-        
+
         echo '<div class="exception-info">';
         echo '<p><strong>Exception:</strong> ' . htmlspecialchars(get_class($e)) . '</p>';
         echo '<p><strong>Message:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
         echo '<p><strong>File:</strong> ' . htmlspecialchars($e->getFile()) . '</p>';
         echo '<p><strong>Line:</strong> ' . $e->getLine() . '</p>';
         echo '</div>';
-        
+
         echo '<h2>Stack Trace</h2>';
         echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
-        
+
         // Show previous exception if exists
         if ($previous = $e->getPrevious()) {
             echo '<div class="previous-exception">';
@@ -297,15 +290,13 @@ class HandleExceptions
             echo '<pre>' . htmlspecialchars($previous->getTraceAsString()) . '</pre>';
             echo '</div>';
         }
-        
+
         echo '</div>';
         echo '</body></html>';
     }
 
     /**
      * Render simple error page for production.
-     *
-     * @return void
      */
     protected function renderSimpleError(): void
     {
@@ -379,7 +370,6 @@ class HandleExceptions
      * Safe method that handles missing config gracefully.
      *
      * @param Application|DiInterface $app
-     * @return bool
      */
     protected function shouldEnableDebug($app): bool
     {
@@ -393,7 +383,7 @@ class HandleExceptions
             if (isset($app['config']) && $app['config'] !== null) {
                 $debug = $app['config']->path('app.debug');
                 if ($debug !== null) {
-                    return (bool) $debug;
+                    return (bool)$debug;
                 }
             }
 
@@ -411,10 +401,10 @@ class HandleExceptions
 
             // Default to false for production safety
             return false;
-
         } catch (\Throwable $e) {
             // If anything goes wrong, log it and default to safe mode
-            error_log("Debug detection failed: " . $e->getMessage());
+            error_log('Debug detection failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -423,7 +413,6 @@ class HandleExceptions
      * Get Phalcon warning setting safely.
      *
      * @param Application|DiInterface $app
-     * @return bool
      */
     protected function getPhalconWarningEnabled($app): bool
     {
@@ -434,9 +423,11 @@ class HandleExceptions
                     return $phalconConfig['warning.enable'] ?? false;
                 }
             }
+
             return false;
         } catch (\Throwable $e) {
-            error_log("Phalcon warning config detection failed: " . $e->getMessage());
+            error_log('Phalcon warning config detection failed: ' . $e->getMessage());
+
             return false;
         }
     }

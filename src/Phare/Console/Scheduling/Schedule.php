@@ -5,6 +5,7 @@ namespace Phare\Console\Scheduling;
 class Schedule
 {
     protected array $events = [];
+
     protected string $timezone = 'UTC';
 
     /**
@@ -57,7 +58,7 @@ class Schedule
         }
 
         $event = new Event($this->timezone, $command);
-        
+
         return $this->events[] = $event;
     }
 
@@ -67,7 +68,7 @@ class Schedule
     protected function buildCommand(string $command, array $parameters): string
     {
         $binary = defined('ARTISAN_BINARY') ? ARTISAN_BINARY : 'php artisan';
-        
+
         $command = $binary . ' ' . $command;
 
         if (count($parameters)) {
@@ -123,6 +124,7 @@ class Schedule
     public function clear(): static
     {
         $this->events = [];
+
         return $this;
     }
 
@@ -132,7 +134,7 @@ class Schedule
     public function run(): array
     {
         $results = [];
-        
+
         foreach ($this->dueEvents() as $event) {
             try {
                 $results[] = [

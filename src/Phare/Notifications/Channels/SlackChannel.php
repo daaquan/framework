@@ -2,8 +2,8 @@
 
 namespace Phare\Notifications\Channels;
 
-use Phare\Notifications\Notification;
 use Phare\Notifications\Messages\SlackMessage;
+use Phare\Notifications\Notification;
 
 class SlackChannel implements ChannelInterface
 {
@@ -32,7 +32,7 @@ class SlackChannel implements ChannelInterface
             'channel' => $message->getChannel(),
             'text' => $message->getText(),
             'attachments' => $message->getAttachments(),
-            'sent_at' => new \DateTime()
+            'sent_at' => new \DateTime(),
         ];
     }
 

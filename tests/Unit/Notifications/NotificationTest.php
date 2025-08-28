@@ -1,9 +1,9 @@
 <?php
 
-use Phare\Notifications\Notification;
 use Phare\Notifications\Messages\MailMessage;
-use Phare\Notifications\Messages\SmsMessage;
 use Phare\Notifications\Messages\SlackMessage;
+use Phare\Notifications\Messages\SmsMessage;
+use Phare\Notifications\Notification;
 
 // Test notification classes
 class TestNotification extends Notification
@@ -32,7 +32,7 @@ class TestNotification extends Notification
     {
         return [
             'message' => $this->message,
-            'action_url' => 'https://example.com'
+            'action_url' => 'https://example.com',
         ];
     }
 
@@ -106,14 +106,14 @@ beforeEach(function () {
 test('notification has unique id', function () {
     $notification1 = new TestNotification();
     $notification2 = new TestNotification();
-    
+
     expect($notification1->getId())->not->toBe($notification2->getId());
     expect($notification1->getId())->toMatch('/^notification_/');
 });
 
 test('notification can set custom id', function () {
     $this->notification->setId('custom-id');
-    
+
     expect($this->notification->getId())->toBe('custom-id');
 });
 
@@ -124,7 +124,7 @@ test('notification starts as unread', function () {
 
 test('notification can be marked as read', function () {
     $this->notification->markAsRead();
-    
+
     expect($this->notification->isRead())->toBeTrue();
     expect($this->notification->getReadAt())->toBeInstanceOf(\DateTime::class);
 });
@@ -132,20 +132,20 @@ test('notification can be marked as read', function () {
 test('notification can be marked as unread', function () {
     $this->notification->markAsRead();
     $this->notification->markAsUnread();
-    
+
     expect($this->notification->isRead())->toBeFalse();
     expect($this->notification->getReadAt())->toBeNull();
 });
 
 test('notification can have additional data', function () {
     $this->notification->with(['key' => 'value', 'number' => 123]);
-    
+
     expect($this->notification->getData())->toBe(['key' => 'value', 'number' => 123]);
 });
 
 test('notification can chain with data', function () {
     $result = $this->notification->with(['key1' => 'value1'])->with(['key2' => 'value2']);
-    
+
     expect($result)->toBe($this->notification);
     expect($this->notification->getData())->toBe(['key1' => 'value1', 'key2' => 'value2']);
 });
@@ -155,15 +155,15 @@ test('notification has creation timestamp', function () {
 });
 
 test('notification via method returns channels', function () {
-    $notifiable = (object) ['email' => 'test@example.com'];
-    
+    $notifiable = (object)['email' => 'test@example.com'];
+
     expect($this->notification->via($notifiable))->toBe(['mail', 'database']);
 });
 
 test('notification to mail returns mail message', function () {
-    $notifiable = (object) ['email' => 'test@example.com'];
+    $notifiable = (object)['email' => 'test@example.com'];
     $mailMessage = $this->notification->toMail($notifiable);
-    
+
     expect($mailMessage)->toBeInstanceOf(MailMessage::class);
     expect($mailMessage->getSubject())->toBe('Test Notification');
     expect($mailMessage->getGreeting())->toBe('Hello!');
@@ -174,28 +174,28 @@ test('notification to mail returns mail message', function () {
 });
 
 test('notification to database returns array', function () {
-    $notifiable = (object) ['id' => 1];
+    $notifiable = (object)['id' => 1];
     $data = $this->notification->toDatabase($notifiable);
-    
+
     expect($data)->toBe([
         'message' => 'Hello World!',
-        'action_url' => 'https://example.com'
+        'action_url' => 'https://example.com',
     ]);
 });
 
 test('notification to array returns same as to database', function () {
-    $notifiable = (object) ['id' => 1];
-    
+    $notifiable = (object)['id' => 1];
+
     expect($this->notification->toArray($notifiable))
         ->toBe($this->notification->toDatabase($notifiable));
 });
 
 test('sms notification works correctly', function () {
     $notification = new SmsNotification();
-    $notifiable = (object) ['phone' => '+1234567890'];
-    
+    $notifiable = (object)['phone' => '+1234567890'];
+
     expect($notification->via($notifiable))->toBe(['sms']);
-    
+
     $smsMessage = $notification->toSms($notifiable);
     expect($smsMessage)->toBeInstanceOf(SmsMessage::class);
     expect($smsMessage->getContent())->toBe('Your verification code is: 123456');
@@ -204,10 +204,10 @@ test('sms notification works correctly', function () {
 
 test('slack notification works correctly', function () {
     $notification = new SlackNotification();
-    $notifiable = (object) ['slack_webhook' => 'https://hooks.slack.com/...'];
-    
+    $notifiable = (object)['slack_webhook' => 'https://hooks.slack.com/...'];
+
     expect($notification->via($notifiable))->toBe(['slack']);
-    
+
     $slackMessage = $notification->toSlack($notifiable);
     expect($slackMessage)->toBeInstanceOf(SlackMessage::class);
     expect($slackMessage->getText())->toBe('Deployment completed successfully!');
@@ -218,9 +218,9 @@ test('slack notification works correctly', function () {
 
 test('notification should send method works', function () {
     $notification = new ConditionalNotification();
-    $notifiableWithPhone = (object) ['email' => 'test@example.com', 'phone' => '+1234567890'];
-    $notifiableWithoutPhone = (object) ['email' => 'test@example.com'];
-    
+    $notifiableWithPhone = (object)['email' => 'test@example.com', 'phone' => '+1234567890'];
+    $notifiableWithoutPhone = (object)['email' => 'test@example.com'];
+
     expect($notification->shouldSend($notifiableWithPhone, 'mail'))->toBeTrue();
     expect($notification->shouldSend($notifiableWithPhone, 'sms'))->toBeTrue();
     expect($notification->shouldSend($notifiableWithoutPhone, 'mail'))->toBeTrue();
@@ -228,14 +228,14 @@ test('notification should send method works', function () {
 });
 
 test('notification returns null for unsupported channels', function () {
-    expect($this->notification->toSms((object) []))->toBeNull();
-    expect($this->notification->toSlack((object) []))->toBeNull();
+    expect($this->notification->toSms((object)[]))->toBeNull();
+    expect($this->notification->toSlack((object)[]))->toBeNull();
 });
 
 test('notification can set read at timestamp', function () {
     $timestamp = new \DateTime('2023-01-01 12:00:00');
     $this->notification->setReadAt($timestamp);
-    
+
     expect($this->notification->getReadAt())->toBe($timestamp);
     expect($this->notification->isRead())->toBeTrue();
 });
