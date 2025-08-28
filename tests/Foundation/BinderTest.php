@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class BinderTest extends TestCase
 {
-    public function testController()
+    public function test_controller()
     {
         $di = Di::getDefault();
         $di->setShared('router', function () {

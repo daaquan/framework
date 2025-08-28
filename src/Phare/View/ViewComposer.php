@@ -2,8 +2,6 @@
 
 namespace Phare\View;
 
-use Closure;
-
 abstract class ViewComposer
 {
     /**

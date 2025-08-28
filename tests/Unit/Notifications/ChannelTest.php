@@ -1,14 +1,14 @@
 <?php
 
 use Phare\Notifications\Channels\ChannelManager;
-use Phare\Notifications\Channels\MailChannel;
 use Phare\Notifications\Channels\DatabaseChannel;
-use Phare\Notifications\Channels\SmsChannel;
+use Phare\Notifications\Channels\MailChannel;
 use Phare\Notifications\Channels\SlackChannel;
-use Phare\Notifications\Notification;
+use Phare\Notifications\Channels\SmsChannel;
 use Phare\Notifications\Messages\MailMessage;
-use Phare\Notifications\Messages\SmsMessage;
 use Phare\Notifications\Messages\SlackMessage;
+use Phare\Notifications\Messages\SmsMessage;
+use Phare\Notifications\Notification;
 
 // Test notification for channels
 class ChannelTestNotification extends Notification
@@ -48,8 +48,7 @@ class NotifiableForChannelTest
         public ?string $phone = '+1234567890',
         public ?string $slack_webhook = 'https://hooks.slack.com/test',
         public int $id = 1
-    ) {
-    }
+    ) {}
 
     public function getKey(): int
     {
@@ -124,7 +123,8 @@ test('channel manager throws exception for unknown driver', function () {
 
 test('channel manager can extend with custom driver', function () {
     $this->channelManager->extend('custom', function () {
-        return new class implements \Phare\Notifications\Channels\ChannelInterface {
+        return new class() implements \Phare\Notifications\Channels\ChannelInterface
+        {
             public function send(mixed $notifiable, Notification $notification): void
             {
                 // Custom implementation
@@ -146,7 +146,7 @@ test('channel manager can clear drivers', function () {
 
 test('mail channel can send notification', function () {
     $channel = new MailChannel();
-    
+
     // Should not throw exception
     $channel->send($this->notifiable, $this->notification);
     expect(true)->toBeTrue(); // Test passes if no exception
@@ -155,7 +155,7 @@ test('mail channel can send notification', function () {
 test('database channel can send notification', function () {
     $channel = new DatabaseChannel();
     $channel->send($this->notifiable, $this->notification);
-    
+
     $stored = $channel->getStoredNotifications();
     expect($stored)->toHaveCount(1);
     expect($stored[0]['type'])->toBe(ChannelTestNotification::class);
@@ -168,7 +168,7 @@ test('database channel can clear stored notifications', function () {
     $channel = new DatabaseChannel();
     $channel->send($this->notifiable, $this->notification);
     expect($channel->getStoredNotifications())->toHaveCount(1);
-    
+
     $channel->clearStoredNotifications();
     expect($channel->getStoredNotifications())->toHaveCount(0);
 });
@@ -176,7 +176,7 @@ test('database channel can clear stored notifications', function () {
 test('sms channel can send notification', function () {
     $channel = new SmsChannel();
     $channel->send($this->notifiable, $this->notification);
-    
+
     $sent = $channel->getSentMessages();
     expect($sent)->toHaveCount(1);
     expect($sent[0]['to'])->toBe('+1234567890');
@@ -187,7 +187,7 @@ test('sms channel can clear sent messages', function () {
     $channel = new SmsChannel();
     $channel->send($this->notifiable, $this->notification);
     expect($channel->getSentMessages())->toHaveCount(1);
-    
+
     $channel->clearSentMessages();
     expect($channel->getSentMessages())->toHaveCount(0);
 });
@@ -195,9 +195,9 @@ test('sms channel can clear sent messages', function () {
 test('sms channel handles missing phone number', function () {
     $notifiable = new NotifiableForChannelTest('test@example.com', null);
     $channel = new SmsChannel();
-    
+
     $channel->send($notifiable, $this->notification);
-    
+
     // Should not send if no phone number
     expect($channel->getSentMessages())->toHaveCount(0);
 });
@@ -205,7 +205,7 @@ test('sms channel handles missing phone number', function () {
 test('slack channel can send notification', function () {
     $channel = new SlackChannel();
     $channel->send($this->notifiable, $this->notification);
-    
+
     $sent = $channel->getSentMessages();
     expect($sent)->toHaveCount(1);
     expect($sent[0]['webhook'])->toBe('https://hooks.slack.com/test');
@@ -217,7 +217,7 @@ test('slack channel can clear sent messages', function () {
     $channel = new SlackChannel();
     $channel->send($this->notifiable, $this->notification);
     expect($channel->getSentMessages())->toHaveCount(1);
-    
+
     $channel->clearSentMessages();
     expect($channel->getSentMessages())->toHaveCount(0);
 });
@@ -225,32 +225,49 @@ test('slack channel can clear sent messages', function () {
 test('slack channel handles missing webhook', function () {
     $notifiable = new NotifiableForChannelTest('test@example.com', null, null);
     $channel = new SlackChannel();
-    
+
     $channel->send($notifiable, $this->notification);
-    
+
     // Should not send if no webhook
     expect($channel->getSentMessages())->toHaveCount(0);
 });
 
 test('database channel handles notifiable without id', function () {
-    $notifiable = new class {
+    $notifiable = new class()
+    {
         // No getKey, getId, or id property
     };
-    
+
     $channel = new DatabaseChannel();
     $channel->send($notifiable, $this->notification);
-    
+
     $stored = $channel->getStoredNotifications();
     expect($stored)->toHaveCount(1);
     expect($stored[0]['notifiable_id'])->toBeNull();
 });
 
 test('channels handle notifications returning null gracefully', function () {
-    $notification = new class extends Notification {
-        public function via(mixed $notifiable): array { return ['mail', 'sms', 'slack']; }
-        public function toMail(mixed $notifiable): ?MailMessage { return null; }
-        public function toSms(mixed $notifiable): ?SmsMessage { return null; }
-        public function toSlack(mixed $notifiable): ?SlackMessage { return null; }
+    $notification = new class() extends Notification
+    {
+        public function via(mixed $notifiable): array
+        {
+            return ['mail', 'sms', 'slack'];
+        }
+
+        public function toMail(mixed $notifiable): ?MailMessage
+        {
+            return null;
+        }
+
+        public function toSms(mixed $notifiable): ?SmsMessage
+        {
+            return null;
+        }
+
+        public function toSlack(mixed $notifiable): ?SlackMessage
+        {
+            return null;
+        }
     };
 
     $mailChannel = new MailChannel();

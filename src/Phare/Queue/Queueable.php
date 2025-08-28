@@ -10,6 +10,7 @@ trait Queueable
     public static function dispatch(...$arguments): string
     {
         $job = new static(...$arguments);
+
         return app('queue')->push($job);
     }
 
@@ -19,6 +20,7 @@ trait Queueable
     public static function dispatchAfter(int $delay, ...$arguments): string
     {
         $job = new static(...$arguments);
+
         return app('queue')->later($job, $delay);
     }
 
@@ -29,6 +31,7 @@ trait Queueable
     {
         $job = new static(...$arguments);
         $job->onQueue($queue);
+
         return app('queue')->push($job);
     }
 
@@ -38,6 +41,7 @@ trait Queueable
     public static function dispatchUsing(string $connection, ...$arguments): string
     {
         $job = new static(...$arguments);
+
         return app('queue')->push($job, null, $connection);
     }
 }

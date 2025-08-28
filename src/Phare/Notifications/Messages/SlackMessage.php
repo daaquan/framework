@@ -5,10 +5,15 @@ namespace Phare\Notifications\Messages;
 class SlackMessage
 {
     protected string $text = '';
+
     protected string $channel = '';
+
     protected string $webhook = '';
+
     protected array $attachments = [];
+
     protected string $username = '';
+
     protected string $icon = '';
 
     /**
@@ -25,6 +30,7 @@ class SlackMessage
     public function text(string $text): static
     {
         $this->text = $text;
+
         return $this;
     }
 
@@ -34,6 +40,7 @@ class SlackMessage
     public function to(string $channel): static
     {
         $this->channel = $channel;
+
         return $this;
     }
 
@@ -43,6 +50,7 @@ class SlackMessage
     public function webhook(string $webhook): static
     {
         $this->webhook = $webhook;
+
         return $this;
     }
 
@@ -52,6 +60,7 @@ class SlackMessage
     public function username(string $username): static
     {
         $this->username = $username;
+
         return $this;
     }
 
@@ -61,6 +70,7 @@ class SlackMessage
     public function icon(string $icon): static
     {
         $this->icon = $icon;
+
         return $this;
     }
 
@@ -70,6 +80,7 @@ class SlackMessage
     public function attachment(array $attachment): static
     {
         $this->attachments[] = $attachment;
+
         return $this;
     }
 
@@ -80,7 +91,7 @@ class SlackMessage
     {
         return $this->attachment([
             'color' => 'good',
-            'text' => $this->text
+            'text' => $this->text,
         ]);
     }
 
@@ -91,7 +102,7 @@ class SlackMessage
     {
         return $this->attachment([
             'color' => 'danger',
-            'text' => $this->text
+            'text' => $this->text,
         ]);
     }
 
@@ -102,7 +113,7 @@ class SlackMessage
     {
         return $this->attachment([
             'color' => 'warning',
-            'text' => $this->text
+            'text' => $this->text,
         ]);
     }
 

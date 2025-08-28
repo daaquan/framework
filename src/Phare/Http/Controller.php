@@ -3,8 +3,6 @@
 namespace Phare\Http;
 
 use Phalcon\Mvc\Controller as BaseController;
-use Phare\Http\Request;
-use Phare\Http\Response;
 
 /**
  * Base controller providing convenient access to services.
@@ -50,7 +48,7 @@ abstract class Controller extends BaseController
     {
         $request = $this->request();
         $validator = new Request($rules);
-        
+
         if (!$validator->validate($request->all())) {
             throw new \Phare\Foundation\Http\Validation\ValidationException(
                 'Validation failed: ' . json_encode($validator->getMessages())
@@ -98,10 +96,10 @@ abstract class Controller extends BaseController
     protected function abort(int $code, string $message = '', array $headers = []): never
     {
         $this->response()
-             ->setStatusCode($code)
-             ->setContent($message)
-             ->withHeaders($headers)
-             ->send();
+            ->setStatusCode($code)
+            ->setContent($message)
+            ->withHeaders($headers)
+            ->send();
         exit;
     }
 }

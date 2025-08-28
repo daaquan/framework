@@ -5,7 +5,9 @@ namespace Phare\Notifications\Messages;
 class SmsMessage
 {
     protected string $content = '';
+
     protected string $to = '';
+
     protected string $from = '';
 
     /**
@@ -22,6 +24,7 @@ class SmsMessage
     public function content(string $content): static
     {
         $this->content = $content;
+
         return $this;
     }
 
@@ -31,6 +34,7 @@ class SmsMessage
     public function to(string $to): static
     {
         $this->to = $to;
+
         return $this;
     }
 
@@ -40,6 +44,7 @@ class SmsMessage
     public function from(string $from): static
     {
         $this->from = $from;
+
         return $this;
     }
 

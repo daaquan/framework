@@ -8,10 +8,15 @@ use Phare\Container\Container;
 class Factory
 {
     protected Container $container;
+
     protected array $composers = [];
+
     protected array $creators = [];
+
     protected array $shared = [];
+
     protected array $extensions = [];
+
     protected array $paths = [];
 
     public function __construct(Container $container)
@@ -53,7 +58,7 @@ class Factory
     public function exists(string $view): bool
     {
         $path = $this->normalizeName($view);
-        
+
         foreach ($this->paths as $viewPath) {
             foreach ($this->extensions as $extension) {
                 $fullPath = $viewPath . '/' . $path . $extension;
@@ -88,15 +93,15 @@ class Factory
      */
     public function composer(string|array $views, string|Closure $callback): void
     {
-        $views = (array) $views;
+        $views = (array)$views;
 
         foreach ($views as $view) {
             $view = $this->normalizeName($view);
-            
+
             if (!isset($this->composers[$view])) {
                 $this->composers[$view] = [];
             }
-            
+
             $this->composers[$view][] = $callback;
         }
     }
@@ -106,15 +111,15 @@ class Factory
      */
     public function creator(string|array $views, string|Closure $callback): void
     {
-        $views = (array) $views;
+        $views = (array)$views;
 
         foreach ($views as $view) {
             $view = $this->normalizeName($view);
-            
+
             if (!isset($this->creators[$view])) {
                 $this->creators[$view] = [];
             }
-            
+
             $this->creators[$view][] = $callback;
         }
     }
@@ -155,7 +160,7 @@ class Factory
     protected function callComposers(View $view): void
     {
         $viewName = $view->getView();
-        
+
         if (!$viewName) {
             return;
         }
@@ -183,7 +188,7 @@ class Factory
     protected function callCreators(View $view): void
     {
         $viewName = $view->getView();
-        
+
         if (!$viewName) {
             return;
         }
@@ -215,7 +220,7 @@ class Factory
         } elseif (is_string($callback)) {
             if (class_exists($callback)) {
                 $composer = $this->container->make($callback);
-                
+
                 if (method_exists($composer, 'compose')) {
                     $composer->compose($view);
                 } elseif (is_callable($composer)) {
@@ -237,7 +242,8 @@ class Factory
         // Convert pattern to regex - escape special chars except *
         $regex = preg_quote($pattern, '/');
         $regex = str_replace('\\*', '.*', $regex);
-        return (bool) preg_match('/^' . $regex . '$/i', $viewName);
+
+        return (bool)preg_match('/^' . $regex . '$/i', $viewName);
     }
 
     /**

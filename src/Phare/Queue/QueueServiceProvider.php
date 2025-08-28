@@ -15,7 +15,7 @@ class QueueServiceProvider extends ServiceProvider
                     'sync' => ['driver' => 'sync'],
                     'database' => ['driver' => 'database', 'table' => 'jobs'],
                     'redis' => ['driver' => 'redis'],
-                ]
+                ],
             ];
 
             return new QueueManager($config);
@@ -34,19 +34,22 @@ class QueueServiceProvider extends ServiceProvider
     {
         // Register queue helper functions
         if (!function_exists('queue')) {
-            function queue(?string $connection = null): QueueInterface {
+            function queue(?string $connection = null): QueueInterface
+            {
                 return app('queue')->connection($connection);
             }
         }
 
         if (!function_exists('dispatch')) {
-            function dispatch(Job $job, ?string $queue = null, ?string $connection = null): string {
+            function dispatch(Job $job, ?string $queue = null, ?string $connection = null): string
+            {
                 return app('queue')->push($job, $queue, $connection);
             }
         }
 
         if (!function_exists('dispatch_after')) {
-            function dispatch_after(Job $job, int $delay, ?string $queue = null, ?string $connection = null): string {
+            function dispatch_after(Job $job, int $delay, ?string $queue = null, ?string $connection = null): string
+            {
                 return app('queue')->later($job, $delay, $queue, $connection);
             }
         }

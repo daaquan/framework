@@ -8,8 +8,11 @@ use Phare\Events\Contracts\Dispatcher as DispatcherContract;
 class Dispatcher implements DispatcherContract
 {
     protected Application $app;
+
     protected array $listeners = [];
+
     protected array $wildcards = [];
+
     protected array $queuedEvents = [];
 
     public function __construct(Application $app)
@@ -66,6 +69,7 @@ class Dispatcher implements DispatcherContract
     public function until(string|object $event, array $payload = [])
     {
         $results = $this->dispatch($event, $payload, true);
+
         return $results ? $results[0] : null;
     }
 
@@ -166,6 +170,7 @@ class Dispatcher implements DispatcherContract
 
         return function (...$args) use ($class, $method) {
             $callable = $this->app->make($class);
+
             return $callable->$method(...$args);
         };
     }

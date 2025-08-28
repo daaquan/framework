@@ -39,7 +39,7 @@ class LoadConfiguration implements ServiceProviderInterface
     /**
      * Determine whether the cache is outdated.
      *
-     * @param  Application|DiInterface  $app
+     * @param Application|DiInterface $app
      */
     private function isConfigOutdated(Application $app): bool
     {

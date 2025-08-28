@@ -2,15 +2,16 @@
 
 namespace Phare\Middleware;
 
+use Phalcon\Http\Request;
+use Phalcon\Http\Response;
 use Phare\Contracts\Foundation\Application;
 use Phare\RateLimit\RateLimiter;
 use Phare\RateLimit\TooManyRequestsException;
-use Phalcon\Http\Request;
-use Phalcon\Http\Response;
 
 class ThrottleRequests
 {
     protected Application $app;
+
     protected RateLimiter $limiter;
 
     public function __construct(Application $app, RateLimiter $limiter)
@@ -29,12 +30,12 @@ class ThrottleRequests
             $request,
             $next,
             [
-                (object) [
+                (object)[
                     'key' => $prefix . $this->resolveRequestSignature($request),
                     'maxAttempts' => $this->resolveMaxAttempts($request, $maxAttempts),
                     'decayMinutes' => $decayMinutes,
                     'responseCallback' => null,
-                ]
+                ],
             ]
         );
     }
@@ -105,7 +106,7 @@ class ThrottleRequests
         return $maxAttempts;
     }
 
-    protected function calculateRemainingAttempts(string $key, int $maxAttempts, int $retryAfter = null): int
+    protected function calculateRemainingAttempts(string $key, int $maxAttempts, ?int $retryAfter = null): int
     {
         return is_null($retryAfter) ? $this->limiter->remaining($key, $maxAttempts) : 0;
     }
@@ -115,7 +116,7 @@ class ThrottleRequests
         return $this->limiter->availableIn($key);
     }
 
-    protected function addHeaders(Response $response, int $maxAttempts, int $remainingAttempts, int $retryAfter = null): Response
+    protected function addHeaders(Response $response, int $maxAttempts, int $remainingAttempts, ?int $retryAfter = null): Response
     {
         $response->setHeader('X-RateLimit-Limit', $maxAttempts);
         $response->setHeader('X-RateLimit-Remaining', max(0, $remainingAttempts));

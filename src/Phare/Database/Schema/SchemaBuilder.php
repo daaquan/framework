@@ -17,7 +17,7 @@ class SchemaBuilder
     {
         $blueprint = new Blueprint($table);
         $callback($blueprint);
-        
+
         $this->build($blueprint);
     }
 
@@ -25,7 +25,7 @@ class SchemaBuilder
     {
         $blueprint = new Blueprint($table, true);
         $callback($blueprint);
-        
+
         $this->build($blueprint);
     }
 
@@ -49,10 +49,10 @@ class SchemaBuilder
     public function hasTable(string $table): bool
     {
         $driver = $this->getDriverName();
-        
-        return match($driver) {
+
+        return match ($driver) {
             'mysql' => $this->connection->fetchOne(
-                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?",
+                'SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?',
                 [$table]
             )['count'] > 0,
             'sqlite' => $this->connection->fetchOne(
@@ -70,10 +70,10 @@ class SchemaBuilder
     public function hasColumn(string $table, string $column): bool
     {
         $driver = $this->getDriverName();
-        
-        return match($driver) {
+
+        return match ($driver) {
             'mysql' => $this->connection->fetchOne(
-                "SELECT COUNT(*) as count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?",
+                'SELECT COUNT(*) as count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?',
                 [$table, $column]
             )['count'] > 0,
             'sqlite' => !empty($this->connection->fetchAll(
@@ -90,11 +90,11 @@ class SchemaBuilder
     public function getColumnListing(string $table): array
     {
         $driver = $this->getDriverName();
-        
-        return match($driver) {
+
+        return match ($driver) {
             'mysql' => array_column(
                 $this->connection->fetchAll(
-                    "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? ORDER BY ordinal_position",
+                    'SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? ORDER BY ordinal_position',
                     [$table]
                 ),
                 'column_name'
@@ -114,7 +114,7 @@ class SchemaBuilder
     protected function build(Blueprint $blueprint): void
     {
         $statements = $blueprint->toSql($this->connection, $this->getGrammar());
-        
+
         foreach ($statements as $statement) {
             $this->connection->execute($statement);
         }
@@ -128,8 +128,8 @@ class SchemaBuilder
     protected function getGrammar(): Grammar
     {
         $driver = $this->getDriverName();
-        
-        return match($driver) {
+
+        return match ($driver) {
             'mysql' => new Grammars\MySqlGrammar(),
             'sqlite' => new Grammars\SqliteGrammar(),
             'pgsql' => new Grammars\PostgresGrammar(),

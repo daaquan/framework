@@ -455,6 +455,23 @@ if (!function_exists('retry')) {
     }
 }
 
+// broadcast()
+if (!function_exists('broadcast')) {
+    /**
+     * Begin broadcasting an event.
+     */
+    function broadcast(?\Phare\Events\Contracts\ShouldBroadcast $event = null): \Phare\Broadcasting\PendingBroadcast|\Phare\Broadcasting\BroadcastManager
+    {
+        $broadcast = app('broadcast');
+
+        if (is_null($event)) {
+            return $broadcast;
+        }
+
+        return new \Phare\Broadcasting\PendingBroadcast($broadcast, $event);
+    }
+}
+
 // normalize_uri()
 if (!function_exists('normalize_uri')) {
     function normalize_uri(string ...$uri): string

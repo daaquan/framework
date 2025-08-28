@@ -5,7 +5,9 @@ namespace Phare\Notifications\Channels;
 class ChannelManager
 {
     protected array $drivers = [];
+
     protected array $customDrivers = [];
+
     protected string $defaultDriver = 'mail';
 
     public function __construct(array $config = [])
@@ -68,6 +70,7 @@ class ChannelManager
     public function extend(string $name, \Closure $callback): static
     {
         $this->customDrivers[$name] = $callback;
+
         return $this;
     }
 

@@ -5,9 +5,13 @@ namespace Phare\Mail;
 class Message
 {
     protected array $to = [];
+
     protected array $cc = [];
+
     protected array $bcc = [];
+
     protected array $replyTo = [];
+
     protected string $subject = '';
 
     public function to(string|array $address, ?string $name = null): static
@@ -17,6 +21,7 @@ class Message
         } else {
             $this->to[$address] = $name;
         }
+
         return $this;
     }
 
@@ -27,6 +32,7 @@ class Message
         } else {
             $this->cc[$address] = $name;
         }
+
         return $this;
     }
 
@@ -37,6 +43,7 @@ class Message
         } else {
             $this->bcc[$address] = $name;
         }
+
         return $this;
     }
 
@@ -47,12 +54,14 @@ class Message
         } else {
             $this->replyTo[$address] = $name;
         }
+
         return $this;
     }
 
     public function subject(string $subject): static
     {
         $this->subject = $subject;
+
         return $this;
     }
 

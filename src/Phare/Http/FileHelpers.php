@@ -4,7 +4,7 @@ namespace Phare\Http;
 
 trait FileHelpers
 {
-    public function file(string $key = null): ?UploadedFile
+    public function file(?string $key = null): ?UploadedFile
     {
         return $this->hasFile($key) ? $this->convertUploadedFiles()[$key] : null;
     }
@@ -17,6 +17,7 @@ trait FileHelpers
     public function hasFile(string $key): bool
     {
         $files = $this->convertUploadedFiles();
+
         return !empty($files[$key]);
     }
 
@@ -26,7 +27,7 @@ trait FileHelpers
 
         if ($convertedFiles === null) {
             $convertedFiles = [];
-            
+
             if (!empty($_FILES)) {
                 foreach ($_FILES as $key => $file) {
                     $convertedFiles[$key] = $this->createUploadedFile($file);
@@ -53,6 +54,7 @@ trait FileHelpers
         // Check for upload errors
         if ($file->hasError()) {
             $errors[] = $file->getErrorMessage();
+
             return $errors;
         }
 
@@ -93,6 +95,7 @@ trait FileHelpers
         // Check if it's a valid image
         if (!$this->isValidImage($file)) {
             $errors[] = 'The uploaded file is not a valid image.';
+
             return $errors;
         }
 
@@ -100,6 +103,7 @@ trait FileHelpers
         $imageInfo = getimagesize($file->getPath());
         if (!$imageInfo) {
             $errors[] = 'Unable to read image dimensions.';
+
             return $errors;
         }
 
@@ -128,14 +132,14 @@ trait FileHelpers
     protected function isValidImage(UploadedFile $file): bool
     {
         $mimeType = $file->getMimeType();
-        
+
         $validImageTypes = [
             'image/jpeg',
-            'image/jpg', 
+            'image/jpg',
             'image/png',
             'image/gif',
             'image/webp',
-            'image/svg+xml'
+            'image/svg+xml',
         ];
 
         return in_array($mimeType, $validImageTypes);

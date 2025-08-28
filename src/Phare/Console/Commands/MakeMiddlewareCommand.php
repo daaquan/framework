@@ -7,6 +7,7 @@ use Phare\Console\Command;
 class MakeMiddlewareCommand extends Command
 {
     protected string $signature = 'make:middleware {name : The name of the middleware}';
+
     protected string $description = 'Create a new middleware class';
 
     public function handle(): int
@@ -18,6 +19,7 @@ class MakeMiddlewareCommand extends Command
 
         if ($this->files->exists($path)) {
             $this->error("Middleware [{$middlewareName}] already exists.");
+
             return 1;
         }
 
@@ -41,6 +43,7 @@ class MakeMiddlewareCommand extends Command
     protected function getMiddlewarePath(string $name): string
     {
         $path = str_replace('\\', '/', $name) . '.php';
+
         return $this->app->basePath('app/Middleware/' . $path);
     }
 
@@ -61,7 +64,7 @@ class MakeMiddlewareCommand extends Command
     {
         $parts = explode('\\', $name);
         array_pop($parts); // Remove class name
-        
+
         $namespace = 'App\\Middleware';
         if (!empty($parts)) {
             $namespace .= '\\' . implode('\\', $parts);

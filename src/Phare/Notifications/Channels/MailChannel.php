@@ -2,9 +2,9 @@
 
 namespace Phare\Notifications\Channels;
 
-use Phare\Notifications\Notification;
-use Phare\Notifications\Messages\MailMessage;
 use Phare\Mail\Mailer;
+use Phare\Notifications\Messages\MailMessage;
+use Phare\Notifications\Notification;
 
 class MailChannel implements ChannelInterface
 {

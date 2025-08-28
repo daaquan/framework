@@ -7,18 +7,31 @@ use Phare\Mail\Mailable;
 class MailMessage
 {
     protected string $subject = '';
+
     protected string $greeting = '';
+
     protected array $introLines = [];
+
     protected array $outroLines = [];
+
     protected ?string $actionText = null;
+
     protected ?string $actionUrl = null;
+
     protected string $level = 'info';
+
     protected array $to = [];
+
     protected array $cc = [];
+
     protected array $bcc = [];
+
     protected array $replyTo = [];
+
     protected array $attachments = [];
+
     protected ?string $view = null;
+
     protected array $viewData = [];
 
     /**
@@ -27,6 +40,7 @@ class MailMessage
     public function subject(string $subject): static
     {
         $this->subject = $subject;
+
         return $this;
     }
 
@@ -36,6 +50,7 @@ class MailMessage
     public function greeting(string $greeting): static
     {
         $this->greeting = $greeting;
+
         return $this;
     }
 
@@ -45,6 +60,7 @@ class MailMessage
     public function line(string $line): static
     {
         $this->introLines[] = $line;
+
         return $this;
     }
 
@@ -56,6 +72,7 @@ class MailMessage
         foreach ($lines as $line) {
             $this->line($line);
         }
+
         return $this;
     }
 
@@ -66,6 +83,7 @@ class MailMessage
     {
         $this->actionText = $text;
         $this->actionUrl = $url;
+
         return $this;
     }
 
@@ -75,6 +93,7 @@ class MailMessage
     public function level(string $level): static
     {
         $this->level = $level;
+
         return $this;
     }
 
@@ -84,6 +103,7 @@ class MailMessage
     public function success(): static
     {
         $this->level = 'success';
+
         return $this;
     }
 
@@ -93,6 +113,7 @@ class MailMessage
     public function error(): static
     {
         $this->level = 'error';
+
         return $this;
     }
 
@@ -106,6 +127,7 @@ class MailMessage
         } else {
             $this->to[$address] = $name;
         }
+
         return $this;
     }
 
@@ -119,6 +141,7 @@ class MailMessage
         } else {
             $this->cc[$address] = $name;
         }
+
         return $this;
     }
 
@@ -132,6 +155,7 @@ class MailMessage
         } else {
             $this->bcc[$address] = $name;
         }
+
         return $this;
     }
 
@@ -145,6 +169,7 @@ class MailMessage
         } else {
             $this->replyTo[$address] = $name;
         }
+
         return $this;
     }
 
@@ -154,6 +179,7 @@ class MailMessage
     public function attach(string $path, ?string $name = null): static
     {
         $this->attachments[] = compact('path', 'name');
+
         return $this;
     }
 
@@ -164,6 +190,7 @@ class MailMessage
     {
         $this->view = $view;
         $this->viewData = $data;
+
         return $this;
     }
 
@@ -172,18 +199,18 @@ class MailMessage
      */
     public function toMailable(string $to, mixed $notifiable): Mailable
     {
-        return new class($this, $to, $notifiable) extends Mailable {
+        return new class($this, $to, $notifiable) extends Mailable
+        {
             public function __construct(
                 protected MailMessage $message,
                 protected string $recipient,
                 protected mixed $notifiable
-            ) {
-            }
+            ) {}
 
             public function build(): void
             {
                 $this->to($this->recipient)
-                     ->subject($this->message->getSubject());
+                    ->subject($this->message->getSubject());
 
                 if ($this->message->hasView()) {
                     $this->view($this->message->getView(), $this->message->getViewData());
@@ -240,22 +267,88 @@ class MailMessage
     }
 
     // Getters
-    public function getSubject(): string { return $this->subject; }
-    public function getGreeting(): string { return $this->greeting; }
-    public function getIntroLines(): array { return $this->introLines; }
-    public function getOutroLines(): array { return $this->outroLines; }
-    public function getActionText(): ?string { return $this->actionText; }
-    public function getActionUrl(): ?string { return $this->actionUrl; }
-    public function getLevel(): string { return $this->level; }
-    public function getTo(): array { return $this->to; }
-    public function getCc(): array { return $this->cc; }
-    public function getBcc(): array { return $this->bcc; }
-    public function getReplyTo(): array { return $this->replyTo; }
-    public function getAttachments(): array { return $this->attachments; }
-    public function getView(): ?string { return $this->view; }
-    public function getViewData(): array { return $this->viewData; }
+    public function getSubject(): string
+    {
+        return $this->subject;
+    }
 
-    public function hasTo(): bool { return !empty($this->to); }
-    public function hasAction(): bool { return $this->actionText && $this->actionUrl; }
-    public function hasView(): bool { return $this->view !== null; }
+    public function getGreeting(): string
+    {
+        return $this->greeting;
+    }
+
+    public function getIntroLines(): array
+    {
+        return $this->introLines;
+    }
+
+    public function getOutroLines(): array
+    {
+        return $this->outroLines;
+    }
+
+    public function getActionText(): ?string
+    {
+        return $this->actionText;
+    }
+
+    public function getActionUrl(): ?string
+    {
+        return $this->actionUrl;
+    }
+
+    public function getLevel(): string
+    {
+        return $this->level;
+    }
+
+    public function getTo(): array
+    {
+        return $this->to;
+    }
+
+    public function getCc(): array
+    {
+        return $this->cc;
+    }
+
+    public function getBcc(): array
+    {
+        return $this->bcc;
+    }
+
+    public function getReplyTo(): array
+    {
+        return $this->replyTo;
+    }
+
+    public function getAttachments(): array
+    {
+        return $this->attachments;
+    }
+
+    public function getView(): ?string
+    {
+        return $this->view;
+    }
+
+    public function getViewData(): array
+    {
+        return $this->viewData;
+    }
+
+    public function hasTo(): bool
+    {
+        return !empty($this->to);
+    }
+
+    public function hasAction(): bool
+    {
+        return $this->actionText && $this->actionUrl;
+    }
+
+    public function hasView(): bool
+    {
+        return $this->view !== null;
+    }
 }

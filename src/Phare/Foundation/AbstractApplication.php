@@ -215,7 +215,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         $config = $this['config'];
         $appAliases = $config->path('app.aliases', []);
         $appAliases = is_array($appAliases) ? $appAliases : $appAliases->toArray();
-        
+
         foreach ($appAliases as $alias => $facadeClass) {
             if (class_exists($alias)) {
                 continue;
@@ -239,7 +239,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
 
         $appProviders = $config->path('app.providers', []);
         $appProviders = is_array($appProviders) ? $appProviders : $appProviders->toArray();
-        
+
         foreach ($appProviders as $providerClass) {
             (new $providerClass())->register($this);
         }
@@ -260,7 +260,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         }
 
         $this->hasBeenBootstrapped = true;
-        
+
         $this->fireAppCallbacks('booted');
     }
 
@@ -431,7 +431,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
 
         // Fire event if event dispatcher is available
         if ($this->bound('events')) {
-            $eventClass = match($event) {
+            $eventClass = match ($event) {
                 'booting' => \Phare\Foundation\Events\ApplicationBooting::class,
                 'booted' => \Phare\Foundation\Events\ApplicationBooted::class,
                 default => null,

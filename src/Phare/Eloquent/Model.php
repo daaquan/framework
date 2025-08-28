@@ -129,13 +129,13 @@ class Model extends PhModel implements \ArrayAccess
         }
 
         return match ($this->casts[$attribute]) {
-            'int', 'integer' => (int) $value,
-            'real', 'float', 'double' => (float) $value,
-            'decimal' => number_format((float) $value, 2, '.', ''),
-            'string' => (string) $value,
-            'bool', 'boolean' => (bool) $value,
+            'int', 'integer' => (int)$value,
+            'real', 'float', 'double' => (float)$value,
+            'decimal' => number_format((float)$value, 2, '.', ''),
+            'string' => (string)$value,
+            'bool', 'boolean' => (bool)$value,
             'object' => is_string($value) ? unserialize($value, ['allowed_classes' => true]) : $value,
-            'array' => is_string($value) ? json_decode($value, true) : (array) $value,
+            'array' => is_string($value) ? json_decode($value, true) : (array)$value,
             'json' => is_string($value) ? json_decode($value, true) : $value,
             'collection' => new Collection(is_string($value) ? json_decode($value, true) : $value),
             'date' => $this->asDate($value),
@@ -154,10 +154,10 @@ class Model extends PhModel implements \ArrayAccess
         }
 
         return match ($this->casts[$attribute]) {
-            'int', 'integer' => (int) $value,
-            'real', 'float', 'double', 'decimal' => (float) $value,
-            'string' => (string) $value,
-            'bool', 'boolean' => (bool) $value,
+            'int', 'integer' => (int)$value,
+            'real', 'float', 'double', 'decimal' => (float)$value,
+            'string' => (string)$value,
+            'bool', 'boolean' => (bool)$value,
             'object' => is_object($value) ? serialize($value) : $value,
             'array', 'json' => is_array($value) ? json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $value,
             'collection' => $value instanceof Collection ? json_encode($value->toArray(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $value,

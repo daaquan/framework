@@ -2,16 +2,17 @@
 
 namespace Phare\Middleware;
 
-use Phare\Contracts\Foundation\Application;
-use Phare\Security\Csrf;
 use Phalcon\Http\Request;
 use Phalcon\Http\Response;
+use Phare\Contracts\Foundation\Application;
+use Phare\Security\Csrf;
 
 class VerifyCsrfToken
 {
     protected Application $app;
+
     protected Csrf $csrf;
-    
+
     protected array $except = [];
 
     public function __construct(Application $app)
@@ -90,6 +91,7 @@ class VerifyCsrfToken
         if (str_contains($except, '*')) {
             $pattern = preg_quote($except, '/');
             $pattern = str_replace('\*', '.*', $pattern);
+
             return preg_match('/^' . $pattern . '$/', $uri) === 1;
         }
 
@@ -99,6 +101,7 @@ class VerifyCsrfToken
     public function addExcept(array $routes): static
     {
         $this->except = array_merge($this->except, $routes);
+
         return $this;
     }
 }

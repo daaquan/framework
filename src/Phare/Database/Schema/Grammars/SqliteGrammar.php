@@ -9,14 +9,14 @@ use Phare\Database\Schema\Grammar;
 class SqliteGrammar extends Grammar
 {
     protected array $modifiers = [
-        'Nullable', 'Default', 'Increment'
+        'Nullable', 'Default', 'Increment',
     ];
 
     public function compileCreate(Blueprint $blueprint): string
     {
         $table = $this->wrapTable($blueprint->getTable());
         $columns = implode(', ', $this->getColumns($blueprint));
-        
+
         return "CREATE TABLE {$table} ({$columns})";
     }
 
@@ -48,7 +48,7 @@ class SqliteGrammar extends Grammar
     {
         $from = $this->wrapTable($blueprint->getTable());
         $to = $this->wrapTable($to);
-        
+
         return "ALTER TABLE {$from} RENAME TO {$to}";
     }
 
@@ -65,7 +65,7 @@ class SqliteGrammar extends Grammar
             'date', 'dateTime', 'timestamp' => 'TEXT',
             'json' => 'TEXT',
             'binary' => 'BLOB',
-            'enum' => 'TEXT CHECK(' . $this->wrap($column->getName()) . ' IN (' . implode(',', array_map(fn($v) => "'{$v}'", $column->getAttributes()['values'] ?? [])) . '))',
+            'enum' => 'TEXT CHECK(' . $this->wrap($column->getName()) . ' IN (' . implode(',', array_map(fn ($v) => "'{$v}'", $column->getAttributes()['values'] ?? [])) . '))',
             default => 'TEXT',
         };
     }
@@ -83,7 +83,7 @@ class SqliteGrammar extends Grammar
     {
         if (array_key_exists('default', $column->getAttributes())) {
             $default = $column->getAttributes()['default'];
-            
+
             if ($column->getAttributes()['useCurrent'] ?? false) {
                 return $sql . ' DEFAULT CURRENT_TIMESTAMP';
             }

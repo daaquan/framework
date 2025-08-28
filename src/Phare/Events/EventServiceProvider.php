@@ -2,8 +2,8 @@
 
 namespace Phare\Events;
 
-use Phare\Support\ServiceProvider;
 use Phare\Events\Contracts\Dispatcher as DispatcherContract;
+use Phare\Support\ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
 {

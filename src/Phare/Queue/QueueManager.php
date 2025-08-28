@@ -7,8 +7,11 @@ use Phare\Queue\Connectors\ConnectorInterface;
 class QueueManager
 {
     protected array $connectors = [];
+
     protected array $connections = [];
+
     protected string $defaultConnection = 'sync';
+
     protected array $config;
 
     public function __construct(array $config = [])
@@ -103,6 +106,7 @@ class QueueManager
     public function later(Job $job, int $delay, ?string $queue = null, ?string $connection = null): string
     {
         $job->delay($delay);
+
         return $this->connection($connection)->push($job, $queue);
     }
 
@@ -144,6 +148,7 @@ class QueueManager
             if ($job === null) {
                 // No jobs available, sleep for a bit
                 sleep(1);
+
                 continue;
             }
 

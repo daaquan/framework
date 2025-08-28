@@ -5,6 +5,7 @@ namespace Phare\Queue;
 class DatabaseQueue implements QueueInterface
 {
     protected array $config;
+
     protected array $jobs = []; // In-memory storage for testing
 
     public function __construct(array $config = [])
@@ -36,7 +37,7 @@ class DatabaseQueue implements QueueInterface
             'created_at' => time(),
         ];
 
-        return (string) count($this->jobs);
+        return (string)count($this->jobs);
     }
 
     /**
@@ -47,10 +48,9 @@ class DatabaseQueue implements QueueInterface
         $queue = $queue ?: $this->config['queue'];
 
         foreach ($this->jobs as $index => $jobData) {
-            if ($jobData['queue'] === $queue && 
-                $jobData['reserved_at'] === null && 
+            if ($jobData['queue'] === $queue &&
+                $jobData['reserved_at'] === null &&
                 $jobData['available_at'] <= time()) {
-                
                 // Mark as reserved
                 $this->jobs[$index]['reserved_at'] = time();
                 $this->jobs[$index]['attempts']++;
@@ -58,7 +58,7 @@ class DatabaseQueue implements QueueInterface
                 // Deserialize the job
                 $payload = json_decode($jobData['payload'], true);
                 $jobClass = $payload['class'];
-                
+
                 if (!class_exists($jobClass)) {
                     continue;
                 }
@@ -76,7 +76,7 @@ class DatabaseQueue implements QueueInterface
     public function size(?string $queue = null): int
     {
         $queue = $queue ?: $this->config['queue'];
-        
+
         return count(array_filter($this->jobs, function ($job) use ($queue) {
             return $job['queue'] === $queue && $job['reserved_at'] === null;
         }));
@@ -88,9 +88,9 @@ class DatabaseQueue implements QueueInterface
     public function clear(?string $queue = null): int
     {
         $queue = $queue ?: $this->config['queue'];
-        
+
         $originalCount = count($this->jobs);
-        
+
         $this->jobs = array_filter($this->jobs, function ($job) use ($queue) {
             return $job['queue'] !== $queue;
         });
@@ -104,12 +104,13 @@ class DatabaseQueue implements QueueInterface
     public function delete(Job $job): bool
     {
         $jobId = $job->getJobId();
-        
+
         foreach ($this->jobs as $index => $jobData) {
             $payload = json_decode($jobData['payload'], true);
             if ($payload['job_id'] === $jobId) {
                 unset($this->jobs[$index]);
                 $this->jobs = array_values($this->jobs); // Re-index array
+
                 return true;
             }
         }
