@@ -198,9 +198,23 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         return $this->isJson() || str_contains($this->header('Accept', ''), '/json');
     }
 
-    public function isMethod(string $method): bool
+    public function isMethod($methods, bool $strict = true): bool
     {
-        return strtoupper($this->getMethod()) === strtoupper($method);
+        if (is_string($methods)) {
+            return strtoupper($this->getMethod()) === strtoupper($methods);
+        }
+        
+        if (is_array($methods)) {
+            $currentMethod = strtoupper($this->getMethod());
+            foreach ($methods as $method) {
+                if ($currentMethod === strtoupper($method)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        return false;
     }
 
     public function route(?string $param = null): mixed
