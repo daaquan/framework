@@ -154,4 +154,25 @@ class Command extends SymfonyCommand
     {
         return $this->input->hasOption($name);
     }
+
+    // Laravel-style output methods
+    protected function info(string $message): void
+    {
+        $this->output->writeInfo($message);
+    }
+
+    protected function error(string $message): void
+    {
+        $this->output->writeError($message);
+    }
+
+    protected function comment(string $message): void
+    {
+        $this->output->writeComment($message);
+    }
+
+    protected function line(string $message = ''): void
+    {
+        $this->output->write($message);
+    }
 }
