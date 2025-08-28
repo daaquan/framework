@@ -43,6 +43,13 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     protected ?\Closure $notFoundHandler = null;
 
     /**
+     * The application's registered callbacks.
+     *
+     * @var array<string, array>
+     */
+    protected array $appCallbacks = [];
+
+    /**
      * Create a new AbstractApplication instance.
      *
      * @param string $basePath The full path to the application directory.
@@ -206,7 +213,10 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     public function registerConfiguredAliases()
     {
         $config = $this['config'];
-        foreach ($config->path('app.aliases', []) as $alias => $facadeClass) {
+        $appAliases = $config->path('app.aliases', []);
+        $appAliases = is_array($appAliases) ? $appAliases : $appAliases->toArray();
+        
+        foreach ($appAliases as $alias => $facadeClass) {
             if (class_exists($alias)) {
                 continue;
             }
@@ -227,7 +237,9 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         /** @var Config $config */
         $config = $this['config'];
 
-        $appProviders = $config->path('app.providers', [])?->toArray() ?? [];
+        $appProviders = $config->path('app.providers', []);
+        $appProviders = is_array($appProviders) ? $appProviders : $appProviders->toArray();
+        
         foreach ($appProviders as $providerClass) {
             (new $providerClass())->register($this);
         }
@@ -241,11 +253,15 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function bootstrapWith(array $bootstrappers)
     {
-        $this->hasBeenBootstrapped = true;
+        $this->fireAppCallbacks('booting');
 
         foreach ($bootstrappers as $bootstrapper) {
             $this->make($bootstrapper)->register($this);
         }
+
+        $this->hasBeenBootstrapped = true;
+        
+        $this->fireAppCallbacks('booted');
     }
 
     /**
@@ -384,5 +400,46 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     public function version(): string
     {
         return static::VERSION;
+    }
+
+    /**
+     * Register a callback to be called before the application is booted.
+     */
+    public function booting(\Closure $callback): void
+    {
+        $this->appCallbacks['booting'][] = $callback;
+    }
+
+    /**
+     * Register a callback to be called after the application is booted.
+     */
+    public function booted(\Closure $callback): void
+    {
+        $this->appCallbacks['booted'][] = $callback;
+    }
+
+    /**
+     * Fire the registered callbacks for the given event.
+     */
+    protected function fireAppCallbacks(string $event): void
+    {
+        if (isset($this->appCallbacks[$event])) {
+            foreach ($this->appCallbacks[$event] as $callback) {
+                $callback($this);
+            }
+        }
+
+        // Fire event if event dispatcher is available
+        if ($this->bound('events')) {
+            $eventClass = match($event) {
+                'booting' => \Phare\Foundation\Events\ApplicationBooting::class,
+                'booted' => \Phare\Foundation\Events\ApplicationBooted::class,
+                default => null,
+            };
+
+            if ($eventClass) {
+                $this['events']->dispatch(new $eventClass($this));
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5061844cd4aabcb5cebf1036ee882c54",
+    "content-hash": "99a6c738d0250ba2e0d7254fb80194dd",
     "packages": [
         {
             "name": "pda/pheanstalk",
@@ -320,12 +320,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/error-handler.git",
-                "reference": "37cb740158920b74e9dd699938a436cb71aedb57"
+                "reference": "f9dd6ae18de4753eef0130ec5c0d58afd5021d21"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/error-handler/zipball/37cb740158920b74e9dd699938a436cb71aedb57",
-                "reference": "37cb740158920b74e9dd699938a436cb71aedb57",
+                "url": "https://api.github.com/repos/symfony/error-handler/zipball/f9dd6ae18de4753eef0130ec5c0d58afd5021d21",
+                "reference": "f9dd6ae18de4753eef0130ec5c0d58afd5021d21",
                 "shasum": ""
             },
             "require": {
@@ -390,7 +390,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-07-08T17:39:48+00:00"
+            "time": "2025-07-24T13:09:19+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -2160,16 +2160,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "2.1.0",
+            "version": "2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "9b30d6fd026b2c132b3985ce6b23bec09ab3aa68"
+                "reference": "b9e61a61e39e02dd90944e9115241c7f7e76bfd8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/9b30d6fd026b2c132b3985ce6b23bec09ab3aa68",
-                "reference": "9b30d6fd026b2c132b3985ce6b23bec09ab3aa68",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/b9e61a61e39e02dd90944e9115241c7f7e76bfd8",
+                "reference": "b9e61a61e39e02dd90944e9115241c7f7e76bfd8",
                 "shasum": ""
             },
             "require": {
@@ -2201,9 +2201,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.1.0"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.2.0"
             },
-            "time": "2025-02-19T13:28:12+00:00"
+            "time": "2025-07-13T07:04:09+00:00"
         },
         {
             "name": "phpstan/phpstan",
@@ -2211,12 +2211,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "5d8c209fe7aa9af0045913b399ae4bf778004be1"
+                "reference": "80833f9382344d8830c8db60651bd466a57e693b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/5d8c209fe7aa9af0045913b399ae4bf778004be1",
-                "reference": "5d8c209fe7aa9af0045913b399ae4bf778004be1",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/80833f9382344d8830c8db60651bd466a57e693b",
+                "reference": "80833f9382344d8830c8db60651bd466a57e693b",
                 "shasum": ""
             },
             "require": {
@@ -2262,7 +2262,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-10T21:59:30+00:00"
+            "time": "2025-07-23T18:30:15+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -4461,7 +4461,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.3",
+        "php": "^8.2",
         "ext-curl": "*",
         "ext-json": "*",
         "ext-mbstring": "*",
@@ -4470,7 +4470,6 @@
         "ext-pdo": "*",
         "ext-gmp": "*",
         "ext-bcmath": "*",
-        "ext-redis": "*",
         "ext-zip": "*",
         "ext-zlib": "*",
         "ext-phalcon": "^5.9.2"
