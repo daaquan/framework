@@ -1,22 +1,26 @@
-FROM composer:latest as composer
-FROM php:8.2-cli
+FROM composer:latest AS composer
+FROM php:8.2-fpm
+
+RUN echo "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://security.ubuntu.com/ubuntu jammy-security main restricted universe multiverse" >> /etc/apt/sources.list
 
 ENV PHALCON_VERSION="5.9.3" \
     PHP_VERSION="8.2"
 
-# Update
+# Update packages
 RUN apt-get update -y && \
-    apt-get install -y \
-        apt-utils \
-        gettext \
-        git \
-        libicu-dev \
-        libzip-dev \
-        libgmp-dev \
-        vim \
-        sudo \
-        wget \
-        zip
+RUN apt-get install -y \
+      apt-utils \
+      gettext \
+      git \
+      libicu-dev \
+      libzip-dev \
+      libgmp-dev \
+      vim \
+      sudo \
+      wget \
+      zip \
 
 # PECL Packages
 RUN pecl install -o -s redis msgpack && \
