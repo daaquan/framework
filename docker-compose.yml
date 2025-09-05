@@ -1,7 +1,0 @@
-services:
-  app:
-    build: .
-    volumes:
-      - .:/app
-    command: vendor/bin/pest
-    tty: true
