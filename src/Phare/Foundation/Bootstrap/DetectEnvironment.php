@@ -11,10 +11,10 @@ class DetectEnvironment
     public function bootstrap(Application $app): void
     {
         $environments = $app->make('config')->get('environments.environments', []);
-        
+
         $detector = new EnvironmentDetector($environments);
         $manager = new EnvironmentManager($detector);
-        
+
         // Set custom environment files if configured
         $files = $app->make('config')->get('environments.files', []);
         if (!empty($files)) {
@@ -22,7 +22,7 @@ class DetectEnvironment
         }
 
         $environment = $manager->detect($app->basePath(), $app->environmentPath());
-        
+
         $app->detectEnvironment(function () use ($environment) {
             return $environment;
         });
@@ -38,7 +38,7 @@ class DetectEnvironment
     protected function applyEnvironmentOverrides(Application $app, string $environment): void
     {
         $overrides = $app->make('config')->get("environments.overrides.{$environment}", []);
-        
+
         foreach ($overrides as $key => $value) {
             putenv("{$key}={$value}");
             $_ENV[$key] = $value;
