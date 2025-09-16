@@ -34,7 +34,6 @@ class CacheClearCommand extends Command
             if ($clearedFiles > 0) {
                 $this->info("Cleared {$clearedFiles} cache files.");
             }
-
         } catch (\Throwable $e) {
             $this->error('Failed to clear cache: ' . $e->getMessage());
             exit(1);
