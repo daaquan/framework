@@ -31,7 +31,7 @@ class ConfigEnvironment
 
         foreach ($configFiles as $file) {
             $key = basename($file, '.php');
-            
+
             // Skip environment-specific files
             if (str_contains($key, '.')) {
                 continue;
@@ -48,13 +48,13 @@ class ConfigEnvironment
         $configs = [];
         $pattern = $configPath . '/*.{env}.php';
         $envPattern = str_replace('{env}', $this->environment, $pattern);
-        
+
         $environmentFiles = glob($envPattern);
 
         foreach ($environmentFiles as $file) {
             $filename = basename($file, '.php');
             $parts = explode('.', $filename);
-            
+
             if (count($parts) >= 2) {
                 $key = $parts[0];
                 $configs[$key] = require $file;
@@ -82,7 +82,7 @@ class ConfigEnvironment
     protected function mergeConfigArrays(array $base, array $override): array
     {
         $result = $base;
-        
+
         foreach ($override as $key => $value) {
             if (is_array($value) && isset($result[$key]) && is_array($result[$key])) {
                 $result[$key] = $this->mergeConfigArrays($result[$key], $value);
@@ -90,7 +90,7 @@ class ConfigEnvironment
                 $result[$key] = $value;
             }
         }
-        
+
         return $result;
     }
 
@@ -123,7 +123,7 @@ class ConfigEnvironment
     {
         $detector = new EnvironmentDetector();
         $environment = $environment ?? $detector->detect();
-        
+
         return new static($environment);
     }
 }

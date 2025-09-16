@@ -2,9 +2,6 @@
 
 namespace Phare\Config;
 
-use Phare\Config\EnvironmentDetector;
-use Phare\Support\Env;
-
 class EnvironmentManager
 {
     protected EnvironmentDetector $detector;
@@ -16,12 +13,12 @@ class EnvironmentManager
         '.env.local',
     ];
 
-    public function __construct(EnvironmentDetector $detector = null)
+    public function __construct(?EnvironmentDetector $detector = null)
     {
         $this->detector = $detector ?? new EnvironmentDetector();
     }
 
-    public function detect(string $basePath, callable $environmentCallback = null): string
+    public function detect(string $basePath, ?callable $environmentCallback = null): string
     {
         $this->environment = $this->detector->detect($environmentCallback);
 

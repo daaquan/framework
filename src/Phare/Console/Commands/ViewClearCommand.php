@@ -14,6 +14,7 @@ class ViewClearCommand extends Command
 
         if (!is_dir($viewCachePath)) {
             $this->info('View cache directory does not exist.');
+
             return;
         }
 
