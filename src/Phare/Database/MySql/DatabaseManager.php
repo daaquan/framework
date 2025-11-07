@@ -1,6 +1,6 @@
 <?php
 
-namespace Phare\Database\MySql;
+namespace Phare\Database;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo as PDO;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
@@ -46,7 +46,7 @@ class DatabaseManager
     public function getConnection(array $dbConfig, ?string $type = null): PDO
     {
         if ($dbConfig['driver'] === 'sqlite') {
-            return new PdoSqlite(['dbname' => $this->app->databasePath("{$dbConfig['database']}.sqlite")]);
+            return new PdoSqlite(['dbname' => $this->resolveSqlitePath($dbConfig)]);
         }
 
         $host = $this->selectHost($dbConfig, $type);
@@ -111,5 +111,36 @@ class DatabaseManager
         // Default to read operations unless explicitly told otherwise
         // This can be overridden by specific implementations or middleware
         return false;
+    }
+
+    protected function resolveSqlitePath(array $dbConfig): string
+    {
+        $database = $dbConfig['database'] ?? '';
+        $database = is_string($database) ? trim($database) : '';
+
+        if ($database === '') {
+            $database = 'database.sqlite';
+        }
+
+        if ($database === ':memory:') {
+            return $database;
+        }
+
+        if ($this->isAbsolutePath($database)) {
+            return $database;
+        }
+
+        if (!str_ends_with($database, '.sqlite')) {
+            $database .= '.sqlite';
+        }
+
+        return $this->app->databasePath($database);
+    }
+
+    protected function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\\\')
+            || (bool) preg_match('/^[A-Za-z]:\\\\/', $path);
     }
 }
