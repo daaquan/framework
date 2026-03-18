@@ -15,6 +15,7 @@ use Phare\Contracts\Http\Kernel as HttpKernel;
 use Phare\Contracts\Http\Validation\Validator;
 use Phare\Debug\DebugLogger;
 use Phare\Http\Request;
+use Phare\Routing\RouteLoader;
 
 abstract class Kernel implements HttpKernel
 {
@@ -89,11 +90,11 @@ abstract class Kernel implements HttpKernel
     {
         $cachedRoutesPath = $this->app->routesCachePath();
 
-        if (!file_exists($cachedRoutesPath)) {
-            throw new \RuntimeException('Routes are not cached.');
+        if (file_exists($cachedRoutesPath)) {
+            $allRoutes = require $cachedRoutesPath;
+        } else {
+            $allRoutes = $this->loadRoutesWithoutCache();
         }
-
-        $allRoutes = require $cachedRoutesPath;
 
         /** @var \Phalcon\Mvc\Router $router */
         $router = $this->app['router'];
@@ -222,6 +223,24 @@ abstract class Kernel implements HttpKernel
                     ),
                 ]);
             });
+    }
+
+    /**
+     * Load routes on-the-fly without requiring a cache file.
+     * Used in development when routes have not been cached.
+     */
+    protected function loadRoutesWithoutCache(): array
+    {
+        $routeLoader = RouteLoader::create($this->app);
+        $routeLoader->generateRoutesCacheFile();
+
+        $cachedRoutesPath = $this->app->routesCachePath();
+
+        if (!file_exists($cachedRoutesPath)) {
+            throw new \RuntimeException('Failed to generate routes cache.');
+        }
+
+        return require $cachedRoutesPath;
     }
 
     public function terminate(RequestInterface $request, ResponseInterface $response): void

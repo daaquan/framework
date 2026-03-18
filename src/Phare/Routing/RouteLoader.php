@@ -19,7 +19,22 @@ abstract class RouteLoader
 
     public static function create(Application $app): RouteLoader
     {
-        return self::$instance ??= self::createFromControllers($app);
+        if (self::$instance !== null) {
+            return self::$instance;
+        }
+
+        $loader = 'controller';
+        if ($app->has('config')) {
+            $config = $app['config'];
+            $loader = $config->path('app.route_loader', 'controller') ?? 'controller';
+        }
+
+        self::$instance = match ($loader) {
+            'file' => self::createFromRouteFiles($app),
+            default => self::createFromControllers($app),
+        };
+
+        return self::$instance;
     }
 
     private static function createFromControllers(Application $app): RouteLoader
