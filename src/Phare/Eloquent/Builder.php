@@ -12,6 +12,11 @@ use Phalcon\Mvc\ModelInterface;
 class Builder extends Criteria implements BuilderInterface
 {
     /**
+     * Auto-incrementing counter to generate unique bind parameter keys.
+     */
+    private int $bindIndex = 0;
+
+    /**
      * Get the first result of the query.
      */
     public function first(): ?ModelInterface
@@ -62,9 +67,11 @@ class Builder extends Criteria implements BuilderInterface
             $operator = '=';
         }
 
+        $bindKey = $field . '_' . $this->bindIndex++;
+
         return [
-            'conditions' => "$field $operator :$field:",
-            'bind' => [$field => $value],
+            'conditions' => "$field $operator :$bindKey:",
+            'bind' => [$bindKey => $value],
         ];
     }
 
@@ -250,8 +257,13 @@ class Builder extends Criteria implements BuilderInterface
      */
     public function whereRaw($conditions, array $bind = []): BuilderInterface
     {
-        $this->params['conditions'] = $conditions;
-        $this->params['bind'] = $bind;
+        if (empty($this->params['conditions'])) {
+            $this->params['conditions'] = $conditions;
+        } else {
+            $this->params['conditions'] = "({$this->params['conditions']}) AND ({$conditions})";
+        }
+
+        $this->params['bind'] = array_merge($this->params['bind'] ?? [], $bind);
 
         return $this;
     }
