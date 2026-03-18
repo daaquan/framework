@@ -33,7 +33,7 @@ namespace Phare\Support\Facades;
  * @method static void rollBack(int $toLevel = null)
  * @method static void setDefaultConnection(string $name)
  *
- * @see \Phare\Database\DatabaseManager
+ * @see \Phare\Database\MySql\DatabaseManager
  * @see \Phare\Database\Connection
  */
 class DB extends Facade

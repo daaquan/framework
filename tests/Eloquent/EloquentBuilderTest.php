@@ -34,6 +34,50 @@ it('throws an exception if the operator is invalid', function () {
     ->expectException(\Phalcon\Mvc\Model\Exception::class)
     ->expectExceptionMessageMatches('/Syntax error, unexpected token IDENTIFIER\(invalid\).*/');
 
+it('generates unique bind keys for duplicate field names', function () {
+    $builder = new Builder();
+    $builder->where('status', 'active')->where('status', '!=', 'banned');
+
+    $params = $builder->getParams();
+
+    // Both bind keys should exist (no overwrite)
+    expect($params['bind'])->toHaveCount(2);
+    expect($params['bind'])->toHaveKey('status_0');
+    expect($params['bind'])->toHaveKey('status_1');
+    expect($params['bind']['status_0'])->toBe('active');
+    expect($params['bind']['status_1'])->toBe('banned');
+
+    // Conditions should reference both unique keys
+    expect($params['conditions'])->toContain(':status_0:');
+    expect($params['conditions'])->toContain(':status_1:');
+});
+
+it('generates unique bind keys for three conditions on same field', function () {
+    $builder = new Builder();
+    $builder->where('price', '>', 10)
+        ->where('price', '<', 100)
+        ->where('price', '!=', 50);
+
+    $params = $builder->getParams();
+
+    expect($params['bind'])->toHaveCount(3);
+    expect($params['bind']['price_0'])->toBe(10);
+    expect($params['bind']['price_1'])->toBe(100);
+    expect($params['bind']['price_2'])->toBe(50);
+});
+
+it('whereRaw does not overwrite existing conditions', function () {
+    $builder = new Builder();
+    $builder->where('status', 'active')
+        ->whereRaw('score > ?', [50]);
+
+    $params = $builder->getParams();
+
+    expect($params['conditions'])->toContain('status');
+    expect($params['conditions'])->toContain('score > ?');
+    expect($params['conditions'])->toContain('AND');
+});
+
 it('returns an instance of self on andWhere condition', function () {
     $builder = (new Builder())->setModelName(\Tests\Mock\Models\User::class);
     $response = $builder->andWhere('field', '=', 'value');

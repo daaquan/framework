@@ -1,6 +1,6 @@
 <?php
 
-namespace Phare\Database;
+namespace Phare\Database\MySql;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo as PDO;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
