@@ -9,6 +9,8 @@ use Phalcon\Cache\Adapter\Redis;
 use Phalcon\Cache\Adapter\Stream;
 use Phalcon\Config\Config;
 use Phalcon\Storage\SerializerFactory;
+use Phare\Cache\Adapter\ArrayAdapter;
+use Phare\Cache\Adapter\NullAdapter;
 
 class CacheManager
 {
@@ -39,6 +41,8 @@ class CacheManager
             'file', 'stream' => $this->makeStreamAdapter($factory, $config),
             'redis' => $this->makeRedisAdapter($factory, $config),
             'apc', 'apcu' => $this->makeApcuAdapter($factory, $config),
+            'array' => $this->makeArrayAdapter($factory, $config),
+            'null' => $this->makeNullAdapter($config),
             default => throw new InvalidArgumentException("Invalid cache driver: {$driver}"),
         };
     }
@@ -82,6 +86,18 @@ class CacheManager
         return new Apcu($factory, $config);
     }
 
+    protected function makeArrayAdapter(SerializerFactory $factory, array $config): ArrayAdapter
+    {
+        unset($factory);
+
+        return new ArrayAdapter($config['prefix'] ?? config('cache.prefix', ''));
+    }
+
+    protected function makeNullAdapter(array $config): NullAdapter
+    {
+        return new NullAdapter($config['prefix'] ?? config('cache.prefix', ''));
+    }
+
     public function get(string $key, mixed $default = null): mixed
     {
         $value = $this->cache->get($key);
@@ -101,7 +117,7 @@ class CacheManager
 
     public function clear(): bool
     {
-        return $this->cache->flush();
+        return $this->cache->clear();
     }
 
     protected function normalizeConfig(mixed $value): array
