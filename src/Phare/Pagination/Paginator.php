@@ -24,32 +24,89 @@ class Paginator implements \Countable, \IteratorAggregate, \JsonSerializable, Ar
 
     protected ?string $pageName = 'page';
 
+    protected bool $hasMore = false;
+
+    protected static ?\Closure $currentPathResolver = null;
+
+    protected static ?\Closure $currentPageResolver = null;
+
+    protected static ?\Closure $queryStringResolver = null;
+
+    public int $onEachSide = 3;
+
     public function __construct($items, int $perPage, ?int $currentPage = null, array $options = [])
     {
-        $this->items = $items instanceof Collection ? $items : new Collection($items);
-        $this->perPage = $perPage;
-        $this->currentPage = $this->setCurrentPage($currentPage);
         $this->options = $options;
 
-        $this->path = $this->options['path'] ?? $this->resolveCurrentPath();
-        $this->pageName = $this->options['pageName'] ?? 'page';
+        foreach ($options as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->{$key} = $value;
+            }
+        }
+
+        $this->perPage = $perPage;
+        $this->pageName = $this->pageName ?? 'page';
+        $this->path = $this->path ?? static::resolveCurrentPath();
+        $this->path = $this->path !== '/' ? rtrim($this->path, '/') : $this->path;
+        $this->currentPage = $this->setCurrentPage($currentPage);
+
+        $this->setItems($items);
     }
 
     protected function setCurrentPage(?int $currentPage): int
     {
-        $currentPage = $currentPage ?: $this->resolveCurrentPage();
+        $currentPage = $currentPage ?: static::resolveCurrentPage($this->pageName ?? 'page');
 
         return $this->isValidPageNumber($currentPage) ? (int)$currentPage : 1;
     }
 
-    protected function resolveCurrentPage(): int
+    protected function setItems($items): void
     {
-        return (int)($_GET[$this->pageName] ?? 1);
+        $this->items = $items instanceof Collection ? $items : new Collection($items);
+        $this->hasMore = $this->items->count() > $this->perPage;
+        $this->items = $this->items->slice(0, $this->perPage)->values();
     }
 
-    protected function resolveCurrentPath(): string
+    public static function resolveCurrentPage(string $pageName = 'page', int $default = 1): int
     {
-        return $_SERVER['REQUEST_URI'] ? strtok($_SERVER['REQUEST_URI'], '?') : '/';
+        if (isset(static::$currentPageResolver)) {
+            return (int)call_user_func(static::$currentPageResolver, $pageName);
+        }
+
+        return (int)($_GET[$pageName] ?? $default);
+    }
+
+    public static function currentPageResolver(\Closure $resolver): void
+    {
+        static::$currentPageResolver = $resolver;
+    }
+
+    public static function resolveCurrentPath(string $default = '/'): string
+    {
+        if (isset(static::$currentPathResolver)) {
+            return (string)call_user_func(static::$currentPathResolver);
+        }
+
+        return isset($_SERVER['REQUEST_URI']) ? (string)strtok($_SERVER['REQUEST_URI'], '?') : $default;
+    }
+
+    public static function currentPathResolver(\Closure $resolver): void
+    {
+        static::$currentPathResolver = $resolver;
+    }
+
+    public static function resolveQueryString(array|string|null $default = null): array|string|null
+    {
+        if (isset(static::$queryStringResolver)) {
+            return call_user_func(static::$queryStringResolver);
+        }
+
+        return $default;
+    }
+
+    public static function queryStringResolver(\Closure $resolver): void
+    {
+        static::$queryStringResolver = $resolver;
     }
 
     protected function isValidPageNumber(int $page): bool
@@ -69,11 +126,17 @@ class Paginator implements \Countable, \IteratorAggregate, \JsonSerializable, Ar
             $parameters = array_merge($this->query, $parameters);
         }
 
-        return $this->path . (count($parameters) ? '?' . http_build_query($parameters) : '') . $this->buildFragment();
+        $separator = str_contains($this->path(), '?') ? '&' : '?';
+
+        return $this->path() . $separator . http_build_query($parameters) . $this->buildFragment();
     }
 
-    public function appends(array|string $key, ?string $value = null): static
+    public function appends(array|string|null $key, mixed $value = null): static
     {
+        if (is_null($key)) {
+            return $this;
+        }
+
         if (is_array($key)) {
             return $this->appendArray($key);
         }
@@ -81,8 +144,12 @@ class Paginator implements \Countable, \IteratorAggregate, \JsonSerializable, Ar
         return $this->addQuery($key, $value);
     }
 
-    public function fragment(?string $fragment): static
+    public function fragment(?string $fragment = null): static|string|null
     {
+        if (is_null($fragment)) {
+            return $this->fragment;
+        }
+
         $this->fragment = $fragment;
 
         return $this;
@@ -138,7 +205,7 @@ class Paginator implements \Countable, \IteratorAggregate, \JsonSerializable, Ar
 
     public function hasMorePages(): bool
     {
-        return $this->items->count() > $this->perPage;
+        return $this->hasMore;
     }
 
     public function onFirstPage(): bool
@@ -194,11 +261,12 @@ class Paginator implements \Countable, \IteratorAggregate, \JsonSerializable, Ar
     {
         return [
             'current_page' => $this->currentPage(),
+            'current_page_url' => $this->url($this->currentPage()),
             'data' => $this->items->toArray(),
             'first_page_url' => $this->url(1),
             'from' => $this->firstItem(),
             'next_page_url' => $this->nextPageUrl(),
-            'path' => $this->path,
+            'path' => $this->path(),
             'per_page' => $this->perPage(),
             'prev_page_url' => $this->previousPageUrl(),
             'to' => $this->lastItem(),
@@ -229,7 +297,20 @@ class Paginator implements \Countable, \IteratorAggregate, \JsonSerializable, Ar
         return $this;
     }
 
-    protected function addQuery(string $key, string $value): static
+    public function withQueryString(): static
+    {
+        $queryString = static::resolveQueryString([]);
+
+        if (is_array($queryString)) {
+            return $this->appends($queryString);
+        }
+
+        parse_str((string)$queryString, $resolved);
+
+        return $this->appends($resolved);
+    }
+
+    protected function addQuery(string $key, mixed $value): static
     {
         if ($key !== $this->pageName) {
             $this->query[$key] = $value;
@@ -241,6 +322,42 @@ class Paginator implements \Countable, \IteratorAggregate, \JsonSerializable, Ar
     protected function buildFragment(): string
     {
         return $this->fragment ? '#' . $this->fragment : '';
+    }
+
+    public function path(): ?string
+    {
+        return $this->path;
+    }
+
+    public function withPath(string $path): static
+    {
+        return $this->setPath($path);
+    }
+
+    public function setPath(string $path): static
+    {
+        $this->path = $path;
+
+        return $this;
+    }
+
+    public function getPageName(): ?string
+    {
+        return $this->pageName;
+    }
+
+    public function setPageName(string $name): static
+    {
+        $this->pageName = $name;
+
+        return $this;
+    }
+
+    public function onEachSide(int $count): static
+    {
+        $this->onEachSide = $count;
+
+        return $this;
     }
 
     public static function make(array $items, int $perPage, ?int $currentPage = null, array $options = []): static
