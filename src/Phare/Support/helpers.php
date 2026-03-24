@@ -221,6 +221,20 @@ if (!function_exists('queue')) {
     }
 }
 
+// event()
+if (!function_exists('event')) {
+    function event(string|object $event, mixed $payload = [], bool $halt = false): mixed
+    {
+        $dispatcher = app('events');
+
+        if (!$dispatcher) {
+            throw new \RuntimeException('Event dispatcher service not registered.');
+        }
+
+        return $dispatcher->dispatch($event, $payload, $halt);
+    }
+}
+
 // fake()
 if (!function_exists('fake') && class_exists(\Faker\Factory::class)) {
     function fake(?string $locale = null): \Faker\Generator
