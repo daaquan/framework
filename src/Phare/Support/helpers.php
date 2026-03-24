@@ -223,7 +223,7 @@ if (!function_exists('queue')) {
 
 // event()
 if (!function_exists('event')) {
-    function event(string|object $event, mixed $payload = [], bool $halt = false): mixed
+    function event(...$args): mixed
     {
         $dispatcher = app('events');
 
@@ -231,7 +231,52 @@ if (!function_exists('event')) {
             throw new \RuntimeException('Event dispatcher service not registered.');
         }
 
-        return $dispatcher->dispatch($event, $payload, $halt);
+        return $dispatcher->dispatch(...$args);
+    }
+}
+
+// report()
+if (!function_exists('report')) {
+    function report(\Throwable|string $exception): void
+    {
+        if (!$exception instanceof \Throwable) {
+            $exception = new \RuntimeException((string)$exception);
+        }
+
+        $handler = app(\Phare\Contracts\Debug\ExceptionHandler::class);
+
+        if ($handler) {
+            $handler->report($exception);
+
+            return;
+        }
+
+        $logger = app('log');
+        if ($logger && method_exists($logger, 'error')) {
+            $logger->error($exception->getMessage(), ['exception' => $exception]);
+        }
+    }
+}
+
+// info()
+if (!function_exists('info')) {
+    function info(string $message, array $context = []): void
+    {
+        app('log')?->info($message, $context);
+    }
+}
+
+// logger()
+if (!function_exists('logger')) {
+    function logger(?string $message = null, array $context = []): mixed
+    {
+        $logger = app('log');
+
+        if ($message !== null) {
+            $logger?->debug($message, $context);
+        }
+
+        return $logger;
     }
 }
 
@@ -395,6 +440,42 @@ if (!function_exists('value')) {
     }
 }
 
+// blank()
+if (!function_exists('blank')) {
+    function blank(mixed $value): bool
+    {
+        if ($value === null) {
+            return true;
+        }
+
+        if (is_string($value)) {
+            return trim($value) === '';
+        }
+
+        if (is_numeric($value) || is_bool($value)) {
+            return false;
+        }
+
+        if ($value instanceof \Countable) {
+            return count($value) === 0;
+        }
+
+        if ($value instanceof \Stringable) {
+            return trim((string)$value) === '';
+        }
+
+        return empty($value);
+    }
+}
+
+// filled()
+if (!function_exists('filled')) {
+    function filled(mixed $value): bool
+    {
+        return !blank($value);
+    }
+}
+
 // now()
 if (!function_exists('now')) {
     function now()
@@ -506,6 +587,22 @@ if (!function_exists('retry')) {
         } while ($attempts < $times);
 
         return null;
+    }
+}
+
+// rescue()
+if (!function_exists('rescue')) {
+    function rescue(callable $callback, mixed $rescue = null, bool|callable $report = true): mixed
+    {
+        try {
+            return $callback();
+        } catch (\Throwable $e) {
+            if (value($report, $e)) {
+                report($e);
+            }
+
+            return value($rescue, $e);
+        }
     }
 }
 

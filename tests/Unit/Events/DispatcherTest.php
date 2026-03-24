@@ -164,3 +164,23 @@ test('event facade dispatches through bound dispatcher', function () {
 
     expect($result)->toBe(['facade:ok']);
 });
+
+test('it infers event types from closure listener parameter', function () {
+    $this->dispatcher->listen(function (SampleEvent $event) {
+        return 'closure:'.$event->name;
+    });
+
+    $result = $this->dispatcher->dispatch(new SampleEvent('typed'));
+
+    expect($result)->toBe(['closure:typed']);
+});
+
+test('event helper forwards halt dispatch argument', function () {
+    $this->dispatcher->listen('sample.halt', fn () => null);
+    $this->dispatcher->listen('sample.halt', fn () => 'first');
+    $this->dispatcher->listen('sample.halt', fn () => 'second');
+
+    $result = event('sample.halt', [], true);
+
+    expect($result)->toBe('first');
+});
