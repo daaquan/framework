@@ -123,15 +123,25 @@ abstract class Kernel implements HttpKernel
         $method = $request->getMethod();
 
         if (!isset($allRoutes[$uri][$method])) {
-            throw new RouteException("Route \"$method $uri\" not found.");
+            // Try pattern matching for parameterized routes
+            $matched = $this->matchParameterizedRoute($allRoutes, $uri, $method);
+            if ($matched === null) {
+                throw new RouteException("Route \"$method $uri\" not found.");
+            }
+            [$routeData, $routeParams] = $matched;
+            // Store matched URL params for controller access
+            if (!empty($routeParams)) {
+                $this->app->singleton('routeParams', fn() => $routeParams);
+            }
+        } else {
+            $routeData = $allRoutes[$uri][$method];
+            $routeParams = [];
         }
-
-        $routeData = $allRoutes[$uri][$method];
 
         if ($appClass === \Phare\Foundation\Micro::class) {
             $this->handleMicroRoutes($routeData);
         } elseif ($appClass === \Phare\Foundation\Web::class) {
-            $this->handleWebRoutes($routeData);
+            $this->handleWebRoutes($routeData, $routeParams ?? []);
         } else {
             throw new \RuntimeException("Application class \"{$appClass}\" not supported.");
         }
@@ -168,7 +178,7 @@ abstract class Kernel implements HttpKernel
         $this->app->mount($route);
     }
 
-    protected function handleWebRoutes(array $routeData)
+    protected function handleWebRoutes(array $routeData, array $urlParams = [])
     {
         $class = "{$routeData['namespace']}\\{$routeData['controller']}Controller";
         $this->app->singleton(ControllerInterface::class, $this->app->make($class));
@@ -188,41 +198,106 @@ abstract class Kernel implements HttpKernel
             $this->debugLogger?->logMiddlewareEnd($alias);
         }
 
-        if (empty($routeData['params'])) {
+        // If there are URL params from pattern matching, or typed params to inject, set up dispatch forwarding
+        if (empty($routeData['params']) && empty($urlParams)) {
             return;
         }
 
         $this->app['eventsManager']->attach('dispatch:beforeExecuteRoute',
-            function (Event $event, Dispatcher $dispatcher) use ($routeData) {
+            function (Event $event, Dispatcher $dispatcher) use ($routeData, $urlParams) {
                 if ($dispatcher->wasForwarded()) {
                     return;
                 }
 
+                // Build params array for dispatch
+                $params = [];
+                $paramTypes = $routeData['params'] ?? [];
+
+                // If no typed params but have URL params, pass URL param values as positional args
+                if (empty($paramTypes) && !empty($urlParams)) {
+                    $dispatcher->forward([
+                        'namespace'  => $routeData['namespace'],
+                        'controller' => $routeData['controller'],
+                        'action'     => $routeData['action'],
+                        'params'     => array_values($urlParams),
+                    ]);
+                    return;
+                }
+
+                // For each declared param type, inject Request or URL param values
+                foreach ($paramTypes as $i => $paramType) {
+                    if ($paramType === null) {
+                        // Untyped - pass URL param value by position
+                        $params[] = array_values($urlParams)[$i] ?? null;
+                        continue;
+                    }
+
+                    // Check if this is a scalar type (string, int) - use URL param value
+                    if (in_array($paramType, ['string', 'int', 'float', 'bool'], true)) {
+                        $value = array_values($urlParams)[$i] ?? null;
+                        settype($value, $paramType);
+                        $params[] = $value;
+                        continue;
+                    }
+
+                    $instance = $this->app->make($paramType);
+
+                    // TODO: Move this to middleware
+                    if ($instance instanceof Validator) {
+                        if (!$instance->validate($instance->all())) {
+                            throw new \RuntimeException('Request validation failed. ' . $instance->getMessages()['message']);
+                        }
+                    }
+
+                    if ($instance instanceof RequestInterface) {
+                        $this->app->singleton('request', $instance);
+                    }
+
+                    $params[] = $instance;
+                }
+
                 $dispatcher->forward([
-                    'namespace' => $routeData['namespace'],
+                    'namespace'  => $routeData['namespace'],
                     'controller' => $routeData['controller'],
-                    'action' => $routeData['action'],
-                    'params' => array_map(
-                        function ($param) {
-                            $instance = $this->app->make($param);
-
-                            // TODO: Move this to middleware
-                            if ($instance instanceof Validator) {
-                                if (!$instance->validate($instance->all())) {
-                                    throw new \RuntimeException('Request validation failed. ' . $instance->getMessages()['message']);
-                                }
-                            }
-
-                            if ($instance instanceof RequestInterface) {
-                                $this->app->singleton('request', $instance);
-                            }
-
-                            return $instance;
-                        },
-                        $routeData['params']
-                    ),
+                    'action'     => $routeData['action'],
+                    'params'     => $params,
                 ]);
             });
+    }
+
+    /**
+     * Match a URI against parameterized route patterns.
+     * Returns [routeData, params] or null.
+     */
+    protected function matchParameterizedRoute(array $allRoutes, string $uri, string $method): ?array
+    {
+        foreach ($allRoutes as $pattern => $methods) {
+            if (!is_array($methods) || !isset($methods[$method])) {
+                continue;
+            }
+
+            // Convert {param} pattern to regex
+            if (!str_contains($pattern, '{')) {
+                continue;
+            }
+
+            $paramNames = [];
+            $regex = preg_replace_callback('/\{([\w\-]+)(?:<([^>]+)>)?\}/', function ($matches) use (&$paramNames) {
+                $paramNames[] = $matches[1];
+                $regex = $matches[2] ?? '[\w\-]+';
+                return "($regex)";
+            }, $pattern);
+
+            $regex = '#^' . $regex . '$#';
+
+            if (preg_match($regex, $uri, $matches)) {
+                array_shift($matches);
+                $params = array_combine($paramNames, $matches);
+                return [$methods[$method], $params];
+            }
+        }
+
+        return null;
     }
 
     /**
