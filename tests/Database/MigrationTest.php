@@ -1,5 +1,13 @@
 <?php
 
+if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+    test('migration integration tests require sqlite driver', function () {
+        $this->markTestSkipped('PDO sqlite driver is required for migration integration tests.');
+    });
+
+    return;
+}
+
 use Phare\Database\Migration;
 use Phare\Database\Migrator;
 use Phare\Database\Schema\Blueprint;
@@ -15,6 +23,10 @@ class MigrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+            $this->markTestSkipped('PDO sqlite driver is required for migration integration tests.');
+        }
 
         $connection = $this->app->make('db');
         $this->migrator = new Migrator($this->app, $connection);
@@ -129,6 +141,12 @@ class MigrationTest extends TestCase
 
     protected function tearDown(): void
     {
+        if (!isset($this->schema)) {
+            parent::tearDown();
+
+            return;
+        }
+
         // Clean up test tables
         if ($this->schema->hasTable('posts')) {
             $this->schema->drop('posts');

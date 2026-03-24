@@ -6,7 +6,7 @@ use Phare\Mail\MailServiceProvider;
 
 beforeEach(function () {
     $this->app = new Container();
-    $this->app['config'] = [
+    $this->app->singleton('config', fn () => [
         'mail' => [
             'driver' => 'smtp',
             'host' => 'localhost',
@@ -16,7 +16,7 @@ beforeEach(function () {
                 'name' => 'Test App',
             ],
         ],
-    ];
+    ]);
 
     $this->provider = new MailServiceProvider($this->app);
 });
@@ -45,7 +45,7 @@ test('configures mailer with app config', function () {
 });
 
 test('uses default config when mail config not set', function () {
-    $this->app['config'] = [];
+    $this->app->bind('config', fn () => [], true);
     $this->provider->register();
 
     $mailer = $this->app->make('mailer');

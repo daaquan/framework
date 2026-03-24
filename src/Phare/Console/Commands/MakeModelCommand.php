@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeModelCommand extends Command
 {
-    protected string $signature = 'make:model {name : The name of the model} {--migration : Create a migration file} {--factory : Create a factory file}';
+    protected ?string $signature = 'make:model {name : The name of the model} {--migration : Create a migration file} {--factory : Create a factory file}';
 
-    protected string $description = 'Create a new Eloquent model class';
+    protected ?string $description = 'Create a new Eloquent model class';
 
     public function handle(): int
     {
@@ -31,7 +31,7 @@ class MakeModelCommand extends Command
         $this->makeDirectory($path);
         $this->files->put($path, $content);
 
-        $relativePath = str_replace($this->app->basePath() . '/', '', $path);
+        $relativePath = str_replace($this->getFrameworkApplication()->basePath() . '/', '', $path);
         $this->info("Model created successfully at [{$relativePath}].");
 
         // Create migration if requested
@@ -56,7 +56,7 @@ class MakeModelCommand extends Command
     {
         $path = str_replace('\\', '/', $name) . '.php';
 
-        return $this->app->basePath('app/Models/' . $path);
+        return $this->getFrameworkApplication()->basePath('app/Models/' . $path);
     }
 
     protected function buildClass(string $name, string $stub): string

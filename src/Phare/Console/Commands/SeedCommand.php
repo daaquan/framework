@@ -6,13 +6,13 @@ use Phare\Console\Command;
 
 class SeedCommand extends Command
 {
-    protected string $signature = 'db:seed {--class= : The class name of the root seeder} {--force : Force the operation to run when in production}';
+    protected ?string $signature = 'db:seed {--class= : The class name of the root seeder} {--force : Force the operation to run when in production}';
 
-    protected string $description = 'Seed the database with records';
+    protected ?string $description = 'Seed the database with records';
 
     public function handle(): int
     {
-        if ($this->getApplication()->environment('production') && !$this->option('force')) {
+        if ($this->getFrameworkApplication()->environment('production') && !$this->option('force')) {
             $this->error('Seeding is not allowed in production environment. Use --force to override.');
 
             return 1;

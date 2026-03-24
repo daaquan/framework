@@ -7,6 +7,7 @@ use Phalcon\Cache\Adapter\AdapterInterface as CacheAdapterInterface;
 use Phalcon\Cache\Adapter\Apcu;
 use Phalcon\Cache\Adapter\Redis;
 use Phalcon\Cache\Adapter\Stream;
+use Phalcon\Config\Config;
 use Phalcon\Storage\SerializerFactory;
 
 class CacheManager
@@ -16,9 +17,9 @@ class CacheManager
     public function __construct()
     {
         $store = config('cache.default', 'file');
-        $config = config("cache.stores.{$store}");
+        $config = $this->normalizeConfig(config("cache.stores.{$store}"));
 
-        if (!$config || !isset($config['driver'])) {
+        if ($config === [] || !isset($config['driver'])) {
             throw new InvalidArgumentException("Cache config for '{$store}' is invalid or missing.");
         }
 
@@ -53,8 +54,19 @@ class CacheManager
 
     protected function makeRedisAdapter(SerializerFactory $factory, array $config): Redis
     {
-        $conn = config("database.connections.redis.{$config['connection']}");
-        if (!$conn) {
+        $connection = (string)($config['connection'] ?? 'default');
+
+        $conn = $this->normalizeConfig(config("database.connections.redis.{$connection}"));
+
+        if ($conn === []) {
+            $conn = $this->normalizeConfig(config("database.connections.cache.{$connection}"));
+        }
+
+        if ($conn === []) {
+            $conn = $this->normalizeConfig(config("database.connections.{$connection}"));
+        }
+
+        if ($conn === []) {
             throw new InvalidArgumentException('Redis cache: connection config is missing.');
         }
 
@@ -90,5 +102,14 @@ class CacheManager
     public function clear(): bool
     {
         return $this->cache->flush();
+    }
+
+    protected function normalizeConfig(mixed $value): array
+    {
+        if ($value instanceof Config) {
+            return $value->toArray();
+        }
+
+        return is_array($value) ? $value : [];
     }
 }

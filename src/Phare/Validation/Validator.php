@@ -73,6 +73,10 @@ class Validator implements ValidatorContract
         $rules = is_string($rules) ? explode('|', $rules) : $rules;
         $value = $this->getValue($attribute);
 
+        if (in_array('nullable', $rules, true) && ($value === null || $value === '')) {
+            return;
+        }
+
         foreach ($rules as $rule) {
             $this->validateRule($attribute, $value, $rule);
         }
@@ -146,16 +150,16 @@ class Validator implements ValidatorContract
             'integer' => "The {$attribute} must be an integer.",
             'numeric' => "The {$attribute} must be a number.",
             'email' => "The {$attribute} must be a valid email address.",
-            'min' => "The {$attribute} must be at least {$parameters[0]}.",
-            'max' => "The {$attribute} may not be greater than {$parameters[0]}.",
-            'between' => "The {$attribute} must be between {$parameters[0]} and {$parameters[1]}.",
+            'min' => "The {$attribute} must be at least " . ($parameters[0] ?? 0) . '.',
+            'max' => "The {$attribute} may not be greater than " . ($parameters[0] ?? 0) . '.',
+            'between' => "The {$attribute} must be between " . ($parameters[0] ?? 0) . ' and ' . ($parameters[1] ?? 0) . '.',
             'in' => "The selected {$attribute} is invalid.",
             'not_in' => "The selected {$attribute} is invalid.",
             'unique' => "The {$attribute} has already been taken.",
             'exists' => "The selected {$attribute} is invalid.",
             'confirmed' => "The {$attribute} confirmation does not match.",
-            'same' => "The {$attribute} and {$parameters[0]} must match.",
-            'different' => "The {$attribute} and {$parameters[0]} must be different.",
+            'same' => "The {$attribute} and " . ($parameters[0] ?? 'other') . ' must match.',
+            'different' => "The {$attribute} and " . ($parameters[0] ?? 'other') . ' must be different.',
             'array' => "The {$attribute} must be an array.",
             'boolean' => "The {$attribute} field must be true or false.",
             'date' => "The {$attribute} is not a valid date.",
@@ -285,7 +289,7 @@ class Validator implements ValidatorContract
 
     protected function getSize(string $attribute, $value): int|float
     {
-        if (is_numeric($value)) {
+        if (is_int($value) || is_float($value)) {
             return (float)$value;
         }
 
@@ -293,7 +297,11 @@ class Validator implements ValidatorContract
             return count($value);
         }
 
-        return mb_strlen($value);
+        if ($value === null) {
+            return 0;
+        }
+
+        return mb_strlen((string)$value);
     }
 
     public function addCustomRule(string $rule, \Closure $callback): void

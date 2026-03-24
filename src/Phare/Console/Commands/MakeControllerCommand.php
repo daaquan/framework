@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeControllerCommand extends Command
 {
-    protected string $signature = 'make:controller {name : The name of the controller} {--resource : Generate a resource controller}';
+    protected ?string $signature = 'make:controller {name : The name of the controller} {--resource : Generate a resource controller}';
 
-    protected string $description = 'Create a new controller class';
+    protected ?string $description = 'Create a new controller class';
 
     public function handle(): int
     {
@@ -30,7 +30,7 @@ class MakeControllerCommand extends Command
         $this->makeDirectory($path);
         $this->files->put($path, $content);
 
-        $relativePath = str_replace($this->app->basePath() . '/', '', $path);
+        $relativePath = str_replace($this->getFrameworkApplication()->basePath() . '/', '', $path);
         $this->info("Controller created successfully at [{$relativePath}].");
 
         return 0;
@@ -51,7 +51,7 @@ class MakeControllerCommand extends Command
     {
         $path = str_replace('\\', '/', $name) . '.php';
 
-        return $this->app->basePath('app/Controllers/' . $path);
+        return $this->getFrameworkApplication()->basePath('app/Controllers/' . $path);
     }
 
     protected function buildClass(string $name, string $stub): string

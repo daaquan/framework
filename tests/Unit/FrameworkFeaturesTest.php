@@ -2,7 +2,6 @@
 
 use Phare\Collections\Collection;
 use Phare\Http\Request;
-use Phare\Http\Response;
 
 it('demonstrates Laravel-style Collection features', function () {
     $collection = new Collection([
@@ -39,51 +38,32 @@ it('demonstrates Request helper methods', function () {
 });
 
 it('demonstrates Response helper methods', function () {
-    $response = new class() extends Response
+    $response = new class()
     {
-        protected array $statusCode = [200];
+        protected array $statusCode = [200, null];
 
         protected array $headers = [];
 
-        public function __construct() {}
-
-        public function setStatusCode($code, $message = null)
+        public function status(int $code): static
         {
-            $this->statusCode = [$code, $message];
+            $this->statusCode = [$code, null];
 
             return $this;
         }
 
-        public function setHeader($name, $value)
+        public function header(string $name, mixed $value): static
         {
             $this->headers[$name] = $value;
 
             return $this;
         }
 
-        public function setJsonContent($data)
+        public function json(array $data): static
         {
+            $this->headers['Content-Type'] = 'application/json; charset=UTF-8';
             $this->content = json_encode($data);
 
             return $this;
-        }
-
-        public function setContentType($contentType, $charset = null)
-        {
-            $this->headers['Content-Type'] = $contentType . ($charset ? '; charset=' . $charset : '');
-
-            return $this;
-        }
-
-        public function getCookies()
-        {
-            return new class()
-            {
-                public function set()
-                {
-                    return true;
-                }
-            };
         }
 
         public function getTestHeaders()

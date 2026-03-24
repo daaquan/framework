@@ -50,6 +50,20 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     protected array $appCallbacks = [];
 
     /**
+     * Callbacks invoked before a specific bootstrapper runs.
+     *
+     * @var array<string, array<int, \Closure>>
+     */
+    protected array $beforeBootstrappingCallbacks = [];
+
+    /**
+     * Callbacks invoked after a specific bootstrapper runs.
+     *
+     * @var array<string, array<int, \Closure>>
+     */
+    protected array $afterBootstrappingCallbacks = [];
+
+    /**
      * Create a new AbstractApplication instance.
      *
      * @param string $basePath The full path to the application directory.
@@ -123,7 +137,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         $path = $this->getConfigurationPath($name);
 
         if ($path) {
-            $config = $this['config'];
+            $config = $this->make('config');
             $config->set($name, require $path);
         }
     }
@@ -180,8 +194,9 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         }
 
         $full = require $this->getCachedConfigPath();
+        unset($full['@timestamp']);
 
-        $this['config']->merge($full);
+        $this->make('config')->merge($full);
         foreach ($full as $name => $config) {
             $this->loadedConfigurations[$name] = true;
         }
@@ -212,7 +227,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function registerConfiguredAliases()
     {
-        $config = $this['config'];
+        $config = $this->make('config');
         $appAliases = $config->path('app.aliases', []);
         $appAliases = is_array($appAliases) ? $appAliases : $appAliases->toArray();
 
@@ -235,7 +250,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     public function registerConfiguredProviders()
     {
         /** @var Config $config */
-        $config = $this['config'];
+        $config = $this->make('config');
 
         $appProviders = $config->path('app.providers', []);
         $appProviders = is_array($appProviders) ? $appProviders : $appProviders->toArray();
@@ -255,13 +270,69 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     {
         $this->fireAppCallbacks('booting');
 
-        foreach ($bootstrappers as $bootstrapper) {
-            $this->make($bootstrapper)->register($this);
-        }
-
         $this->hasBeenBootstrapped = true;
 
+        foreach ($bootstrappers as $bootstrapper) {
+            $this->fireBootstrapperCallbacks($this->beforeBootstrappingCallbacks, $bootstrapper);
+            $this->bootstrapUsing($bootstrapper);
+            $this->fireBootstrapperCallbacks($this->afterBootstrappingCallbacks, $bootstrapper);
+        }
+
         $this->fireAppCallbacks('booted');
+    }
+
+    /**
+     * Register a callback to run before a bootstrapper.
+     */
+    public function beforeBootstrapping(string $bootstrapper, \Closure $callback): void
+    {
+        $this->beforeBootstrappingCallbacks[$bootstrapper][] = $callback;
+    }
+
+    /**
+     * Register a callback to run after a bootstrapper.
+     */
+    public function afterBootstrapping(string $bootstrapper, \Closure $callback): void
+    {
+        $this->afterBootstrappingCallbacks[$bootstrapper][] = $callback;
+    }
+
+    /**
+     * Run a bootstrapper, preferring Laravel-style bootstrap() while
+     * preserving register() compatibility for existing Phare bootstrappers.
+     */
+    protected function bootstrapUsing(string $bootstrapper): void
+    {
+        $instance = $this->make($bootstrapper);
+
+        if (method_exists($instance, 'bootstrap')) {
+            $instance->bootstrap($this);
+
+            return;
+        }
+
+        if (method_exists($instance, 'register')) {
+            $instance->register($this);
+
+            return;
+        }
+
+        throw new \RuntimeException(sprintf(
+            'Bootstrapper [%s] must define bootstrap(Application) or register(Application).',
+            $bootstrapper
+        ));
+    }
+
+    /**
+     * Fire callbacks bound to a specific bootstrapper class.
+     *
+     * @param array<string, array<int, \Closure>> $callbacks
+     */
+    protected function fireBootstrapperCallbacks(array $callbacks, string $bootstrapper): void
+    {
+        foreach ($callbacks[$bootstrapper] ?? [] as $callback) {
+            $callback($this);
+        }
     }
 
     /**

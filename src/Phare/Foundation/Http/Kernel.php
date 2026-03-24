@@ -2,20 +2,25 @@
 
 namespace Phare\Foundation\Http;
 
-use Phalcon\Events\Event;
 use Phalcon\Http\RequestInterface;
 use Phalcon\Http\ResponseInterface;
 use Phalcon\Mvc\ControllerInterface;
-use Phalcon\Mvc\Dispatcher;
 use Phalcon\Mvc\Micro\Collection;
-use Phalcon\Mvc\Router\Exception as RouteException;
 use Phalcon\Mvc\Router\Route;
 use Phare\Contracts\Foundation\Application;
 use Phare\Contracts\Http\Kernel as HttpKernel;
-use Phare\Contracts\Http\Validation\Validator;
 use Phare\Debug\DebugLogger;
 use Phare\Http\Request;
+use Phare\Routing\ApplicationModeResolver;
+use Phare\Routing\ControllerActionParameterResolver;
+use Phare\Routing\DispatchForwardPayloadBuilder;
+use Phare\Routing\MiddlewareApplicator;
+use Phare\Routing\RouteDataSourceResolver;
 use Phare\Routing\RouteLoader;
+use Phare\Routing\RouteParamsBinder;
+use Phare\Routing\RouteRegistrationOrchestrator;
+use Phare\Routing\RoutePatternMatcher;
+use Phare\Routing\WebDispatchForwardRegistrar;
 
 abstract class Kernel implements HttpKernel
 {
@@ -65,11 +70,7 @@ abstract class Kernel implements HttpKernel
 
     protected function syncMiddleware()
     {
-        foreach ($this->middlewares as $alias) {
-            $this->debugLogger?->logMiddlewareStart($alias);
-            $this->app->middleware($alias);
-            $this->debugLogger?->logMiddlewareEnd($alias);
-        }
+        $this->applyMiddlewares($this->middlewares);
     }
 
     abstract public function handle(RequestInterface $request): ResponseInterface;
@@ -89,72 +90,27 @@ abstract class Kernel implements HttpKernel
     protected function registerRoutes()
     {
         $cachedRoutesPath = $this->app->routesCachePath();
+        $allRoutes = (new RouteDataSourceResolver())->resolve(
+            $cachedRoutesPath,
+            fn (string $path) => $this->loadRoutesWithoutCache($path)
+        );
+        $mode = (new ApplicationModeResolver())->resolve($this->app);
 
-        if (file_exists($cachedRoutesPath)) {
-            $allRoutes = require $cachedRoutesPath;
-        } else {
-            $allRoutes = $this->loadRoutesWithoutCache();
-        }
-
-        /** @var \Phalcon\Mvc\Router $router */
-        $router = $this->app['router'];
-
-        $appClass = get_class($this->app);
-        if ($appClass === \Phare\Foundation\Web::class) {
-            foreach ($allRoutes as $routes) {
-                if (!is_array($routes)) {
-                    continue;
-                }
-                foreach ($routes as $routeData) {
-                    $route = $router->add($routeData['path'], [
-                        'namespace' => $routeData['namespace'],
-                        'controller' => $routeData['controller'],
-                        'action' => $routeData['action'],
-                    ]);
-                    $route->via($routeData['method'])
-                        ->setName($routeData['name'] ?? '');
-                }
-            }
-        }
-
-        /** @var Request $request */
-        $request = $this->app['request'];
-        $uri = $request->getURI(true) ?: '/';
-        $method = $request->getMethod();
-
-        if (!isset($allRoutes[$uri][$method])) {
-            // Try pattern matching for parameterized routes
-            $matched = $this->matchParameterizedRoute($allRoutes, $uri, $method);
-            if ($matched === null) {
-                throw new RouteException("Route \"$method $uri\" not found.");
-            }
-            [$routeData, $routeParams] = $matched;
-            // Store matched URL params for controller access
-            if (!empty($routeParams)) {
-                $this->app->singleton('routeParams', fn() => $routeParams);
-            }
-        } else {
-            $routeData = $allRoutes[$uri][$method];
-            $routeParams = [];
-        }
-
-        if ($appClass === \Phare\Foundation\Micro::class) {
-            $this->handleMicroRoutes($routeData);
-        } elseif ($appClass === \Phare\Foundation\Web::class) {
-            $this->handleWebRoutes($routeData, $routeParams ?? []);
-        } else {
-            throw new \RuntimeException("Application class \"{$appClass}\" not supported.");
-        }
-
-        foreach ($routeData['middleware'] ?? [] as $alias) {
-            $middleware = $this->routeMiddleware[$alias] ?? null;
-            if ($middleware === null) {
-                throw new \RuntimeException("Middleware alias \"{$alias}\" not found.");
-            }
-            $this->debugLogger?->logMiddlewareStart($middleware);
-            $this->app->middleware($middleware);
-            $this->debugLogger?->logMiddlewareEnd($middleware);
-        }
+        (new RouteRegistrationOrchestrator())->register(
+            $allRoutes,
+            $mode,
+            $this->app['router'],
+            $this->app['request'],
+            $this->routeMiddleware,
+            fn (array $routes, string $targetUri, string $targetMethod) => $this->matchParameterizedRoute($routes, $targetUri, $targetMethod),
+            fn (array $routeParams) => (new RouteParamsBinder())->bind(
+                $routeParams,
+                fn (string $name, callable $factory) => $this->app->singleton($name, $factory)
+            ),
+            fn (array $routeData, array $routeParams) => $this->handleWebRoutes($routeData, $routeParams),
+            fn (array $routeData) => $this->handleMicroRoutes($routeData),
+            fn (array $middlewares) => $this->applyMiddlewares($middlewares),
+        );
     }
 
     protected function handleMicroRoutes(array $routeData)
@@ -169,11 +125,7 @@ abstract class Kernel implements HttpKernel
         $method = $routeData['method'];
         $route->$method($routeData['path'], $routeData['action'], $routeData['name'] ?? '');
 
-        foreach ($this->middlewareGroups['api'] ?? [] as $alias) {
-            $this->debugLogger?->logMiddlewareStart($alias);
-            $this->app->middleware($alias);
-            $this->debugLogger?->logMiddlewareEnd($alias);
-        }
+        $this->applyMiddlewares($this->middlewareGroups['api'] ?? []);
 
         $this->app->mount($route);
     }
@@ -192,77 +144,28 @@ abstract class Kernel implements HttpKernel
         $route->via($routeData['method'])
             ->setName($routeData['name'] ?? '');
 
-        foreach ($this->middlewareGroups['web'] ?? [] as $alias) {
-            $this->debugLogger?->logMiddlewareStart($alias);
-            $this->app->middleware($alias);
-            $this->debugLogger?->logMiddlewareEnd($alias);
-        }
+        $this->applyMiddlewares($this->middlewareGroups['web'] ?? []);
 
         // If there are URL params from pattern matching, or typed params to inject, set up dispatch forwarding
         if (empty($routeData['params']) && empty($urlParams)) {
             return;
         }
 
-        $this->app['eventsManager']->attach('dispatch:beforeExecuteRoute',
-            function (Event $event, Dispatcher $dispatcher) use ($routeData, $urlParams) {
-                if ($dispatcher->wasForwarded()) {
-                    return;
-                }
-
-                // Build params array for dispatch
-                $params = [];
-                $paramTypes = $routeData['params'] ?? [];
-
-                // If no typed params but have URL params, pass URL param values as positional args
-                if (empty($paramTypes) && !empty($urlParams)) {
-                    $dispatcher->forward([
-                        'namespace'  => $routeData['namespace'],
-                        'controller' => $routeData['controller'],
-                        'action'     => $routeData['action'],
-                        'params'     => array_values($urlParams),
-                    ]);
-                    return;
-                }
-
-                // For each declared param type, inject Request or URL param values
-                foreach ($paramTypes as $i => $paramType) {
-                    if ($paramType === null) {
-                        // Untyped - pass URL param value by position
-                        $params[] = array_values($urlParams)[$i] ?? null;
-                        continue;
-                    }
-
-                    // Check if this is a scalar type (string, int) - use URL param value
-                    if (in_array($paramType, ['string', 'int', 'float', 'bool'], true)) {
-                        $value = array_values($urlParams)[$i] ?? null;
-                        settype($value, $paramType);
-                        $params[] = $value;
-                        continue;
-                    }
-
-                    $instance = $this->app->make($paramType);
-
-                    // TODO: Move this to middleware
-                    if ($instance instanceof Validator) {
-                        if (!$instance->validate($instance->all())) {
-                            throw new \RuntimeException('Request validation failed. ' . $instance->getMessages()['message']);
-                        }
-                    }
-
-                    if ($instance instanceof RequestInterface) {
-                        $this->app->singleton('request', $instance);
-                    }
-
-                    $params[] = $instance;
-                }
-
-                $dispatcher->forward([
-                    'namespace'  => $routeData['namespace'],
-                    'controller' => $routeData['controller'],
-                    'action'     => $routeData['action'],
-                    'params'     => $params,
-                ]);
-            });
+        (new WebDispatchForwardRegistrar())->register(
+            $this->app['eventsManager'],
+            $routeData,
+            $urlParams,
+            fn (array $resolvedRouteData, array $resolvedUrlParams) => (new DispatchForwardPayloadBuilder())->build(
+                $resolvedRouteData,
+                $resolvedUrlParams,
+                fn (array $paramTypes, array $params) => (new ControllerActionParameterResolver())->resolve(
+                    $paramTypes,
+                    $params,
+                    fn (string $type) => $this->app->make($type),
+                    fn (RequestInterface $instance) => $this->app->singleton('request', $instance)
+                )
+            )
+        );
     }
 
     /**
@@ -271,45 +174,34 @@ abstract class Kernel implements HttpKernel
      */
     protected function matchParameterizedRoute(array $allRoutes, string $uri, string $method): ?array
     {
-        foreach ($allRoutes as $pattern => $methods) {
-            if (!is_array($methods) || !isset($methods[$method])) {
-                continue;
-            }
+        return (new RoutePatternMatcher())->match($allRoutes, $uri, $method);
+    }
 
-            // Convert {param} pattern to regex
-            if (!str_contains($pattern, '{')) {
-                continue;
-            }
-
-            $paramNames = [];
-            $regex = preg_replace_callback('/\{([\w\-]+)(?:<([^>]+)>)?\}/', function ($matches) use (&$paramNames) {
-                $paramNames[] = $matches[1];
-                $regex = $matches[2] ?? '[\w\-]+';
-                return "($regex)";
-            }, $pattern);
-
-            $regex = '#^' . $regex . '$#';
-
-            if (preg_match($regex, $uri, $matches)) {
-                array_shift($matches);
-                $params = array_combine($paramNames, $matches);
-                return [$methods[$method], $params];
-            }
-        }
-
-        return null;
+    /**
+     * Apply middlewares with consistent logging behavior.
+     *
+     * @param array<int, string> $middlewares
+     */
+    protected function applyMiddlewares(array $middlewares): void
+    {
+        (new MiddlewareApplicator())->apply(
+            $middlewares,
+            fn (string $middleware) => $this->app->middleware($middleware),
+            fn (string $middleware) => $this->debugLogger?->logMiddlewareStart($middleware),
+            fn (string $middleware) => $this->debugLogger?->logMiddlewareEnd($middleware),
+        );
     }
 
     /**
      * Load routes on-the-fly without requiring a cache file.
      * Used in development when routes have not been cached.
      */
-    protected function loadRoutesWithoutCache(): array
+    protected function loadRoutesWithoutCache(?string $cachedRoutesPath = null): array
     {
         $routeLoader = RouteLoader::create($this->app);
         $routeLoader->generateRoutesCacheFile();
 
-        $cachedRoutesPath = $this->app->routesCachePath();
+        $cachedRoutesPath ??= $this->app->routesCachePath();
 
         if (!file_exists($cachedRoutesPath)) {
             throw new \RuntimeException('Failed to generate routes cache.');

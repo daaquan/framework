@@ -58,7 +58,7 @@ class QueueManager
      */
     protected function makeConnection(string $name): QueueInterface
     {
-        $config = $this->getConfig($name);
+        $config = $this->getConnectionConfig($name);
         $connector = $this->getConnector($config['driver']);
 
         return $connector->connect($config);
@@ -67,7 +67,7 @@ class QueueManager
     /**
      * Get the configuration for a connection.
      */
-    protected function getConfig(string $name): array
+    protected function getConnectionConfig(string $name): array
     {
         return $this->config['connections'][$name] ?? [];
     }
@@ -81,7 +81,7 @@ class QueueManager
             throw new \InvalidArgumentException("No connector for [{$driver}]");
         }
 
-        return $this->connectors[$driver]($this->getConfig($driver));
+        return $this->connectors[$driver]($this->getConnectionConfig($driver));
     }
 
     /**
@@ -181,13 +181,19 @@ class QueueManager
         $job->incrementRetries();
 
         if ($job->canRetry()) {
-            // Re-queue the job with a delay
-            $job->delay(60); // 1 minute delay before retry
-            $this->push($job);
-        } else {
-            // Job has exceeded max retries, call failed handler
-            $job->failed($exception);
+            try {
+                // Re-queue the job with a delay
+                $job->delay(60); // 1 minute delay before retry
+                $this->push($job);
+
+                return;
+            } catch (\Exception) {
+                // Fall through to failed handler when immediate requeue execution fails.
+            }
         }
+
+        // Job has exceeded max retries, or re-queue failed.
+        $job->failed($exception);
     }
 
     /**

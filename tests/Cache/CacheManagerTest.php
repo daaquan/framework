@@ -1,16 +1,34 @@
 <?php
 
 use InvalidArgumentException;
+use Phalcon\Di\Di;
 use Phalcon\Cache\Adapter\Redis;
 use Phalcon\Cache\Adapter\Stream;
 use Phare\Cache\CacheManager;
-use Tests\TestCase;
 
-uses(TestCase::class)->beforeEach(function () {
-    // Ensure environment variable as default
+function refreshApplication(): void
+{
+    Di::reset();
+
+    $_ENV['APP_BASE_PATH'] = 'tests/Mock';
+    $app = require $_ENV['APP_BASE_PATH'] . '/bootstrap/app.php';
+    $app->bootstrapWith([
+        \Phare\Foundation\Bootstrap\LoadEnvironmentVariables::class,
+        \Phare\Foundation\Bootstrap\LoadConfiguration::class,
+        \Phare\Foundation\Bootstrap\HandleExceptions::class,
+        \Phare\Foundation\Bootstrap\RegisterProviders::class,
+        \Phare\Foundation\Bootstrap\RegisterFacades::class,
+    ]);
+
+    Di::setDefault($app);
+}
+
+beforeEach(function () {
+    // Ensure environment variable as default.
     putenv('CACHE_DRIVER');
     putenv('CACHE_DRIVER=file');
-    $this->setUpApplication();
+
+    refreshApplication();
 });
 
 test('default file cache driver uses stream adapter', function () {
@@ -27,7 +45,7 @@ test('default file cache driver uses stream adapter', function () {
 
 test('throws exception for invalid cache driver', function () {
     putenv('CACHE_DRIVER=invalid');
-    $this->setUpApplication();
+    refreshApplication();
 
     expect(fn () => new CacheManager())
         ->toThrow(InvalidArgumentException::class);
@@ -35,7 +53,8 @@ test('throws exception for invalid cache driver', function () {
 
 test('throws exception when redis connection missing', function () {
     putenv('CACHE_DRIVER=redis');
-    $this->setUpApplication();
+    refreshApplication();
+    config(['cache.stores.redis.connection' => 'missing']);
 
     expect(fn () => new CacheManager())
         ->toThrow(InvalidArgumentException::class);
@@ -45,7 +64,7 @@ test('throws exception when redis connection missing', function () {
 
 test('redis cache driver uses redis adapter', function () {
     putenv('CACHE_DRIVER=redis');
-    $this->setUpApplication();
+    refreshApplication();
 
     // provide redis connection configuration expected by CacheManager
     config(['database.connections.redis' => [
@@ -64,7 +83,7 @@ test('redis cache driver uses redis adapter', function () {
 
 test('throws exception when file driver path missing', function () {
     putenv('CACHE_DRIVER=file');
-    $this->setUpApplication();
+    refreshApplication();
 
     config(['cache.stores.file.path' => null]);
 
@@ -76,7 +95,7 @@ test('throws exception when file driver path missing', function () {
 
 test('apcu cache driver uses apcu adapter', function () {
     putenv('CACHE_DRIVER=apc');
-    $this->setUpApplication();
+    refreshApplication();
 
     $manager = new CacheManager();
     expect($manager->adapter())->toBeInstanceOf(\Phalcon\Cache\Adapter\Apcu::class);
