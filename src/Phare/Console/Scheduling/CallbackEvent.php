@@ -6,7 +6,7 @@ class CallbackEvent extends Event
 {
     protected \Closure $callback;
 
-    protected string $description = 'Callback';
+    protected ?string $description = 'Callback';
 
     public function __construct(string $timezone, callable $callback)
     {

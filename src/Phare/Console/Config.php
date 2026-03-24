@@ -5,6 +5,7 @@ namespace Phare\Console;
 use Phalcon\Config\Config as PhalconConfig;
 use Phalcon\Di\Di;
 use Phalcon\Di\Injectable;
+use Phare\Config\Repository;
 use Phare\Console\Exceptions\InvalidConfig;
 use Phare\Console\Helpers\PathHelpers;
 
@@ -30,8 +31,16 @@ class Config extends Injectable
     {
         if (!self::$instance) {
             $instance = new self();
-            $config = $instance->getDI()->getShared('config');
-            self::$instance = $instance->setConfig($config);
+            $di = Di::getDefault();
+
+            if ($di !== null && $di->has('config')) {
+                $config = $di->getShared('config');
+                self::$instance = $instance->setConfig($config);
+            } else {
+                $instance->config = new PhalconConfig([]);
+                $instance->original = [];
+                self::$instance = $instance;
+            }
         }
 
         return self::$instance;
@@ -56,7 +65,13 @@ class Config extends Injectable
     /** Set the configuration */
     public function setConfig($userConfig = null, bool $merge = true): static
     {
-        $this->config = Di::getDefault()->get('config');
+        $di = Di::getDefault();
+        $baseConfig = new PhalconConfig([]);
+        if ($di !== null && $di->has('config')) {
+            $baseConfig = $this->normalizeConfig($di->get('config'));
+        }
+
+        $this->config = $baseConfig;
 
         if (is_string($userConfig)) {
             $this->config = $this->getNested(explode('.', $userConfig));
@@ -67,7 +82,9 @@ class Config extends Injectable
             } else {
                 $this->config = $userConfig;
             }
-        } elseif ($userConfig instanceof PhalconConfig) {
+        } elseif ($userConfig instanceof PhalconConfig || $userConfig instanceof Repository) {
+            $userConfig = $this->normalizeConfig($userConfig);
+
             if ($merge) {
                 $this->merge($userConfig);
             } else {
@@ -78,6 +95,23 @@ class Config extends Injectable
         $this->original = $this->toArray();
 
         return $this;
+    }
+
+    protected function normalizeConfig(mixed $config): PhalconConfig
+    {
+        if ($config instanceof PhalconConfig) {
+            return $config;
+        }
+
+        if ($config instanceof Repository) {
+            return new PhalconConfig($config->all());
+        }
+
+        if (is_array($config)) {
+            return new PhalconConfig($config);
+        }
+
+        return new PhalconConfig([]);
     }
 
     /** Retrieve nested values (foo.bar.baz) */

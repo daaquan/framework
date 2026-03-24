@@ -11,7 +11,7 @@ class SqidsProvider implements ServiceProviderInterface
     public function register(Application|DiInterface $app): void
     {
         if (!extension_loaded('sqids')) {
-            throw new \RuntimeException('Sqids extension is not loaded.');
+            return;
         }
 
         $app->singleton('sqids', function () {

@@ -6,13 +6,13 @@ use Phare\Console\Command;
 
 class EnvCommand extends Command
 {
-    protected string $signature = 'env {--show : Show all environment variables}';
+    protected ?string $signature = 'env {--show : Show all environment variables}';
 
-    protected string $description = 'Display the current framework environment';
+    protected ?string $description = 'Display the current framework environment';
 
     public function handle(): int
     {
-        $environment = $this->app->environment();
+        $environment = $this->getFrameworkApplication()->environment();
 
         $this->info("Current environment: <comment>{$environment}</comment>");
 

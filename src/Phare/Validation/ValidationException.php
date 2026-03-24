@@ -50,6 +50,11 @@ class ValidationException extends \Exception
         {
             private MessageBag $errors;
 
+            public static function make(array $data, array $rules, array $messages = [], array $customAttributes = []): Validator
+            {
+                return new self($messages);
+            }
+
             public function __construct(array $messages)
             {
                 $this->errors = new MessageBag($messages);

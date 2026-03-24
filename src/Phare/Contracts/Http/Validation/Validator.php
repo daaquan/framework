@@ -4,11 +4,20 @@ namespace Phare\Contracts\Http\Validation;
 
 interface Validator
 {
-    public static function make($data, $rules = []);
+    public static function make(
+        array $data,
+        array $rules,
+        array $messages = [],
+        array $customAttributes = []
+    ): self;
 
-    public function rules(): array;
+    public function passes(): bool;
 
-    public function validate($data): bool;
+    public function fails(): bool;
 
-    public function getMessages();
+    public function errors(): \Phare\Validation\MessageBag;
+
+    public function validated(): array;
+
+    public function safe(): array;
 }

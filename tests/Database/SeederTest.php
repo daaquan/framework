@@ -1,5 +1,13 @@
 <?php
 
+if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+    test('seeder integration tests require sqlite driver', function () {
+        $this->markTestSkipped('PDO sqlite driver is required for seeder integration tests.');
+    });
+
+    return;
+}
+
 use Phare\Database\Schema\Blueprint;
 use Phare\Database\Seeder;
 use Tests\TestCase;

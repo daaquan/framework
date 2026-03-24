@@ -1,6 +1,18 @@
 <?php
 
-dataset('session', [
+function redisSessionAvailable(): bool
+{
+    $socket = @fsockopen('127.0.0.1', 6379, $errno, $errstr, 0.2);
+    if ($socket === false) {
+        return false;
+    }
+
+    fclose($socket);
+
+    return true;
+}
+
+$sessionDatasets = [
     'file' => function () {
         $adapter = new \Phalcon\Session\Adapter\Stream(['savePath' => sys_get_temp_dir()]);
         $session = (new \Phare\Session\SessionManager())->setAdapter($adapter);
@@ -8,7 +20,10 @@ dataset('session', [
 
         return $session;
     },
-    'redis' => function () {
+];
+
+if (redisSessionAvailable()) {
+    $sessionDatasets['redis'] = function () {
         $factory = new \Phalcon\Storage\AdapterFactory(new \Phalcon\Storage\SerializerFactory());
         $adapter = new \Phalcon\Session\Adapter\Redis(
             $factory,
@@ -21,8 +36,10 @@ dataset('session', [
         $session->start();
 
         return $session;
-    },
-]);
+    };
+}
+
+dataset('session', $sessionDatasets);
 
 it('can set and get session values', function ($session) {
     $session->put('key', 'value');

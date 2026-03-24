@@ -3,10 +3,9 @@
 namespace Phare\Support;
 
 use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phare\Foundation\AbstractApplication as Application;
 
-abstract class ServiceProvider implements ServiceProviderInterface
+abstract class ServiceProvider
 {
     protected Application|DiInterface $app;
 

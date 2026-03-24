@@ -163,7 +163,7 @@ test('notification manager skips notifications that should not send', function (
 test('notification manager handles failing notifications', function () {
     $notification = new FailingNotification();
 
-    expect(function () {
+    expect(function () use ($notification) {
         $this->manager->send($this->user, $notification);
     })->toThrow(\Exception::class, 'Notification failed');
 });
