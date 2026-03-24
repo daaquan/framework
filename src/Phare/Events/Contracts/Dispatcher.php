@@ -7,7 +7,7 @@ interface Dispatcher
     /**
      * Register an event listener with the dispatcher.
      */
-    public function listen(string|array $events, \Closure|array|string $listener): void;
+    public function listen(mixed $events, mixed $listener = null): void;
 
     /**
      * Determine if a given event has listeners.

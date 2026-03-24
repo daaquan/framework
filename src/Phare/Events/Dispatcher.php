@@ -22,8 +22,20 @@ class Dispatcher implements DispatcherContract
         $this->app = $app;
     }
 
-    public function listen(string|array $events, \Closure|array|string $listener): void
+    public function listen(mixed $events, mixed $listener = null): void
     {
+        if ($events instanceof \Closure && $listener === null) {
+            foreach ($this->firstClosureParameterTypes($events) as $event) {
+                $this->listen($event, $events);
+            }
+
+            return;
+        }
+
+        if (!is_string($listener) && !is_array($listener) && !$listener instanceof \Closure) {
+            throw new \InvalidArgumentException('Event listener must be a Closure, array, or class-string.');
+        }
+
         $events = is_array($events) ? $events : [$events];
 
         foreach ($events as $event) {
@@ -145,7 +157,7 @@ class Dispatcher implements DispatcherContract
             $this->wildcardsCache[$eventName] ?? $this->getWildcardListeners($eventName)
         );
 
-        if (class_exists($eventName)) {
+        if (class_exists($eventName, false)) {
             $listeners = $this->addInterfaceListeners($eventName, $listeners);
         }
 
@@ -295,5 +307,53 @@ class Dispatcher implements DispatcherContract
         }
 
         return $events;
+    }
+
+    /**
+     * Resolve event class names from the first typed Closure parameter.
+     *
+     * @return list<string>
+     */
+    protected function firstClosureParameterTypes(\Closure $closure): array
+    {
+        $reflection = new \ReflectionFunction($closure);
+        $parameters = $reflection->getParameters();
+
+        if ($parameters === []) {
+            throw new \InvalidArgumentException('Unable to infer event type from listener Closure.');
+        }
+
+        $type = $parameters[0]->getType();
+
+        if ($type instanceof \ReflectionNamedType) {
+            return $this->resolveNamedType($type);
+        }
+
+        if ($type instanceof \ReflectionUnionType) {
+            $types = [];
+            foreach ($type->getTypes() as $namedType) {
+                $types = array_merge($types, $this->resolveNamedType($namedType));
+            }
+
+            if ($types !== []) {
+                return array_values(array_unique($types));
+            }
+        }
+
+        throw new \InvalidArgumentException('Unable to infer event type from listener Closure.');
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function resolveNamedType(\ReflectionNamedType $type): array
+    {
+        if ($type->isBuiltin()) {
+            return [];
+        }
+
+        $name = $type->getName();
+
+        return $name === '' ? [] : [$name];
     }
 }
