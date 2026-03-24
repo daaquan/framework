@@ -157,6 +157,7 @@ return [
         \Phare\Providers\RouteServiceProvider::class,
         \Phare\Providers\RequestProvider::class,
         \Phare\Providers\ResponseProvider::class,
+        \Phare\Events\EventServiceProvider::class,
         \Phare\Providers\SessionProvider::class,
         \Phare\Providers\AuthServiceProvider::class,
         \Phare\Providers\ModelProvider::class,
@@ -168,6 +169,7 @@ return [
     'aliases' => [
         'App' => \Phare\Support\Facades\Application::class,
         'DB' => \Phare\Support\Facades\DB::class,
+        'Event' => \Phare\Support\Facades\Event::class,
         'Log' => \Phare\Support\Facades\Log::class,
         'Auth' => \Phare\Support\Facades\Auth::class,
         'Security' => \Phare\Support\Facades\Security::class,
