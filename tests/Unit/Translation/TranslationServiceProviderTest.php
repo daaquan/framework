@@ -1,5 +1,7 @@
 <?php
 
+use Phalcon\Di\Di;
+use Phare\Contracts\Foundation\Application as ApplicationContract;
 use Phare\Container\Container;
 use Phare\Translation\TranslationServiceProvider;
 use Phare\Translation\Translator;
@@ -8,17 +10,23 @@ beforeEach(function () {
     $this->app = new Container();
 
     // Set up basic config
-    $this->app['config'] = [
+    $this->app->singleton('config', fn () => [
         'app.locale' => 'en',
         'app.fallback_locale' => 'en',
-    ];
+    ]);
 
     // Mock resourcePath method
-    $this->app->bind('path.resources', function () {
-        return __DIR__ . '/../../Mock/resources';
-    });
+    $this->app->bind('path.resources', fn () => __DIR__ . '/../../Mock/resources');
+
+    $di = new Di();
+    $di->setShared(ApplicationContract::class, $this->app);
+    Di::setDefault($di);
 
     $this->provider = new TranslationServiceProvider($this->app);
+});
+
+afterEach(function () {
+    Di::reset();
 });
 
 test('registers translator service', function () {
@@ -37,10 +45,10 @@ test('binds Translator class', function () {
 
 test('configures translator with app config', function () {
     // Set test config
-    $this->app['config'] = [
+    $this->app->bind('config', fn () => [
         'app.locale' => 'es',
         'app.fallback_locale' => 'en',
-    ];
+    ], true);
 
     $this->provider->register();
     $translator = $this->app->make('translator');
@@ -61,9 +69,9 @@ test('boots translation helper functions', function () {
     $this->provider->register();
     $this->provider->boot();
 
-    expect(function_exists('trans'))->toBeTrue();
-    expect(function_exists('trans_choice'))->toBeTrue();
-    expect(function_exists('__'))->toBeTrue();
+    expect(function_exists('Phare\\Translation\\trans'))->toBeTrue();
+    expect(function_exists('Phare\\Translation\\trans_choice'))->toBeTrue();
+    expect(function_exists('Phare\\Translation\\__'))->toBeTrue();
 });
 
 test('trans helper function works', function () {
@@ -83,7 +91,7 @@ test('trans helper function works', function () {
         ],
     ]);
 
-    expect(trans('messages.test'))->toBe('Hello World');
+    expect(\Phare\Translation\trans('messages.test'))->toBe('Hello World');
 });
 
 test('__ helper function works as alias', function () {
@@ -101,7 +109,7 @@ test('__ helper function works as alias', function () {
         ],
     ]);
 
-    expect(__('messages.test'))->toBe('Hello World');
+    expect(\Phare\Translation\__('messages.test'))->toBe('Hello World');
 });
 
 test('trans_choice helper function works', function () {
@@ -119,8 +127,8 @@ test('trans_choice helper function works', function () {
         ],
     ]);
 
-    expect(trans_choice('messages.items', 1))->toBe('one item');
-    expect(trans_choice('messages.items', 5, ['count' => 5]))->toBe('5 items');
+    expect(\Phare\Translation\trans_choice('messages.items', 1))->toBe('one item');
+    expect(\Phare\Translation\trans_choice('messages.items', 5, ['count' => 5]))->toBe('5 items');
 });
 
 test('helper functions work with replacements', function () {
@@ -138,8 +146,8 @@ test('helper functions work with replacements', function () {
         ],
     ]);
 
-    expect(trans('messages.greeting', ['name' => 'John']))->toBe('Hello John');
-    expect(__('messages.greeting', ['name' => 'Jane']))->toBe('Hello Jane');
+    expect(\Phare\Translation\trans('messages.greeting', ['name' => 'John']))->toBe('Hello John');
+    expect(\Phare\Translation\__('messages.greeting', ['name' => 'Jane']))->toBe('Hello Jane');
 });
 
 test('helper functions work with custom locale', function () {
@@ -156,8 +164,8 @@ test('helper functions work with custom locale', function () {
         'es' => ['messages' => ['hello' => 'Hola']],
     ]);
 
-    expect(trans('messages.hello', [], 'es'))->toBe('Hola');
-    expect(__('messages.hello', [], 'en'))->toBe('Hello');
+    expect(\Phare\Translation\trans('messages.hello', [], 'es'))->toBe('Hola');
+    expect(\Phare\Translation\__('messages.hello', [], 'en'))->toBe('Hello');
 });
 
 test('does not redeclare functions if they already exist', function () {
@@ -169,7 +177,7 @@ test('does not redeclare functions if they already exist', function () {
     $secondProvider = new TranslationServiceProvider($this->app);
     $secondProvider->boot();
 
-    expect(function_exists('trans'))->toBeTrue();
-    expect(function_exists('trans_choice'))->toBeTrue();
-    expect(function_exists('__'))->toBeTrue();
+    expect(function_exists('Phare\\Translation\\trans'))->toBeTrue();
+    expect(function_exists('Phare\\Translation\\trans_choice'))->toBeTrue();
+    expect(function_exists('Phare\\Translation\\__'))->toBeTrue();
 });

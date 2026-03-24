@@ -1,5 +1,13 @@
 <?php
 
+if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+    test('eloquent model integration tests require sqlite driver', function () {
+        $this->markTestSkipped('PDO sqlite driver is required for eloquent model integration tests.');
+    });
+
+    return;
+}
+
 use Phalcon\Mvc\Model\Resultset;
 use Tests\Mock\Models\User;
 

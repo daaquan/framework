@@ -21,5 +21,13 @@ class DatabaseProvider implements ServiceProviderInterface
             return (new DatabaseManager($app, $connections))
                 ->setupDatabases();
         });
+
+        $app->singleton('db', function () use ($app) {
+            $manager = $app->make('dbManager');
+            $defaultConnection = (string)$app['config']->path('database.default', 'db');
+            $service = $manager->getConnectionService($defaultConnection);
+
+            return $app->make($service);
+        });
     }
 }

@@ -169,7 +169,7 @@ class ValidatorTest extends TestCase
         $validator = new Validator($data, $rules, [], $attributes);
         $validator->passes(); // Trigger validation
 
-        $this->assertStringContains('username', $validator->errors()->first('user_name'));
+        $this->assertStringContainsString('username', $validator->errors()->first('user_name'));
     }
 
     public function test_validator_validated_method()

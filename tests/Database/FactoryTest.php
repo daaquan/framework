@@ -1,5 +1,13 @@
 <?php
 
+if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+    test('factory integration tests require sqlite driver', function () {
+        $this->markTestSkipped('PDO sqlite driver is required for factory integration tests.');
+    });
+
+    return;
+}
+
 use Phare\Database\BaseFactory;
 use Phare\Database\Factory;
 use Phare\Database\Schema\Blueprint;
@@ -10,6 +18,10 @@ class FactoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+            $this->markTestSkipped('PDO sqlite driver is required for factory integration tests.');
+        }
 
         $connection = $this->app->make('db');
         $schema = new \Phare\Database\Schema\SchemaBuilder($connection);
@@ -29,6 +41,18 @@ class FactoryTest extends TestCase
 
     protected function tearDown(): void
     {
+        if (!isset($this->app)) {
+            parent::tearDown();
+
+            return;
+        }
+
+        if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+            parent::tearDown();
+
+            return;
+        }
+
         $connection = $this->app->make('db');
         $connection->execute('DELETE FROM test_users');
 

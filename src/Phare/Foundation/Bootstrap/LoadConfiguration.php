@@ -15,6 +15,14 @@ class LoadConfiguration implements ServiceProviderInterface
     private ?string $compiledFilePath = null;
 
     /**
+     * Laravel-style bootstrap entry point.
+     */
+    public function bootstrap(Application|DiInterface $app): void
+    {
+        $this->register($app);
+    }
+
+    /**
      * Prepare the configuration cache and load it into the application.
      */
     public function register(Application|DiInterface $app): void
@@ -24,8 +32,10 @@ class LoadConfiguration implements ServiceProviderInterface
         $this->compiledFilePath = $app->getCachedConfigPath();
 
         if ($app->configurationIsCached()) {
-            if ($app->environment('local', 'testing') && $this->isConfigOutdated($app)) {
-                // During development regenerate the cache when configuration files change
+            if ($app->environment('testing')
+                || ($app->environment('local') && $this->isConfigOutdated($app))) {
+                // In testing, always regenerate to avoid stale process/env state.
+                // In local, regenerate when configuration sources changed.
                 $this->generateConfigurationCacheFile($app);
             }
         } else {
@@ -64,6 +74,10 @@ class LoadConfiguration implements ServiceProviderInterface
         }
 
         $configContent = '<?php return ' . var_export($configs, true) . ';';
+        $cacheDir = dirname($this->compiledFilePath);
+        if (!is_dir($cacheDir)) {
+            mkdir($cacheDir, 0777, true);
+        }
         file_put_contents($this->compiledFilePath, $configContent);
     }
 
@@ -79,12 +93,10 @@ class LoadConfiguration implements ServiceProviderInterface
             $lastModificationTime = max($lastModificationTime, filemtime($configFile));
         }
 
-        // Also check the last modified time of the .env file
-        $lastModificationTime = max($lastModificationTime, filemtime($app->basePath('.env')));
-
-        $envConfigFile = $app->getCachedConfigPath();
-        if (file_exists($envConfigFile)) {
-            return max($lastModificationTime, filemtime($envConfigFile));
+        // Also check the last modified time of the .env file (if present)
+        $envFile = $app->basePath('.env');
+        if (file_exists($envFile)) {
+            $lastModificationTime = max($lastModificationTime, filemtime($envFile));
         }
 
         return $lastModificationTime;

@@ -5,7 +5,7 @@ namespace Phare\Http;
 use Phalcon\Filter\Validation as BaseValidation;
 use Phare\Foundation\Http\Validation\ValidationException;
 
-class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request, \Phare\Contracts\Http\Validation\Validator
+class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request
 {
     use FileHelpers;
 
@@ -36,7 +36,7 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
 
     private array $messages = [];
 
-    private mixed $data;
+    protected mixed $data;
 
     public function __construct(protected array $rules = [])
     {

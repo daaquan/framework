@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeRequestCommand extends Command
 {
-    protected string $signature = 'make:request {name : The name of the form request}';
+    protected ?string $signature = 'make:request {name : The name of the form request}';
 
-    protected string $description = 'Create a new form request class';
+    protected ?string $description = 'Create a new form request class';
 
     public function handle(): int
     {
@@ -29,7 +29,7 @@ class MakeRequestCommand extends Command
         $this->makeDirectory($path);
         $this->files->put($path, $content);
 
-        $relativePath = str_replace($this->app->basePath() . '/', '', $path);
+        $relativePath = str_replace($this->getFrameworkApplication()->basePath() . '/', '', $path);
         $this->info("Request created successfully at [{$relativePath}].");
 
         return 0;
@@ -50,7 +50,7 @@ class MakeRequestCommand extends Command
     {
         $path = str_replace('\\', '/', $name) . '.php';
 
-        return $this->app->basePath('app/Requests/' . $path);
+        return $this->getFrameworkApplication()->basePath('app/Requests/' . $path);
     }
 
     protected function buildClass(string $name, string $stub): string

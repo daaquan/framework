@@ -45,11 +45,15 @@ class SmsChannel implements ChannelInterface
         }
 
         if (method_exists($notifiable, 'routeNotificationForSms')) {
-            return $notifiable->routeNotificationForSms();
+            $recipient = $notifiable->routeNotificationForSms();
+
+            return is_string($recipient) ? $recipient : '';
         }
 
         if (method_exists($notifiable, 'getPhoneForNotifications')) {
-            return $notifiable->getPhoneForNotifications();
+            $recipient = $notifiable->getPhoneForNotifications();
+
+            return is_string($recipient) ? $recipient : '';
         }
 
         if (isset($notifiable->phone)) {

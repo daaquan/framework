@@ -5,6 +5,7 @@ namespace Phare\Console;
 use Phare\Console\Input\Input;
 use Phare\Console\Output\SymfonyOutput;
 use ReflectionClass;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,6 +15,11 @@ use Symfony\Component\Console\Question\Question;
 
 class Command extends SymfonyCommand
 {
+    /**
+     * Framework application/container instance (not Symfony Console Application).
+     */
+    protected mixed $app = null;
+
     protected SymfonyOutput $output;
 
     protected InputInterface $input;
@@ -121,6 +127,7 @@ class Command extends SymfonyCommand
     {
         $this->output = new SymfonyOutput($output);
         $this->input = $input;
+        $this->resolveFrameworkApplication();
 
         if (method_exists($this, 'handle')) {
             $this->handle();
@@ -153,6 +160,37 @@ class Command extends SymfonyCommand
     protected function hasOption(string $name): bool
     {
         return $this->input->hasOption($name);
+    }
+
+    public function setFrameworkApplication(mixed $app): static
+    {
+        $this->app = $app;
+
+        return $this;
+    }
+
+    protected function getFrameworkApplication(): mixed
+    {
+        $this->resolveFrameworkApplication();
+
+        if ($this->app === null) {
+            throw new RuntimeException('Framework application is not available for this command.');
+        }
+
+        return $this->app;
+    }
+
+    protected function resolveFrameworkApplication(): void
+    {
+        if ($this->app !== null) {
+            return;
+        }
+
+        $application = parent::getApplication();
+
+        if (is_object($application) && method_exists($application, 'getFrameworkApplication')) {
+            $this->app = $application->getFrameworkApplication();
+        }
     }
 
     // Laravel-style output methods

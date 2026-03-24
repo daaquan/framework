@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeSeederCommand extends Command
 {
-    protected string $signature = 'make:seeder {name : The seeder name}';
+    protected ?string $signature = 'make:seeder {name : The seeder name}';
 
-    protected string $description = 'Create a new seeder class';
+    protected ?string $description = 'Create a new seeder class';
 
     public function handle(): int
     {
@@ -16,7 +16,7 @@ class MakeSeederCommand extends Command
         $className = $this->getClassName($name);
         $fileName = "{$className}.php";
 
-        $directory = $this->getApplication()->databasePath('seeders');
+        $directory = $this->getFrameworkApplication()->databasePath('seeders');
         $path = $directory . '/' . $fileName;
 
         if (file_exists($path)) {

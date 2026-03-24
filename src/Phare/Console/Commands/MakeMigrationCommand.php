@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeMigrationCommand extends Command
 {
-    protected string $signature = 'make:migration {name : The migration name} {--create= : Create a new table} {--table= : Modify an existing table}';
+    protected ?string $signature = 'make:migration {name : The migration name} {--create= : Create a new table} {--table= : Modify an existing table}';
 
-    protected string $description = 'Create a new migration file';
+    protected ?string $description = 'Create a new migration file';
 
     public function handle(): int
     {
@@ -18,7 +18,7 @@ class MakeMigrationCommand extends Command
 
         $migrationName = $this->getMigrationName($name);
         $fileName = $this->getMigrationFileName($name);
-        $path = $this->getApplication()->databasePath('migrations') . '/' . $fileName;
+        $path = $this->migrationPath($fileName);
 
         if (file_exists($path)) {
             $this->error("Migration {$fileName} already exists!");
@@ -52,11 +52,21 @@ class MakeMigrationCommand extends Command
 
     protected function ensureMigrationDirectory(): void
     {
-        $dir = $this->getApplication()->databasePath('migrations');
+        $dir = $this->migrationDirectory();
 
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
+    }
+
+    protected function migrationPath(string $fileName): string
+    {
+        return $this->migrationDirectory() . '/' . $fileName;
+    }
+
+    protected function migrationDirectory(): string
+    {
+        return $this->getFrameworkApplication()->databasePath('migrations');
     }
 
     protected function getStub(?string $create = null, ?string $table = null): string

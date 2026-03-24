@@ -48,6 +48,11 @@ class Application extends SymfonyApplication implements ApplicationContract
             : '';
     }
 
+    public function getFrameworkApplication(): Container
+    {
+        return $this->app;
+    }
+
     /**
      * Add --env and --language options to all commands.
      */

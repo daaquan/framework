@@ -22,13 +22,18 @@ class RedisCluster extends RedisAdapter implements AdapterInterface
         try {
             $options = $this->getOptionsWithDefaults();
             $seeds = $this->buildSeeds($options);
+            $auth = $options['auth'];
 
-            $this->adapter = new \RedisCluster(null, $seeds, $options['timeout'], $options['readTimeout'], $options['persistent'], $options['auth']);
+            if ($auth === '' || $auth === []) {
+                $auth = null;
+            }
+
+            $this->adapter = new \RedisCluster(null, $seeds, $options['timeout'], $options['readTimeout'], $options['persistent'], $auth);
             $this->adapter->setOption(\Redis::OPT_PREFIX, $this->prefix);
             $this->setSerializer($this->adapter);
 
             return $this->adapter;
-        } catch (\RedisClusterException $e) {
+        } catch (\Throwable $e) {
             throw new StorageException('Failed to connect to the Redis cluster: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
@@ -98,7 +103,7 @@ class RedisCluster extends RedisAdapter implements AdapterInterface
         $defaults = [
             'host' => '127.0.0.1',
             'port' => '6379',
-            'auth' => '',
+            'auth' => null,
             'persistent' => false,
             'timeout' => 0,
             'readTimeout' => 0,

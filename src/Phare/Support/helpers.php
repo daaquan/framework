@@ -27,10 +27,44 @@ if (!function_exists('config')) {
             return $config;
         }
         if (is_array($key)) {
-            return $config->set($key);
+            foreach ($key as $path => $value) {
+                config_set_path($config, (string)$path, $value);
+            }
+
+            return true;
         }
 
         return $config->path($key, $default);
+    }
+}
+
+if (!function_exists('config_set_path')) {
+    function config_set_path(\Phalcon\Config\Config $config, string $path, mixed $value): void
+    {
+        $segments = explode('.', $path);
+        $current = $config;
+
+        while (count($segments) > 1) {
+            $segment = array_shift($segments);
+            $next = $current->path($segment);
+
+            if ($next instanceof \Phalcon\Config\Config) {
+                $current = $next;
+
+                continue;
+            }
+
+            if (is_array($next)) {
+                $next = new \Phalcon\Config\Config($next);
+            } else {
+                $next = new \Phalcon\Config\Config([]);
+            }
+
+            $current->set($segment, $next);
+            $current = $next;
+        }
+
+        $current->set($segments[0], $value);
     }
 }
 
@@ -65,9 +99,15 @@ if (!function_exists('app')) {
             return $app;
         }
 
-        return $app->bound($abstract)
-            ? $app[$abstract]
-            : $app->make($abstract, $parameters);
+        if ($app->bound($abstract)) {
+            if ($app instanceof \ArrayAccess && isset($app[$abstract])) {
+                return $app[$abstract];
+            }
+
+            return $app->make($abstract, $parameters);
+        }
+
+        return $app->make($abstract, $parameters);
     }
 }
 

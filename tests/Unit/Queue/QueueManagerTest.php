@@ -135,7 +135,14 @@ test('queue manager can clear queue', function () {
 });
 
 test('queue manager can extend with custom driver', function () {
-    $this->manager->extend('custom', function ($config) {
+    $manager = new QueueManager([
+        'default' => 'custom',
+        'connections' => [
+            'custom' => ['driver' => 'custom'],
+        ],
+    ]);
+
+    $manager->extend('custom', function ($config) {
         return new class() implements \Phare\Queue\Connectors\ConnectorInterface
         {
             public function connect(array $config): \Phare\Queue\QueueInterface
@@ -170,14 +177,6 @@ test('queue manager can extend with custom driver', function () {
             }
         };
     });
-
-    // Add custom connection to config
-    $manager = new QueueManager([
-        'default' => 'custom',
-        'connections' => [
-            'custom' => ['driver' => 'custom'],
-        ],
-    ]);
 
     $connection = $manager->connection('custom');
     expect($connection)->toBeInstanceOf(\Phare\Queue\QueueInterface::class);
