@@ -225,13 +225,7 @@ if (!function_exists('queue')) {
 if (!function_exists('event')) {
     function event(...$args): mixed
     {
-        $dispatcher = app('events');
-
-        if (!$dispatcher) {
-            throw new \RuntimeException('Event dispatcher service not registered.');
-        }
-
-        return $dispatcher->dispatch(...$args);
+        return app('events')->dispatch(...$args);
     }
 }
 

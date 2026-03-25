@@ -96,6 +96,19 @@ class EventServiceProvider extends ServiceProvider
             return $cache[static::class] ?? [];
         }
 
-        return $this->listens();
+        return array_merge_recursive(
+            $this->discoveredEvents(),
+            $this->listens()
+        );
+    }
+
+    /**
+     * Get the discovered events and listeners.
+     *
+     * @return array<string, array<int, string|array|\Closure>>
+     */
+    protected function discoveredEvents(): array
+    {
+        return [];
     }
 }

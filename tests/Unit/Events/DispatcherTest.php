@@ -298,3 +298,43 @@ test('it can defer only selected events', function () {
 
     expect($captured)->toBe(['instant:a', 'delayed:b']);
 });
+
+test('dispatch treats null payload as empty payload', function () {
+    $this->dispatcher->listen('sample.null-payload', fn () => 'ok');
+
+    $result = $this->dispatcher->dispatch('sample.null-payload', null);
+
+    expect($result)->toBe(['ok']);
+});
+
+test('nested defer preserves parent deferred queue', function () {
+    $captured = [];
+
+    $this->dispatcher->listen('sample.outer-first', function () use (&$captured) {
+        $captured[] = 'outer-first';
+    });
+
+    $this->dispatcher->listen('sample.inner', function () use (&$captured) {
+        $captured[] = 'inner';
+    });
+
+    $this->dispatcher->listen('sample.outer-last', function () use (&$captured) {
+        $captured[] = 'outer-last';
+    });
+
+    $this->dispatcher->defer(function () use (&$captured) {
+        $this->dispatcher->dispatch('sample.outer-first');
+
+        $this->dispatcher->defer(function () use (&$captured) {
+            $this->dispatcher->dispatch('sample.inner');
+            expect($captured)->toBe([]);
+        });
+
+        expect($captured)->toBe(['inner']);
+
+        $this->dispatcher->dispatch('sample.outer-last');
+        expect($captured)->toBe(['inner']);
+    });
+
+    expect($captured)->toBe(['inner', 'outer-first', 'outer-last']);
+});
