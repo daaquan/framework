@@ -161,4 +161,419 @@ class Str
 
         return $result;
     }
+
+    /**
+     * Return the portion of a string after the first occurrence of a given value.
+     */
+    public static function after(string $subject, string $search): string
+    {
+        if ($search === '') {
+            return $subject;
+        }
+
+        $pos = strpos($subject, $search);
+
+        return $pos === false ? $subject : substr($subject, $pos + strlen($search));
+    }
+
+    /**
+     * Return the portion of a string after the last occurrence of a given value.
+     */
+    public static function afterLast(string $subject, string $search): string
+    {
+        if ($search === '') {
+            return $subject;
+        }
+
+        $pos = strrpos($subject, $search);
+
+        return $pos === false ? $subject : substr($subject, $pos + strlen($search));
+    }
+
+    /**
+     * Return the portion of a string before the first occurrence of a given value.
+     */
+    public static function before(string $subject, string $search): string
+    {
+        if ($search === '') {
+            return $subject;
+        }
+
+        $pos = strpos($subject, $search);
+
+        return $pos === false ? $subject : substr($subject, 0, $pos);
+    }
+
+    /**
+     * Return the portion of a string before the last occurrence of a given value.
+     */
+    public static function beforeLast(string $subject, string $search): string
+    {
+        if ($search === '') {
+            return $subject;
+        }
+
+        $pos = strrpos($subject, $search);
+
+        return $pos === false ? $subject : substr($subject, 0, $pos);
+    }
+
+    /**
+     * Get the portion of a string between two given values.
+     */
+    public static function between(string $subject, string $from, string $to): string
+    {
+        if ($from === '' || $to === '') {
+            return $subject;
+        }
+
+        return self::before(self::after($subject, $from), $to);
+    }
+
+    /**
+     * Convert a value to camelCase.
+     */
+    public static function camel(string $value): string
+    {
+        return lcfirst(self::studly($value));
+    }
+
+    /**
+     * Determine if a given string contains a given substring.
+     */
+    public static function contains(string $haystack, string|array $needles, bool $ignoreCase = false): bool
+    {
+        if ($ignoreCase) {
+            $haystack = mb_strtolower($haystack);
+        }
+
+        foreach ((array)$needles as $needle) {
+            if ($ignoreCase) {
+                $needle = mb_strtolower($needle);
+            }
+
+            if ($needle !== '' && str_contains($haystack, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if a given string contains all array values.
+     */
+    public static function containsAll(string $haystack, array $needles, bool $ignoreCase = false): bool
+    {
+        foreach ($needles as $needle) {
+            if (!self::contains($haystack, $needle, $ignoreCase)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Cap a string with a single instance of a given value.
+     */
+    public static function finish(string $value, string $cap): string
+    {
+        return preg_replace('/(?:' . preg_quote($cap, '/') . ')+$/u', '', $value) . $cap;
+    }
+
+    /**
+     * Determine if a given string is a valid JSON string.
+     */
+    public static function isJson(string $value): bool
+    {
+        if ($value === '') {
+            return false;
+        }
+
+        json_decode($value);
+
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    /**
+     * Determine if a given value is a valid UUID.
+     */
+    public static function isUuid(string $value): bool
+    {
+        return preg_match('/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iD', $value) === 1;
+    }
+
+    /**
+     * Convert a string to kebab-case.
+     */
+    public static function kebab(string $value): string
+    {
+        return self::snake($value, '-');
+    }
+
+    /**
+     * Return the length of the given string.
+     */
+    public static function length(string $value, ?string $encoding = null): int
+    {
+        return mb_strlen($value, $encoding ?? 'UTF-8');
+    }
+
+    /**
+     * Limit the number of characters in a string.
+     */
+    public static function limit(string $value, int $limit = 100, string $end = '...'): string
+    {
+        if (mb_strwidth($value, 'UTF-8') <= $limit) {
+            return $value;
+        }
+
+        return rtrim(mb_strimwidth($value, 0, $limit, '', 'UTF-8')) . $end;
+    }
+
+    /**
+     * Convert the given string to lower-case.
+     */
+    public static function lower(string $value): string
+    {
+        return mb_strtolower($value, 'UTF-8');
+    }
+
+    /**
+     * Convert the given string to upper-case.
+     */
+    public static function upper(string $value): string
+    {
+        return mb_strtoupper($value, 'UTF-8');
+    }
+
+    /**
+     * Pad both sides of a string with another.
+     */
+    public static function padBoth(string $value, int $length, string $pad = ' '): string
+    {
+        return str_pad($value, $length, $pad, STR_PAD_BOTH);
+    }
+
+    /**
+     * Pad the left side of a string with another.
+     */
+    public static function padLeft(string $value, int $length, string $pad = ' '): string
+    {
+        return str_pad($value, $length, $pad, STR_PAD_LEFT);
+    }
+
+    /**
+     * Pad the right side of a string with another.
+     */
+    public static function padRight(string $value, int $length, string $pad = ' '): string
+    {
+        return str_pad($value, $length, $pad, STR_PAD_RIGHT);
+    }
+
+    /**
+     * Begin a string with a single instance of a given value.
+     */
+    public static function start(string $value, string $prefix): string
+    {
+        return $prefix . preg_replace('/^(?:' . preg_quote($prefix, '/') . ')+/u', '', $value);
+    }
+
+    /**
+     * Convert the given string to title case.
+     */
+    public static function title(string $value): string
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+
+    /**
+     * Convert a string to snake_case.
+     */
+    public static function snake(string $value, string $delimiter = '_'): string
+    {
+        static $snakeCache = [];
+
+        $key = $value . $delimiter;
+
+        if (isset($snakeCache[$key])) {
+            return $snakeCache[$key];
+        }
+
+        if (!ctype_lower($value)) {
+            $value = preg_replace('/\s+/u', '', ucwords($value));
+            $value = preg_replace('/(.)(?=[A-Z])/u', '$1' . $delimiter, $value);
+            $value = mb_strtolower($value, 'UTF-8');
+        }
+
+        return $snakeCache[$key] = $value;
+    }
+
+    /**
+     * Determine if a given string starts with a given substring.
+     */
+    public static function startsWith(string $haystack, string|array $needles): bool
+    {
+        foreach ((array)$needles as $needle) {
+            if ($needle !== '' && str_starts_with($haystack, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if a given string ends with a given substring.
+     */
+    public static function endsWith(string $haystack, string|array $needles): bool
+    {
+        foreach ((array)$needles as $needle) {
+            if ($needle !== '' && str_ends_with($haystack, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Make a string's first character uppercase.
+     */
+    public static function ucfirst(string $string): string
+    {
+        return mb_strtoupper(mb_substr($string, 0, 1, 'UTF-8'), 'UTF-8') . mb_substr($string, 1, null, 'UTF-8');
+    }
+
+    /**
+     * Make a string's first character lowercase.
+     */
+    public static function lcfirst(string $string): string
+    {
+        return mb_strtolower(mb_substr($string, 0, 1, 'UTF-8'), 'UTF-8') . mb_substr($string, 1, null, 'UTF-8');
+    }
+
+    /**
+     * Replace the first occurrence of a value in a string.
+     */
+    public static function replaceFirst(string $search, string $replace, string $subject): string
+    {
+        if ($search === '') {
+            return $subject;
+        }
+
+        $pos = strpos($subject, $search);
+
+        if ($pos === false) {
+            return $subject;
+        }
+
+        return substr_replace($subject, $replace, $pos, strlen($search));
+    }
+
+    /**
+     * Replace the last occurrence of a value in a string.
+     */
+    public static function replaceLast(string $search, string $replace, string $subject): string
+    {
+        if ($search === '') {
+            return $subject;
+        }
+
+        $pos = strrpos($subject, $search);
+
+        if ($pos === false) {
+            return $subject;
+        }
+
+        return substr_replace($subject, $replace, $pos, strlen($search));
+    }
+
+    /**
+     * Remove any occurrence of the given string in the subject.
+     */
+    public static function remove(string|array $search, string $subject, bool $caseSensitive = true): string
+    {
+        if ($caseSensitive) {
+            return str_replace($search, '', $subject);
+        }
+
+        return str_ireplace($search, '', $subject);
+    }
+
+    /**
+     * Reverse the given string.
+     */
+    public static function reverse(string $value): string
+    {
+        return implode('', array_reverse(mb_str_split($value)));
+    }
+
+    /**
+     * Generate a more truly "random" alpha-numeric string.
+     */
+    public static function random(int $length = 16): string
+    {
+        $string = '';
+
+        while (($len = strlen($string)) < $length) {
+            $size = $length - $len;
+            $bytesSize = (int)ceil($size / 3) * 3;
+            $bytes = random_bytes($bytesSize);
+            $string .= substr(str_replace(['/', '+', '='], '', base64_encode($bytes)), 0, $size);
+        }
+
+        return $string;
+    }
+
+    /**
+     * Repeat the given string.
+     */
+    public static function repeat(string $string, int $times): string
+    {
+        return str_repeat($string, $times);
+    }
+
+    /**
+     * Replace the given value in the given string.
+     */
+    public static function replace(string|array $search, string|array $replace, string $subject, bool $caseSensitive = true): string
+    {
+        return $caseSensitive
+            ? str_replace($search, $replace, $subject)
+            : str_ireplace($search, $replace, $subject);
+    }
+
+    /**
+     * Get the number of words a string contains.
+     */
+    public static function wordCount(string $string, ?string $characters = null): int
+    {
+        return str_word_count($string, 0, $characters);
+    }
+
+    /**
+     * Wrap the string with the given strings.
+     */
+    public static function wrap(string $value, string $before, ?string $after = null): string
+    {
+        return $before . $value . ($after ?? $before);
+    }
+
+    /**
+     * Determine if a given string is empty after trimming.
+     */
+    public static function isBlank(?string $value): bool
+    {
+        return $value === null || trim($value) === '';
+    }
+
+    /**
+     * Determine if a given string is not empty after trimming.
+     */
+    public static function isFilled(?string $value): bool
+    {
+        return !self::isBlank($value);
+    }
 }
