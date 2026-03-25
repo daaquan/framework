@@ -38,5 +38,8 @@ class Web extends AbstractApplication
         $this->app->setEventsManager($eventsManager);
     }
 
-    public function terminate() {}
+    public function terminate()
+    {
+        $this->callTerminatingCallbacks();
+    }
 }

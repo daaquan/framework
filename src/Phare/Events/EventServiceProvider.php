@@ -7,6 +7,20 @@ use Phare\Support\ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
 {
+    /**
+     * The event listener mappings for the application.
+     *
+     * @var array<string, array<int, string|array|\Closure>>
+     */
+    protected array $listen = [];
+
+    /**
+     * The subscriber classes to register.
+     *
+     * @var array<int, string|object>
+     */
+    protected array $subscribe = [];
+
     public function register(): void
     {
         $container = $this->app;
@@ -38,10 +52,10 @@ class EventServiceProvider extends ServiceProvider
 
     protected function registerEventListeners(): void
     {
-        $listeners = $this->listens();
+        $listeners = $this->getEvents();
 
         foreach ($listeners as $event => $eventListeners) {
-            foreach ($eventListeners as $listener) {
+            foreach (array_unique($eventListeners, SORT_REGULAR) as $listener) {
                 $this->app['events']->listen($event, $listener);
             }
         }
@@ -61,7 +75,7 @@ class EventServiceProvider extends ServiceProvider
      */
     protected function listens(): array
     {
-        return [];
+        return $this->listen;
     }
 
     /**
@@ -69,6 +83,19 @@ class EventServiceProvider extends ServiceProvider
      */
     protected function subscribe(): array
     {
-        return [];
+        return $this->subscribe;
+    }
+
+    protected function getEvents(): array
+    {
+        if (method_exists($this->app, 'eventsAreCached')
+            && method_exists($this->app, 'getCachedEventsPath')
+            && $this->app->eventsAreCached()) {
+            $cache = require $this->app->getCachedEventsPath();
+
+            return $cache[static::class] ?? [];
+        }
+
+        return $this->listens();
     }
 }

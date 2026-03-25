@@ -58,4 +58,9 @@ interface Dispatcher
      * Register an event subscriber with the dispatcher.
      */
     public function subscribe(object|string $subscriber): void;
+
+    /**
+     * Defer event dispatching until the callback completes.
+     */
+    public function defer(callable $callback, ?array $events = null): mixed;
 }
