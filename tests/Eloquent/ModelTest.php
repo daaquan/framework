@@ -42,7 +42,7 @@ it('tests model can create data', function () {
     $email_verified_at = \Pest\Faker\fake()->dateTime();
 
     $user = new User();
-    $user->fill(compact('id', 'email', 'name', 'password', 'email_verified_at'));
+    $user->fill(compact('email', 'name', 'password', 'email_verified_at'));
 
     expect($user->create())->toBeTrue('User should be created');
 
