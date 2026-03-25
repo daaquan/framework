@@ -4,6 +4,7 @@ namespace Phare\Events;
 
 use Phare\Contracts\Foundation\Container;
 use Phare\Events\Contracts\Dispatcher as DispatcherContract;
+use Phare\Events\Contracts\ShouldDispatchAfterCommit;
 
 class Dispatcher implements DispatcherContract
 {
@@ -17,9 +18,18 @@ class Dispatcher implements DispatcherContract
 
     protected array $pushedEvents = [];
 
+    protected $transactionManagerResolver = null;
+
     public function __construct(Container $app)
     {
         $this->app = $app;
+    }
+
+    public function setTransactionManagerResolver(?callable $resolver): static
+    {
+        $this->transactionManagerResolver = $resolver;
+
+        return $this;
     }
 
     public function listen(mixed $events, mixed $listener = null): void
@@ -76,13 +86,27 @@ class Dispatcher implements DispatcherContract
 
     public function dispatch(string|object $event, mixed $payload = [], bool $halt = false): mixed
     {
+        $isEventObject = is_object($event);
         [$eventName, $eventPayload] = $this->parseEventAndPayload($event, $payload);
 
+        if ($isEventObject
+            && $eventPayload[0] instanceof ShouldDispatchAfterCommit
+            && ($transactions = $this->resolveTransactionManager()) !== null
+            && method_exists($transactions, 'addCallback')) {
+            $transactions->addCallback(fn () => $this->invokeListeners($eventName, $eventPayload, $halt));
+
+            return null;
+        }
+
+        return $this->invokeListeners($eventName, $eventPayload, $halt);
+    }
+
+    protected function invokeListeners(string $eventName, array $eventPayload, bool $halt = false): mixed
+    {
         $responses = [];
 
         foreach ($this->getListeners($eventName) as $listener) {
             $response = $listener($eventName, $eventPayload);
-
             if ($halt && $response !== null) {
                 return $response;
             }
@@ -95,6 +119,15 @@ class Dispatcher implements DispatcherContract
         }
 
         return $halt ? null : $responses;
+    }
+
+    protected function resolveTransactionManager(): mixed
+    {
+        if ($this->transactionManagerResolver === null) {
+            return null;
+        }
+
+        return ($this->transactionManagerResolver)();
     }
 
     public function dispatchIf(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false): mixed

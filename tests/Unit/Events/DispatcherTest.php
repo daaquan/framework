@@ -4,6 +4,7 @@ use Phalcon\Di\Di;
 use Phare\Container\Container;
 use Phare\Contracts\Foundation\Application as ApplicationContract;
 use Phare\Events\Dispatcher;
+use Phare\Events\Contracts\ShouldDispatchAfterCommit;
 use Phare\Support\Facades\Event as EventFacade;
 
 class EventTestApplication extends Container implements ApplicationContract
@@ -64,6 +65,30 @@ class SampleEventSubscriber
     public function onSampleEvent(SampleEvent $event): string
     {
         return 'subscriber:'.$event->name;
+    }
+}
+
+class DeferredSampleEvent implements ShouldDispatchAfterCommit
+{
+    public function __construct(public string $name) {}
+}
+
+class CallbackTransactionManager
+{
+    public array $callbacks = [];
+
+    public function addCallback(\Closure $callback): void
+    {
+        $this->callbacks[] = $callback;
+    }
+
+    public function commit(): void
+    {
+        foreach ($this->callbacks as $callback) {
+            $callback();
+        }
+
+        $this->callbacks = [];
     }
 }
 
@@ -214,5 +239,26 @@ test('dispatchUnless dispatches only when condition is false', function () {
 
     expect($trueResult)->toBe([]);
     expect($falseResult)->toBe(['ran']);
+    expect($called)->toBe(1);
+});
+
+test('it defers should dispatch after commit events until transaction commit', function () {
+    $transactions = new CallbackTransactionManager();
+    $this->dispatcher->setTransactionManagerResolver(fn () => $transactions);
+
+    $called = 0;
+    $this->dispatcher->listen(DeferredSampleEvent::class, function (DeferredSampleEvent $event) use (&$called) {
+        $called++;
+
+        return $event->name;
+    });
+
+    $result = $this->dispatcher->dispatch(new DeferredSampleEvent('deferred'));
+    expect($result)->toBeNull();
+    expect($called)->toBe(0);
+    expect($transactions->callbacks)->toHaveCount(1);
+
+    $transactions->commit();
+
     expect($called)->toBe(1);
 });
