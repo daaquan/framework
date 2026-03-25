@@ -5,6 +5,7 @@ namespace Phare\Foundation\Bootstrap;
 use Phalcon\Config\Config;
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\ServiceProviderInterface;
+use Phare\Bootstrap\LoadEnvironmentVariables;
 use Phare\Foundation\AbstractApplication as Application;
 
 /**
@@ -23,7 +24,10 @@ class LoadConfiguration implements ServiceProviderInterface
 
         $this->compiledFilePath = $app->getCachedConfigPath();
 
-        if ($app->configurationIsCached()) {
+        if ($app->runningUnitTests()) {
+            // Always regenerate config cache during testing to pick up env overrides
+            $this->generateConfigurationCacheFile($app);
+        } elseif ($app->configurationIsCached()) {
             if ($app->environment('local', 'testing') && $this->isConfigOutdated($app)) {
                 // During development regenerate the cache when configuration files change
                 $this->generateConfigurationCacheFile($app);
@@ -54,7 +58,7 @@ class LoadConfiguration implements ServiceProviderInterface
      */
     protected function generateConfigurationCacheFile(Application $app): void
     {
-        (new \Phare\Bootstrap\LoadEnvironmentVariables())
+        (new LoadEnvironmentVariables())
             ->bootstrap($app);
 
         $configs = ['@timestamp' => $this->getConfigFilesModificationTime($app)];

@@ -8,9 +8,9 @@ use Phare\Database\Migrator;
 
 class MigrateCommand extends Command
 {
-    protected string $signature = 'migrate {--fresh : Drop all tables and re-run migrations} {--reset : Rollback all migrations} {--refresh : Reset and re-run all migrations} {--rollback= : Rollback migrations} {--path= : Migration files path}';
+    protected ?string $signature = 'migrate {--fresh : Drop all tables and re-run migrations} {--reset : Rollback all migrations} {--refresh : Reset and re-run all migrations} {--rollback= : Rollback migrations} {--path= : Migration files path}';
 
-    protected string $description = 'Run database migrations';
+    protected ?string $description = 'Run database migrations';
 
     public function handle(): int
     {

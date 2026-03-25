@@ -1,5 +1,24 @@
 <?php
 
+use Faker\Factory;
+use Faker\Generator;
+use Phalcon\Config\Config;
+use Phalcon\Di\Di;
+use Phalcon\Encryption\Crypt;
+use Phalcon\Support\Debug\Dump;
+use Phalcon\Support\Helper\Str\Random;
+use Phare\Broadcasting\BroadcastManager;
+use Phare\Broadcasting\PendingBroadcast;
+use Phare\Collections\Collection;
+use Phare\Collections\Str;
+use Phare\Contracts\Foundation\Application;
+use Phare\Events\Contracts\ShouldBroadcast;
+use Phare\Foundation\Http\ResponseStatusCode;
+use Phare\Http\Response;
+use Phare\Support\Env;
+use Phare\Support\HigherOrderTapProxy;
+use Phare\View\Blade;
+
 // Polyfills for PHP 8.4 functions
 if (!function_exists('array_any')) {
     function array_any(array $array, callable $callback): bool
@@ -20,14 +39,30 @@ if (!function_exists('config')) {
     {
         $config = app('config');
         if (!$config) {
-            throw new \RuntimeException('Config service not registered.');
+            throw new RuntimeException('Config service not registered.');
         }
 
         if ($key === null) {
             return $config;
         }
         if (is_array($key)) {
-            return $config->set($key);
+            // Build nested array from dot-notation keys and merge into config
+            $nested = [];
+            foreach ($key as $k => $v) {
+                $keys = explode('.', $k);
+                $ref = &$nested;
+                foreach ($keys as $segment) {
+                    if (!isset($ref[$segment]) || !is_array($ref[$segment])) {
+                        $ref[$segment] = [];
+                    }
+                    $ref = &$ref[$segment];
+                }
+                $ref = $v;
+                unset($ref);
+            }
+            $config->merge(new Config($nested));
+
+            return;
         }
 
         return $config->path($key, $default);
@@ -38,7 +73,7 @@ if (!function_exists('config')) {
 if (!function_exists('env')) {
     function env(string $key, mixed $default = null): mixed
     {
-        return \Phare\Support\Env::get($key, $default);
+        return Env::get($key, $default);
     }
 }
 
@@ -46,7 +81,7 @@ if (!function_exists('env')) {
 if (!function_exists('container')) {
     function container(?string $alias = null): mixed
     {
-        $container = \Phalcon\Di\Di::getDefault();
+        $container = Di::getDefault();
 
         return $alias ? ($container[$alias] ?? null) : $container;
     }
@@ -56,7 +91,7 @@ if (!function_exists('container')) {
 if (!function_exists('app')) {
     function app(?string $abstract = null, array $parameters = []): mixed
     {
-        $app = container(\Phare\Contracts\Foundation\Application::class);
+        $app = container(Application::class);
         if (!$app) {
             return null;
         }
@@ -75,8 +110,8 @@ if (!function_exists('app')) {
 if (!function_exists('response')) {
     function response(
         $content = null,
-        \Phare\Foundation\Http\ResponseStatusCode $statusCode = \Phare\Foundation\Http\ResponseStatusCode::OK
-    ): \Phare\Contracts\Http\Response {
+        ResponseStatusCode $statusCode = ResponseStatusCode::OK
+    ): Phare\Contracts\Http\Response {
         $response = app('response');
         if ($content === null) {
             return $response;
@@ -114,7 +149,7 @@ if (!function_exists('request')) {
 
 // redirect()
 if (!function_exists('redirect')) {
-    function redirect(string $location, int $statusCode = 302): \Phare\Http\Response
+    function redirect(string $location, int $statusCode = 302): Response
     {
         return app('response')->redirect($location, false, $statusCode);
     }
@@ -126,7 +161,7 @@ if (!function_exists('route')) {
     {
         $route = app('router')?->getRouteByName($name);
         if (!$route) {
-            throw new \RuntimeException("Route not found: {$name}");
+            throw new RuntimeException("Route not found: {$name}");
         }
 
         $path = $route->getPattern();
@@ -142,7 +177,7 @@ if (!function_exists('route')) {
 if (!function_exists('abort')) {
     function abort(
         string $message,
-        \Phare\Foundation\Http\ResponseStatusCode $code = \Phare\Foundation\Http\ResponseStatusCode::BAD_REQUEST
+        ResponseStatusCode $code = ResponseStatusCode::BAD_REQUEST
     ) {
         return response(['message' => $message], $code);
     }
@@ -150,7 +185,7 @@ if (!function_exists('abort')) {
 
 // view()
 if (!function_exists('view')) {
-    function view(string $path, array $params = []): \Phare\View\Blade
+    function view(string $path, array $params = []): Blade
     {
         app('dispatcher')?->setParameter('bladeView', $path);
         app('view')?->setVars($params);
@@ -182,11 +217,11 @@ if (!function_exists('queue')) {
 }
 
 // fake()
-if (!function_exists('fake') && class_exists(\Faker\Factory::class)) {
-    function fake(?string $locale = null): \Faker\Generator
+if (!function_exists('fake') && class_exists(Factory::class)) {
+    function fake(?string $locale = null): Generator
     {
         $locale ??= config('app.faker_locale') ?? 'en_US';
-        $abstract = \Faker\Generator::class . ':' . $locale;
+        $abstract = Generator::class . ':' . $locale;
         if (!app()->bound($abstract)) {
             app()->singleton($abstract, fn () => \Pest\Faker\fake($locale));
         }
@@ -197,7 +232,7 @@ if (!function_exists('fake') && class_exists(\Faker\Factory::class)) {
 
 // encrypter()
 if (!function_exists('encrypter')) {
-    function encrypter(): \Phalcon\Encryption\Crypt
+    function encrypter(): Crypt
     {
         return app('encrypter');
     }
@@ -337,7 +372,7 @@ if (!function_exists('bootstrap_path')) {
 if (!function_exists('value')) {
     function value(mixed $value, ...$args): mixed
     {
-        return $value instanceof \Closure ? $value(...$args) : $value;
+        return $value instanceof Closure ? $value(...$args) : $value;
     }
 }
 
@@ -375,7 +410,7 @@ if (!function_exists('dump')) {
     function dump(...$args): void
     {
         array_map(static function ($x) {
-            $out = (new \Phalcon\Support\Debug\Dump([], true))->variable($x);
+            $out = (new Dump([], true))->variable($x);
             echo PHP_SAPI === 'cli' ? helpers . phpstrip_tags($out) . PHP_EOL : $out;
         }, $args);
     }
@@ -383,12 +418,12 @@ if (!function_exists('dump')) {
 
 // collect()
 if (!function_exists('collect')) {
-    function collect(iterable $value = []): \Phare\Collections\Collection
+    function collect(iterable $value = []): Collection
     {
-        if (is_array($value) || $value instanceof \Traversable) {
-            return new \Phare\Collections\Collection(iterator_to_array($value), false);
+        if (is_array($value) || $value instanceof Traversable) {
+            return new Collection(iterator_to_array($value), false);
         }
-        throw new \InvalidArgumentException('Value must be array or Traversable');
+        throw new InvalidArgumentException('Value must be array or Traversable');
     }
 }
 
@@ -396,7 +431,7 @@ if (!function_exists('collect')) {
 if (!function_exists('str_random')) {
     function str_random(int $length = 16): string
     {
-        return \Phare\Collections\Str::random(\Phalcon\Support\Helper\Str\Random::RANDOM_ALNUM, $length);
+        return Str::random(Random::RANDOM_ALNUM, $length);
     }
 }
 
@@ -425,7 +460,7 @@ if (!function_exists('tap')) {
         if ($callback) {
             $callback($value);
         } else {
-            return new \Phare\Support\HigherOrderTapProxy($value);
+            return new HigherOrderTapProxy($value);
         }
 
         return $value;
@@ -440,7 +475,7 @@ if (!function_exists('retry')) {
         do {
             try {
                 return $callback();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $attempts++;
                 if ($attempts >= $times || ($when && !$when($e))) {
                     throw $e;
@@ -460,7 +495,7 @@ if (!function_exists('broadcast')) {
     /**
      * Begin broadcasting an event.
      */
-    function broadcast(?\Phare\Events\Contracts\ShouldBroadcast $event = null): \Phare\Broadcasting\PendingBroadcast|\Phare\Broadcasting\BroadcastManager
+    function broadcast(?ShouldBroadcast $event = null): PendingBroadcast|BroadcastManager
     {
         $broadcast = app('broadcast');
 
@@ -468,7 +503,7 @@ if (!function_exists('broadcast')) {
             return $broadcast;
         }
 
-        return new \Phare\Broadcasting\PendingBroadcast($broadcast, $event);
+        return new PendingBroadcast($broadcast, $event);
     }
 }
 
