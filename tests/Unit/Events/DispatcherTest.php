@@ -184,3 +184,35 @@ test('event helper forwards halt dispatch argument', function () {
 
     expect($result)->toBe('first');
 });
+
+test('dispatchIf dispatches only when condition is true', function () {
+    $called = 0;
+    $this->dispatcher->listen('sample.conditional', function () use (&$called) {
+        $called++;
+
+        return 'ok';
+    });
+
+    $falseResult = $this->dispatcher->dispatchIf(false, 'sample.conditional');
+    $trueResult = $this->dispatcher->dispatchIf(true, 'sample.conditional');
+
+    expect($falseResult)->toBe([]);
+    expect($trueResult)->toBe(['ok']);
+    expect($called)->toBe(1);
+});
+
+test('dispatchUnless dispatches only when condition is false', function () {
+    $called = 0;
+    $this->dispatcher->listen('sample.unless', function () use (&$called) {
+        $called++;
+
+        return 'ran';
+    });
+
+    $trueResult = $this->dispatcher->dispatchUnless(true, 'sample.unless');
+    $falseResult = $this->dispatcher->dispatchUnless(false, 'sample.unless');
+
+    expect($trueResult)->toBe([]);
+    expect($falseResult)->toBe(['ran']);
+    expect($called)->toBe(1);
+});
