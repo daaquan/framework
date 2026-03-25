@@ -2,8 +2,6 @@
 
 namespace Phare\Validation;
 
-use Phare\Contracts\Http\Validation\Validator;
-
 class ValidationException extends \Exception
 {
     protected Validator $validator;
@@ -46,41 +44,38 @@ class ValidationException extends \Exception
 
     public static function withMessages(array $messages): self
     {
-        $validator = new class($messages) implements Validator
-        {
-            private MessageBag $errors;
+        $data = [];
+        $rules = [];
 
-            public function __construct(array $messages)
+        foreach ($messages as $key => $msgs) {
+            $rules[$key] = 'required';
+        }
+
+        $validator = new Validator($data, $rules);
+        $validator->passes();
+
+        // Override errors with custom messages
+        $bag = new MessageBag($messages);
+
+        return new static(new class($bag) extends Validator
+        {
+            private MessageBag $errorBag;
+
+            public function __construct(MessageBag $bag)
             {
-                $this->errors = new MessageBag($messages);
+                parent::__construct([], []);
+                $this->errorBag = $bag;
+            }
+
+            public function errors(): MessageBag
+            {
+                return $this->errorBag;
             }
 
             public function passes(): bool
             {
                 return false;
             }
-
-            public function fails(): bool
-            {
-                return true;
-            }
-
-            public function errors(): MessageBag
-            {
-                return $this->errors;
-            }
-
-            public function validated(): array
-            {
-                return [];
-            }
-
-            public function safe(): array
-            {
-                return [];
-            }
-        };
-
-        return new static($validator);
+        });
     }
 }
