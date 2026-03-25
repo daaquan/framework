@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeMiddlewareCommand extends Command
 {
-    protected string $signature = 'make:middleware {name : The name of the middleware}';
+    protected ?string $signature = 'make:middleware {name : The name of the middleware}';
 
-    protected string $description = 'Create a new middleware class';
+    protected ?string $description = 'Create a new middleware class';
 
     public function handle(): int
     {

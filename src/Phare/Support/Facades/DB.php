@@ -2,6 +2,9 @@
 
 namespace Phare\Support\Facades;
 
+use Phare\Database\Connection;
+use Phare\Database\MySql\DatabaseManager;
+
 /**
  * @method static \Doctrine\DBAL\Driver\PDOConnection getPdo()
  * @method static \Phare\Database\ConnectionInterface connection(string $name = null)
@@ -33,8 +36,8 @@ namespace Phare\Support\Facades;
  * @method static void rollBack(int $toLevel = null)
  * @method static void setDefaultConnection(string $name)
  *
- * @see \Phare\Database\MySql\DatabaseManager
- * @see \Phare\Database\Connection
+ * @see DatabaseManager
+ * @see Connection
  */
 class DB extends Facade
 {

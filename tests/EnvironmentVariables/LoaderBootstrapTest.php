@@ -1,15 +1,18 @@
 <?php
 
+use Phare\Bootstrap\LoadEnvironmentVariables;
+use Phare\Foundation\Micro;
+
 it('tests register method', function () {
-    $app = $this->createMock(\Phare\Foundation\Micro::class);
+    $app = $this->createMock(Micro::class);
     $app->expects($this->once())
         ->method('basePath')
         ->willReturn($_ENV['APP_BASE_PATH']);
 
-    $loadEnvironmentVariables = new \Phare\Foundation\Bootstrap\LoadEnvironmentVariables();
+    $loadEnvironmentVariables = new Phare\Foundation\Bootstrap\LoadEnvironmentVariables();
     $loadEnvironmentVariables->register($app);
 
-    $loader = $this->createMock(\Phare\Bootstrap\LoadEnvironmentVariables::class);
+    $loader = $this->createMock(LoadEnvironmentVariables::class);
     $loader->expects($this->once())
         ->method('bootstrap')
         ->with($this->identicalTo($app));

@@ -9,17 +9,16 @@ beforeEach(function () {
     $connection = $this->app->make('db');
     $schema = new SchemaBuilder($connection);
 
-    if (!$schema->hasTable('test_users')) {
-        $schema->create('test_users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email');
-            $table->timestamps();
-        });
+    // Always drop and recreate to avoid stale schema from other tests
+    if ($schema->hasTable('test_users')) {
+        $schema->drop('test_users');
     }
-
-    // Clear data between tests
-    $connection->execute('DELETE FROM test_users');
+    $schema->create('test_users', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('email');
+        $table->timestamps();
+    });
 });
 
 afterEach(function () {

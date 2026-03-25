@@ -95,6 +95,28 @@ it('throws exception when a non-existent class is resolved', function () {
     $container->make('nonExistent');
 })->throws(ContainerException::class);
 
+it('resolving a class with dependencies does not corrupt the parent binding', function () {
+    $container = new Container();
+
+    class DepService {}
+
+    class ParentClass
+    {
+        public function __construct(public DepService $dep) {}
+    }
+
+    $container->bind(ParentClass::class, ParentClass::class);
+
+    $result = $container->make(ParentClass::class);
+
+    expect($result)->toBeInstanceOf(ParentClass::class);
+    expect($result)->not->toBeInstanceOf(DepService::class);
+
+    // Resolve again to ensure binding is still correct
+    $result2 = $container->make(ParentClass::class);
+    expect($result2)->toBeInstanceOf(ParentClass::class);
+});
+
 it('throws exception when binding a non-instantiable interface without concrete implementation', function () {
     $container = new Container();
 

@@ -1,6 +1,7 @@
 <?php
 
 use Phare\Http\Resources\JsonResource;
+use Phare\Http\Resources\JsonResourceResponse;
 use Phare\Http\Resources\ResourceCollection;
 
 // Create test resource classes
@@ -123,7 +124,7 @@ it('handles additional data', function () {
     $resource->additional(['meta' => 'additional data']);
 
     $response = $resource->response();
-    expect($response)->toBeInstanceOf(\Phare\Http\Resources\JsonResourceResponse::class);
+    expect($response)->toBeInstanceOf(JsonResourceResponse::class);
 });
 
 it('allows custom wrapping', function () {

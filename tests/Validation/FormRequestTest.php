@@ -2,6 +2,7 @@
 
 use Phare\Http\FormRequest;
 use Phare\Validation\ValidationException;
+use Phare\Validation\Validator;
 use PHPUnit\Framework\TestCase;
 
 class TestFormRequest extends FormRequest
@@ -101,7 +102,7 @@ it('can create validator instance', function () {
 
     $validator = $request->getValidatorInstance();
 
-    expect($validator)->toBeInstanceOf(\Phare\Validation\Validator::class);
+    expect($validator)->toBeInstanceOf(Validator::class);
     expect($validator->passes())->toBe(true);
 })->uses(FormRequestTest::class);
 

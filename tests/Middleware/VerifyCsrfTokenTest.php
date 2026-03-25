@@ -1,5 +1,7 @@
 <?php
 
+use Phalcon\Http\Request;
+use Phalcon\Http\Response;
 use Phare\Middleware\TokenMismatchException;
 use Phare\Middleware\VerifyCsrfToken;
 use Phare\Security\Csrf;
@@ -17,8 +19,8 @@ beforeEach(function () {
 
     $this->middleware = new VerifyCsrfToken($this->app);
 
-    $this->request = $this->createMock(\Phalcon\Http\Request::class);
-    $this->response = $this->createMock(\Phalcon\Http\Response::class);
+    $this->request = $this->createMock(Request::class);
+    $this->response = $this->createMock(Response::class);
 });
 
 it('allows GET requests without token', function () {

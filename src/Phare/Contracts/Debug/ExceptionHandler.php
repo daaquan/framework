@@ -2,6 +2,10 @@
 
 namespace Phare\Contracts\Debug;
 
+use Phare\Console\Output\Output;
+use Phare\Http\Request;
+use Phare\Http\Response;
+
 interface ExceptionHandler
 {
     /**
@@ -23,8 +27,8 @@ interface ExceptionHandler
     /**
      * Render an exception into an HTTP response.
      *
-     * @param \Phare\Http\Request $request
-     * @return \Phare\Http\Response
+     * @param Request $request
+     * @return Response
      *
      * @throws \Throwable
      */
@@ -35,5 +39,5 @@ interface ExceptionHandler
      *
      * @return void
      */
-    public function renderForConsole(\Phare\Console\Output\Output $output, \Throwable $e);
+    public function renderForConsole(Output $output, \Throwable $e);
 }

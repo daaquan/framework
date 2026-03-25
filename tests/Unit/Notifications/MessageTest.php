@@ -1,5 +1,6 @@
 <?php
 
+use Phare\Mail\Mailable;
 use Phare\Notifications\Messages\MailMessage;
 use Phare\Notifications\Messages\SlackMessage;
 use Phare\Notifications\Messages\SmsMessage;
@@ -121,7 +122,7 @@ test('mail message can create mailable', function () {
     $notifiable = (object)['email' => 'test@example.com'];
     $mailable = $message->toMailable('test@example.com', $notifiable);
 
-    expect($mailable)->toBeInstanceOf(\Phare\Mail\Mailable::class);
+    expect($mailable)->toBeInstanceOf(Mailable::class);
 });
 
 test('sms message can be created', function () {

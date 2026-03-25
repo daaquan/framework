@@ -3,33 +3,54 @@
 namespace Phare\Http;
 
 use Phalcon\Filter\Validation as BaseValidation;
+use Phalcon\Filter\Validation\Validator\Alnum;
+use Phalcon\Filter\Validation\Validator\Alpha;
+use Phalcon\Filter\Validation\Validator\Between;
+use Phalcon\Filter\Validation\Validator\Callback;
+use Phalcon\Filter\Validation\Validator\Confirmation;
+use Phalcon\Filter\Validation\Validator\CreditCard;
+use Phalcon\Filter\Validation\Validator\Date;
+use Phalcon\Filter\Validation\Validator\Digit;
+use Phalcon\Filter\Validation\Validator\Email;
+use Phalcon\Filter\Validation\Validator\ExclusionIn;
+use Phalcon\Filter\Validation\Validator\File;
+use Phalcon\Filter\Validation\Validator\Identical;
+use Phalcon\Filter\Validation\Validator\InclusionIn;
+use Phalcon\Filter\Validation\Validator\Ip;
+use Phalcon\Filter\Validation\Validator\Numericality;
+use Phalcon\Filter\Validation\Validator\PresenceOf;
+use Phalcon\Filter\Validation\Validator\Regex;
+use Phalcon\Filter\Validation\Validator\StringLength;
+use Phalcon\Filter\Validation\Validator\Uniqueness;
+use Phalcon\Filter\Validation\Validator\Url;
+use Phare\Contracts\Http\Validation\Validator;
 use Phare\Foundation\Http\Validation\ValidationException;
 
-class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request, \Phare\Contracts\Http\Validation\Validator
+class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request, Validator
 {
     use FileHelpers;
 
     public static array $validators = [
-        'required' => \Phalcon\Filter\Validation\Validator\PresenceOf::class,
-        'numeric' => \Phalcon\Filter\Validation\Validator\Numericality::class,
-        'alnum' => \Phalcon\Filter\Validation\Validator\Alnum::class,
-        'alpha' => \Phalcon\Filter\Validation\Validator\Alpha::class,
-        'confirmation' => \Phalcon\Filter\Validation\Validator\Confirmation::class,
-        'creditcard' => \Phalcon\Filter\Validation\Validator\CreditCard::class,
-        'digit' => \Phalcon\Filter\Validation\Validator\Digit::class,
-        'exclude' => \Phalcon\Filter\Validation\Validator\ExclusionIn::class,
-        'include' => \Phalcon\Filter\Validation\Validator\InclusionIn::class,
-        'identical' => \Phalcon\Filter\Validation\Validator\Identical::class,
-        'email' => \Phalcon\Filter\Validation\Validator\Email::class,
-        'unique' => \Phalcon\Filter\Validation\Validator\Uniqueness::class,
-        'callback' => \Phalcon\Filter\Validation\Validator\Callback::class,
-        'length' => \Phalcon\Filter\Validation\Validator\StringLength::class,
-        'between' => \Phalcon\Filter\Validation\Validator\Between::class,
-        'file' => \Phalcon\Filter\Validation\Validator\File::class,
-        'url' => \Phalcon\Filter\Validation\Validator\Url::class,
-        'ip' => \Phalcon\Filter\Validation\Validator\Ip::class,
-        'date' => \Phalcon\Filter\Validation\Validator\Date::class,
-        'regex' => \Phalcon\Filter\Validation\Validator\Regex::class,
+        'required' => PresenceOf::class,
+        'numeric' => Numericality::class,
+        'alnum' => Alnum::class,
+        'alpha' => Alpha::class,
+        'confirmation' => Confirmation::class,
+        'creditcard' => CreditCard::class,
+        'digit' => Digit::class,
+        'exclude' => ExclusionIn::class,
+        'include' => InclusionIn::class,
+        'identical' => Identical::class,
+        'email' => Email::class,
+        'unique' => Uniqueness::class,
+        'callback' => Callback::class,
+        'length' => StringLength::class,
+        'between' => Between::class,
+        'file' => File::class,
+        'url' => Url::class,
+        'ip' => Ip::class,
+        'date' => Date::class,
+        'regex' => Regex::class,
     ];
 
     private array $types;

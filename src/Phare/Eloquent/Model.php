@@ -8,6 +8,7 @@ use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
 use Phare\Collections\Collection;
 use Phare\Collections\Str;
+use Phare\Database\MySql\DatabaseManager;
 
 #[\AllowDynamicProperties]
 class Model extends PhModel implements \ArrayAccess
@@ -74,7 +75,7 @@ class Model extends PhModel implements \ArrayAccess
 
     private function setupConnectionService(): void
     {
-        /** @var \Phare\Database\MySql\DatabaseManager $dbManager */
+        /** @var DatabaseManager $dbManager */
         $dbManager = $this->getDI()->getShared('dbManager');
 
         if ($this->connection === null) {

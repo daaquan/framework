@@ -1,11 +1,13 @@
 <?php
 
+use Phalcon\Di\Di;
 use Phalcon\Mvc\Model\Resultset;
+use Phare\Database\MySql\DatabaseManager;
 use Tests\Mock\Models\User;
 
 beforeEach(function () {
-    /** @var \Phare\Database\MySql\DatabaseManager $dbManager */
-    $dbManager = Phalcon\Di\Di::getDefault()->getShared('dbManager');
+    /** @var DatabaseManager $dbManager */
+    $dbManager = Di::getDefault()->getShared('dbManager');
 
     // Migration
     $db = $dbManager->getConnection(['driver' => 'sqlite', 'database' => 'db']);

@@ -141,6 +141,6 @@ class DatabaseManager
     {
         return str_starts_with($path, '/')
             || str_starts_with($path, '\\\\')
-            || (bool) preg_match('/^[A-Za-z]:\\\\/', $path);
+            || (bool)preg_match('/^[A-Za-z]:\\\\/', $path);
     }
 }

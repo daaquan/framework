@@ -10,7 +10,7 @@ class SimpleTestJob extends Job
 
     public bool $handled = false;
 
-    public ?\Exception $failException = null;
+    public ?Exception $failException = null;
 
     public function __construct(
         public string $message = 'Test message',
@@ -22,13 +22,13 @@ class SimpleTestJob extends Job
     public function handle(): void
     {
         if ($this->shouldFail) {
-            throw new \Exception('Job intentionally failed');
+            throw new Exception('Job intentionally failed');
         }
 
         $this->handled = true;
     }
 
-    public function failed(\Exception $exception): void
+    public function failed(Exception $exception): void
     {
         $this->failException = $exception;
     }
@@ -64,7 +64,7 @@ test('job can be instantiated', function () {
     expect($job)->toBeInstanceOf(Job::class);
     expect($job->message)->toBe('Hello World');
     expect($job->getJobId())->toMatch('/^job_/');
-    expect($job->getCreatedAt())->toBeInstanceOf(\DateTime::class);
+    expect($job->getCreatedAt())->toBeInstanceOf(DateTime::class);
 });
 
 test('job has default values', function () {
@@ -89,7 +89,7 @@ test('job can set delay', function () {
     $job = (new SimpleTestJob())->delay(300);
 
     expect($job->getDelay())->toBe(300);
-    expect($job->getAvailableAt())->toBeInstanceOf(\DateTime::class);
+    expect($job->getAvailableAt())->toBeInstanceOf(DateTime::class);
 });
 
 test('job can set timeout', function () {
@@ -137,12 +137,12 @@ test('job can fail and call failed handler', function () {
 
     try {
         $job->handle();
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         $job->failed($e);
     }
 
     expect($job->handled)->toBeFalse();
-    expect($job->failException)->toBeInstanceOf(\Exception::class);
+    expect($job->failException)->toBeInstanceOf(Exception::class);
     expect($job->failException->getMessage())->toBe('Job intentionally failed');
 });
 
@@ -245,12 +245,12 @@ test('job data can be merged multiple times', function () {
 });
 
 test('job available at is set correctly with delay', function () {
-    $beforeTime = new \DateTime();
+    $beforeTime = new DateTime();
     $job = (new SimpleTestJob())->delay(300);
-    $afterTime = new \DateTime('+300 seconds');
+    $afterTime = new DateTime('+300 seconds');
 
     $availableAt = $job->getAvailableAt();
-    expect($availableAt)->toBeInstanceOf(\DateTime::class);
+    expect($availableAt)->toBeInstanceOf(DateTime::class);
     expect($availableAt->getTimestamp())->toBeGreaterThanOrEqual($beforeTime->getTimestamp() + 300);
     expect($availableAt->getTimestamp())->toBeLessThanOrEqual($afterTime->getTimestamp());
 });

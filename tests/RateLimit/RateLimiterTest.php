@@ -142,7 +142,7 @@ it('registers named limiters', function () {
     });
 
     $limiterCallback = $this->limiter->limiter('api');
-    expect($limiterCallback)->toBeInstanceOf(\Closure::class);
+    expect($limiterCallback)->toBeInstanceOf(Closure::class);
 
     expect($this->limiter->limiter('nonexistent'))->toBeNull();
 });

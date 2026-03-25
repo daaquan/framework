@@ -151,7 +151,7 @@ it('preserves original exception properties', function () {
     $validator = Validator::make(['field' => ''], ['field' => 'required']);
     $validator->passes();
 
-    $previous = new \Exception('Previous exception');
+    $previous = new Exception('Previous exception');
     $exception = new ValidationException($validator, 'Custom message', 123, $previous);
 
     expect($exception->getMessage())->toBe('Custom message');

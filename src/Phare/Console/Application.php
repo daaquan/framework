@@ -27,7 +27,7 @@ class Application extends SymfonyApplication implements ApplicationContract
     {
         foreach ($commands as $command) {
             // Accept instances as well for DI compatibility
-            $this->add(is_object($command) ? $command : new $command());
+            $this->addCommand(is_object($command) ? $command : new $command());
         }
 
         return $this;

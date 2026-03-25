@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Game\User;
+
 return [
-    'model' => \App\Models\Game\User::class,
+    'model' => User::class,
     'session_id' => 'auth',
 ];

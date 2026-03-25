@@ -3,7 +3,9 @@
 namespace Phare\Testing\Constraints;
 
 use PHPUnit\Framework\Constraint\Constraint;
+use PHPUnit\Framework\ExpectationFailedException;
 use SebastianBergmann\Comparator\ComparisonFailure;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
 final class ArraySubset extends Constraint
 {
@@ -41,8 +43,8 @@ final class ArraySubset extends Constraint
      *
      * @param mixed $other
      *
-     * @throws \PHPUnit\Framework\ExpectationFailedException
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      */
     public function evaluate($other, string $description = '', bool $returnResult = false): ?bool
     {
@@ -80,7 +82,7 @@ final class ArraySubset extends Constraint
     /**
      * Returns a string representation of the constraint.
      *
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function toString(): string
     {
@@ -95,7 +97,7 @@ final class ArraySubset extends Constraint
      *
      * @param mixed $other
      *
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function failureDescription($other): string
     {

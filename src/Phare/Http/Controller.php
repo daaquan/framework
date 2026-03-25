@@ -3,6 +3,8 @@
 namespace Phare\Http;
 
 use Phalcon\Mvc\Controller as BaseController;
+use Phare\Foundation\Cache;
+use Phare\Foundation\Http\Validation\ValidationException;
 
 /**
  * Base controller providing convenient access to services.
@@ -20,7 +22,7 @@ abstract class Controller extends BaseController
     /**
      * Return the cache repository instance.
      */
-    protected function cache(): \Phare\Foundation\Cache
+    protected function cache(): Cache
     {
         return $this->di->getShared('cache');
     }
@@ -50,7 +52,7 @@ abstract class Controller extends BaseController
         $validator = new Request($rules);
 
         if (!$validator->validate($request->all())) {
-            throw new \Phare\Foundation\Http\Validation\ValidationException(
+            throw new ValidationException(
                 'Validation failed: ' . json_encode($validator->getMessages())
             );
         }
