@@ -97,6 +97,29 @@ class Dispatcher implements DispatcherContract
         return $halt ? null : $responses;
     }
 
+    public function dispatchIf(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false): mixed
+    {
+        $shouldDispatch = $boolean instanceof \Closure ? (bool) $boolean($event, $payload) : (bool) $boolean;
+
+        if (!$shouldDispatch) {
+            return $halt ? null : [];
+        }
+
+        return $this->dispatch($event, $payload, $halt);
+    }
+
+    public function dispatchUnless(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false): mixed
+    {
+        return $this->dispatchIf(
+            $boolean instanceof \Closure
+                ? fn (string|object $eventValue, mixed $payloadValue) => !$boolean($eventValue, $payloadValue)
+                : !$boolean,
+            $event,
+            $payload,
+            $halt
+        );
+    }
+
     public function until(string|object $event, mixed $payload = [])
     {
         return $this->dispatch($event, $payload, true);
@@ -110,6 +133,10 @@ class Dispatcher implements DispatcherContract
     public function forget(string $event): void
     {
         unset($this->listeners[$event], $this->wildcards[$event], $this->wildcardsCache[$event]);
+
+        if (str_contains($event, '*')) {
+            $this->wildcardsCache = [];
+        }
     }
 
     public function forgetPushed(): void

@@ -264,3 +264,56 @@ test('queue manager different connections are different instances', function () 
 
     expect($syncConnection)->not->toBe($databaseConnection);
 });
+
+test('queue manager reports connection status after resolution', function () {
+    expect($this->manager->connected('sync'))->toBeFalse();
+    $this->manager->connection('sync');
+    expect($this->manager->connected('sync'))->toBeTrue();
+});
+
+test('queue manager throws when connection config is missing', function () {
+    expect(function () {
+        $this->manager->connection('missing');
+    })->toThrow(\InvalidArgumentException::class, 'The [missing] queue connection has not been configured.');
+});
+
+test('queue manager invokes before and after callbacks around successful job', function () {
+    $events = [];
+
+    $this->manager->before(function (Job $job) use (&$events) {
+        $events[] = 'before:' . $job->getJobId();
+    });
+    $this->manager->after(function (Job $job) use (&$events) {
+        $events[] = 'after:' . $job->getJobId();
+    });
+
+    $job = new QueueTestJob();
+
+    $reflection = new ReflectionClass($this->manager);
+    $method = $reflection->getMethod('processJob');
+    $method->setAccessible(true);
+    $method->invoke($this->manager, $job);
+
+    expect($events)->toHaveCount(2);
+    expect($events[0])->toStartWith('before:');
+    expect($events[1])->toStartWith('after:');
+});
+
+test('queue manager invokes failing callbacks when job fails', function () {
+    $failed = [];
+
+    $this->manager->failing(function (Job $job, \Exception $exception) use (&$failed) {
+        $failed[] = [$job::class, $exception->getMessage()];
+    });
+
+    $job = new FailingQueueJob(0); // fails immediately
+
+    $reflection = new ReflectionClass($this->manager);
+    $method = $reflection->getMethod('processJob');
+    $method->setAccessible(true);
+    $method->invoke($this->manager, $job);
+
+    expect($failed)->toHaveCount(1);
+    expect($failed[0][0])->toBe(FailingQueueJob::class);
+    expect($failed[0][1])->toContain('Job failed after');
+});

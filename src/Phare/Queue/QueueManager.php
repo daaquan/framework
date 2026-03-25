@@ -14,6 +14,14 @@ class QueueManager
 
     protected array $config;
 
+    protected array $beforeCallbacks = [];
+
+    protected array $afterCallbacks = [];
+
+    protected array $loopingCallbacks = [];
+
+    protected array $failingCallbacks = [];
+
     public function __construct(array $config = [])
     {
         $this->config = $config;
@@ -59,7 +67,12 @@ class QueueManager
     protected function makeConnection(string $name): QueueInterface
     {
         $config = $this->getConnectionConfig($name);
-        $connector = $this->getConnector($config['driver']);
+        $driver = $config['driver'] ?? null;
+        if (!is_string($driver) || $driver === '') {
+            throw new \InvalidArgumentException("Queue connection [{$name}] is missing a valid driver.");
+        }
+
+        $connector = $this->getConnector($driver, $config);
 
         return $connector->connect($config);
     }
@@ -69,19 +82,24 @@ class QueueManager
      */
     protected function getConnectionConfig(string $name): array
     {
-        return $this->config['connections'][$name] ?? [];
+        $config = $this->config['connections'][$name] ?? null;
+        if (!is_array($config)) {
+            throw new \InvalidArgumentException("The [{$name}] queue connection has not been configured.");
+        }
+
+        return $config;
     }
 
     /**
      * Get a connector instance.
      */
-    protected function getConnector(string $driver): ConnectorInterface
+    protected function getConnector(string $driver, array $config = []): ConnectorInterface
     {
         if (!isset($this->connectors[$driver])) {
             throw new \InvalidArgumentException("No connector for [{$driver}]");
         }
 
-        return $this->connectors[$driver]($this->getConnectionConfig($driver));
+        return $this->connectors[$driver]($config);
     }
 
     /**
@@ -143,6 +161,8 @@ class QueueManager
         $processed = 0;
 
         while (true) {
+            $this->invokeLoopingCallbacks();
+
             $job = $connection->pop($queue);
 
             if ($job === null) {
@@ -167,7 +187,9 @@ class QueueManager
     protected function processJob(Job $job): void
     {
         try {
+            $this->invokeBeforeCallbacks($job);
             $job->handle();
+            $this->invokeAfterCallbacks($job);
         } catch (\Exception $e) {
             $this->handleFailedJob($job, $e);
         }
@@ -178,6 +200,7 @@ class QueueManager
      */
     protected function handleFailedJob(Job $job, \Exception $exception): void
     {
+        $this->invokeFailingCallbacks($job, $exception);
         $job->incrementRetries();
 
         if ($job->canRetry()) {
@@ -226,5 +249,75 @@ class QueueManager
     public function getConfig(): array
     {
         return $this->config;
+    }
+
+    /**
+     * Determine if the given connection has been resolved.
+     */
+    public function connected(?string $name = null): bool
+    {
+        $name = $name ?: $this->getDefaultConnection();
+
+        return isset($this->connections[$name]);
+    }
+
+    /**
+     * Register a callback for jobs before handling.
+     */
+    public function before(callable $callback): void
+    {
+        $this->beforeCallbacks[] = $callback;
+    }
+
+    /**
+     * Register a callback for jobs after successful handling.
+     */
+    public function after(callable $callback): void
+    {
+        $this->afterCallbacks[] = $callback;
+    }
+
+    /**
+     * Register a callback that runs on every worker loop.
+     */
+    public function looping(callable $callback): void
+    {
+        $this->loopingCallbacks[] = $callback;
+    }
+
+    /**
+     * Register a callback for failed jobs.
+     */
+    public function failing(callable $callback): void
+    {
+        $this->failingCallbacks[] = $callback;
+    }
+
+    protected function invokeBeforeCallbacks(Job $job): void
+    {
+        foreach ($this->beforeCallbacks as $callback) {
+            $callback($job);
+        }
+    }
+
+    protected function invokeAfterCallbacks(Job $job): void
+    {
+        foreach ($this->afterCallbacks as $callback) {
+            $callback($job);
+        }
+    }
+
+    protected function invokeLoopingCallbacks(): void
+    {
+        foreach ($this->loopingCallbacks as $callback) {
+            $callback();
+        }
+    }
+
+    protected function invokeFailingCallbacks(Job $job, \Exception $exception): void
+    {
+        foreach ($this->failingCallbacks as $callback) {
+            $callback($job, $exception);
+        }
     }
 }
