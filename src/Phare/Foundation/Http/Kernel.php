@@ -50,6 +50,18 @@ abstract class Kernel implements HttpKernel
     protected ?DebugLogger $debugLogger = null;
 
     /**
+     * Cached value of app.http.use_pipeline_middleware.
+     */
+    protected ?bool $usePipelineMiddleware = null;
+
+    /**
+     * Middleware stack used when pipeline middleware execution is enabled.
+     *
+     * @var array<int, string|callable>
+     */
+    protected array $pipelineMiddlewareStack = [];
+
+    /**
      * Create a new HTTP kernel instance.
      *
      * @return void
@@ -67,13 +79,109 @@ abstract class Kernel implements HttpKernel
         $this->syncMiddleware();
     }
 
-    protected function syncMiddleware()
+    protected function syncMiddleware(): void
     {
-        foreach ($this->middlewares as $alias) {
-            $this->debugLogger?->logMiddlewareStart($alias);
-            $this->app->middleware($alias);
-            $this->debugLogger?->logMiddlewareEnd($alias);
+        foreach ($this->middlewares as $middleware) {
+            $this->registerMiddleware($middleware);
         }
+    }
+
+    protected function syncMiddlewareGroup(string $group): void
+    {
+        foreach ($this->middlewareGroups[$group] ?? [] as $middleware) {
+            $this->registerMiddleware($middleware);
+        }
+    }
+
+    /**
+     * @param array<int, string> $middlewares
+     */
+    protected function syncRouteMiddleware(array $middlewares): void
+    {
+        foreach ($middlewares as $middleware) {
+            $this->registerMiddleware($this->resolveRouteMiddlewareAlias($middleware));
+        }
+    }
+
+    protected function resolveRouteMiddlewareAlias(string $middleware): string
+    {
+        [$alias, $parameters] = array_pad(explode(':', $middleware, 2), 2, null);
+
+        $resolved = $this->routeMiddleware[$alias] ?? null;
+
+        if ($resolved === null) {
+            throw new \RuntimeException("Middleware alias \"{$alias}\" not found.");
+        }
+
+        if ($parameters !== null && $parameters !== '') {
+            return $resolved . ':' . $parameters;
+        }
+
+        return $resolved;
+    }
+
+    protected function registerMiddleware(string|callable $middleware): void
+    {
+        if ($this->shouldUsePipelineMiddleware()) {
+            $this->pipelineMiddlewareStack[] = $middleware;
+
+            return;
+        }
+
+        $this->debugLogger?->logMiddlewareStart(is_string($middleware) ? $middleware : 'closure');
+        $this->app->middleware($middleware);
+        $this->debugLogger?->logMiddlewareEnd(is_string($middleware) ? $middleware : 'closure');
+    }
+
+    protected function shouldUsePipelineMiddleware(): bool
+    {
+        if ($this->usePipelineMiddleware !== null) {
+            return $this->usePipelineMiddleware;
+        }
+
+        if (!$this->app->has('config')) {
+            return $this->usePipelineMiddleware = false;
+        }
+
+        $config = $this->app->make('config');
+
+        if (is_object($config) && method_exists($config, 'path')) {
+            return $this->usePipelineMiddleware = (bool)$config->path('app.http.use_pipeline_middleware', false);
+        }
+
+        if (is_array($config)) {
+            return $this->usePipelineMiddleware = (bool)($config['app']['http']['use_pipeline_middleware'] ?? false);
+        }
+
+        return $this->usePipelineMiddleware = false;
+    }
+
+    /**
+     * Execute the request lifecycle with middleware handling.
+     *
+     * When app.http.use_pipeline_middleware is enabled, middleware collected from
+     * global + group + route stacks are executed through Phare\Pipeline\Pipeline.
+     * Otherwise, request handling falls back to existing Phalcon-native behavior.
+     */
+    protected function dispatchThroughMiddleware(RequestInterface $request, \Closure $destination): mixed
+    {
+        if (!$this->shouldUsePipelineMiddleware()) {
+            return $destination($request);
+        }
+
+        if ($this->pipelineMiddlewareStack === []) {
+            return $destination($request);
+        }
+
+        return $this->sendThroughPipeline($request, $this->pipelineMiddlewareStack, $destination);
+    }
+
+    /**
+     * @return array<int, string|callable>
+     */
+    protected function pipelineMiddlewareStack(): array
+    {
+        return $this->pipelineMiddlewareStack;
     }
 
     abstract public function handle(RequestInterface $request): ResponseInterface;
@@ -140,15 +248,7 @@ abstract class Kernel implements HttpKernel
             throw new \RuntimeException("Application class \"{$appClass}\" not supported.");
         }
 
-        foreach ($routeData['middleware'] ?? [] as $alias) {
-            $middleware = $this->routeMiddleware[$alias] ?? null;
-            if ($middleware === null) {
-                throw new \RuntimeException("Middleware alias \"{$alias}\" not found.");
-            }
-            $this->debugLogger?->logMiddlewareStart($middleware);
-            $this->app->middleware($middleware);
-            $this->debugLogger?->logMiddlewareEnd($middleware);
-        }
+        $this->syncRouteMiddleware($routeData['middleware'] ?? []);
     }
 
     protected function handleMicroRoutes(array $routeData)
@@ -163,11 +263,7 @@ abstract class Kernel implements HttpKernel
         $method = $routeData['method'];
         $route->$method($routeData['path'], $routeData['action'], $routeData['name'] ?? '');
 
-        foreach ($this->middlewareGroups['api'] ?? [] as $alias) {
-            $this->debugLogger?->logMiddlewareStart($alias);
-            $this->app->middleware($alias);
-            $this->debugLogger?->logMiddlewareEnd($alias);
-        }
+        $this->syncMiddlewareGroup('api');
 
         $this->app->mount($route);
     }
@@ -186,11 +282,7 @@ abstract class Kernel implements HttpKernel
         $route->via($routeData['method'])
             ->setName($routeData['name'] ?? '');
 
-        foreach ($this->middlewareGroups['web'] ?? [] as $alias) {
-            $this->debugLogger?->logMiddlewareStart($alias);
-            $this->app->middleware($alias);
-            $this->debugLogger?->logMiddlewareEnd($alias);
-        }
+        $this->syncMiddlewareGroup('web');
 
         if (empty($routeData['params'])) {
             return;
