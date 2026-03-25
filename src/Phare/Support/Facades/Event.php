@@ -13,7 +13,10 @@ namespace Phare\Support\Facades;
  * @method static mixed dispatch(string|object $event, mixed $payload = [], bool $halt = false)
  * @method static mixed dispatchIf(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false)
  * @method static mixed dispatchUnless(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false)
+ * @method static mixed defer(callable $callback, ?array $events = null)
+ * @method static \Phare\Events\Dispatcher setTransactionManagerResolver(?callable $resolver)
  * @method static array getListeners(string $eventName)
+ * @method static array getRawListeners()
  * @method static void forget(string $event)
  * @method static void forgetPushed()
  *
