@@ -159,6 +159,10 @@ return [
         'warning.enable' => true, // Enable warnings
     ],
 
+    'http' => [
+        'use_pipeline_middleware' => (bool)env('APP_HTTP_USE_PIPELINE_MIDDLEWARE', false),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
