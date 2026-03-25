@@ -8,7 +8,7 @@ use Phare\Container\Container;
 
 test('broadcast manager can get default driver', function () {
     $container = new Container();
-    $config = new Config(['broadcasting.default' => 'null']);
+    $config = new Config(['broadcasting' => ['default' => 'null']]);
     $container['config'] = $config;
 
     $manager = new BroadcastManager($container);
@@ -19,8 +19,12 @@ test('broadcast manager can get default driver', function () {
 test('broadcast manager can create null driver', function () {
     $container = new Container();
     $config = new Config([
-        'broadcasting.default' => 'null',
-        'broadcasting.connections.null' => ['driver' => 'null'],
+        'broadcasting' => [
+            'default' => 'null',
+            'connections' => [
+                'null' => ['driver' => 'null'],
+            ],
+        ],
     ]);
     $container['config'] = $config;
 
@@ -36,8 +40,12 @@ test('broadcast manager can create log driver', function () {
     $container['log'] = $logger;
 
     $config = new Config([
-        'broadcasting.default' => 'log',
-        'broadcasting.connections.log' => ['driver' => 'log'],
+        'broadcasting' => [
+            'default' => 'log',
+            'connections' => [
+                'log' => ['driver' => 'log'],
+            ],
+        ],
     ]);
     $container['config'] = $config;
 
@@ -50,8 +58,12 @@ test('broadcast manager can create log driver', function () {
 test('broadcast manager can extend with custom driver', function () {
     $container = new Container();
     $config = new Config([
-        'broadcasting.default' => 'custom',
-        'broadcasting.connections.custom' => ['driver' => 'custom'],
+        'broadcasting' => [
+            'default' => 'custom',
+            'connections' => [
+                'custom' => ['driver' => 'custom'],
+            ],
+        ],
     ]);
     $container['config'] = $config;
 
@@ -67,7 +79,7 @@ test('broadcast manager can extend with custom driver', function () {
 
 test('broadcast manager can set default driver', function () {
     $container = new Container();
-    $config = new Config(['broadcasting.default' => 'null']);
+    $config = new Config(['broadcasting' => ['default' => 'null']]);
     $container['config'] = $config;
 
     $manager = new BroadcastManager($container);
@@ -79,7 +91,11 @@ test('broadcast manager can set default driver', function () {
 test('broadcast manager throws exception for invalid driver', function () {
     $container = new Container();
     $config = new Config([
-        'broadcasting.connections.invalid' => ['driver' => 'invalid'],
+        'broadcasting' => [
+            'connections' => [
+                'invalid' => ['driver' => 'invalid'],
+            ],
+        ],
     ]);
     $container['config'] = $config;
 
@@ -103,8 +119,12 @@ test('broadcast manager throws exception for missing connection', function () {
 test('broadcast manager can purge driver', function () {
     $container = new Container();
     $config = new Config([
-        'broadcasting.default' => 'null',
-        'broadcasting.connections.null' => ['driver' => 'null'],
+        'broadcasting' => [
+            'default' => 'null',
+            'connections' => [
+                'null' => ['driver' => 'null'],
+            ],
+        ],
     ]);
     $container['config'] = $config;
 
@@ -120,8 +140,12 @@ test('broadcast manager can purge driver', function () {
 test('broadcast manager delegates calls to driver', function () {
     $container = new Container();
     $config = new Config([
-        'broadcasting.default' => 'null',
-        'broadcasting.connections.null' => ['driver' => 'null'],
+        'broadcasting' => [
+            'default' => 'null',
+            'connections' => [
+                'null' => ['driver' => 'null'],
+            ],
+        ],
     ]);
     $container['config'] = $config;
 
