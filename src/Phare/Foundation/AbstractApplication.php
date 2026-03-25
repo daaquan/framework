@@ -256,7 +256,18 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         $appProviders = is_array($appProviders) ? $appProviders : $appProviders->toArray();
 
         foreach ($appProviders as $providerClass) {
-            (new $providerClass())->register($this);
+            if (is_subclass_of($providerClass, \Phare\Support\ServiceProvider::class)) {
+                $provider = new $providerClass($this);
+                $provider->register();
+                $provider->boot();
+
+                continue;
+            }
+
+            $provider = new $providerClass();
+            if ($provider instanceof \Phalcon\Di\ServiceProviderInterface) {
+                $provider->register($this);
+            }
         }
     }
 

@@ -9,8 +9,19 @@ class EventServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton('events', function ($app) {
-            return new Dispatcher($app);
+        $container = $this->app;
+
+        $this->app->singleton('events', function () use ($container) {
+            $dispatcher = new Dispatcher($container);
+            $dispatcher->setTransactionManagerResolver(function () use ($container) {
+                if (method_exists($container, 'bound') && $container->bound('dbManager')) {
+                    return $container->make('dbManager');
+                }
+
+                return null;
+            });
+
+            return $dispatcher;
         });
 
         $this->app->bind(DispatcherContract::class, function ($app) {
