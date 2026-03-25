@@ -10,11 +10,13 @@ use Phare\Collections\Collection;
 use Phare\Collections\Str;
 use Phare\Database\MySql\DatabaseManager;
 use Phare\Eloquent\Concerns\HasEvents;
+use Phare\Eloquent\Concerns\HasRelationships;
 
 #[\AllowDynamicProperties]
 class Model extends PhModel implements \ArrayAccess
 {
     use HasEvents;
+    use HasRelationships;
 
     /**
      * @var string|null The connection name for the model.
@@ -331,6 +333,14 @@ class Model extends PhModel implements \ArrayAccess
 
     public function __get(string $property)
     {
+        if ($this->relationLoaded($property)) {
+            return $this->getRelation($property);
+        }
+
+        if (method_exists($this, $property)) {
+            return $this->getRelationshipFromMethod($property);
+        }
+
         // Check if it's an appended attribute first
         if (in_array($property, $this->appends, true)) {
             $method = 'get' . Str::studly($property) . 'Attribute';
@@ -388,6 +398,23 @@ class Model extends PhModel implements \ArrayAccess
         // Remove hidden attributes
         foreach ($this->hidden as $hidden) {
             unset($data[$hidden]);
+        }
+
+        foreach ($this->getRelations() as $name => $relation) {
+            if ($relation instanceof self) {
+                $data[$name] = $relation->toArray();
+                continue;
+            }
+
+            if ($relation instanceof Collection) {
+                $data[$name] = array_map(
+                    static fn ($item) => $item instanceof self ? $item->toArray() : $item,
+                    $relation->toArray()
+                );
+                continue;
+            }
+
+            $data[$name] = $relation;
         }
 
         return $data;

@@ -5,6 +5,7 @@ namespace Phare\Eloquent;
 use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
+use Phare\Collections\Collection;
 
 /**
  * Eloquent Builder for Phalcon
@@ -17,11 +18,18 @@ class Builder extends Criteria implements BuilderInterface
     private int $bindIndex = 0;
 
     /**
+     * @var array<string, \Closure|null>
+     */
+    private array $eagerLoad = [];
+
+    /**
      * Get the first result of the query.
      */
     public function first(): ?ModelInterface
     {
-        return $this->get()->getFirst();
+        $results = $this->get();
+
+        return $results instanceof Collection ? $results->first() : $results->getFirst();
     }
 
     /**
@@ -29,15 +37,23 @@ class Builder extends Criteria implements BuilderInterface
      */
     public function last(): ?ModelInterface
     {
-        return $this->get()->getLast();
+        $results = $this->get();
+
+        return $results instanceof Collection ? $results->last() : $results->getLast();
     }
 
     /**
      * Execute the query and return the result set.
      */
-    public function get(): ResultsetInterface
+    public function get(): ResultsetInterface|Collection
     {
-        return $this->execute();
+        $results = $this->execute();
+
+        if ($this->eagerLoad !== []) {
+            return $this->eagerLoadRelations($results);
+        }
+
+        return $results;
     }
 
     /**
@@ -62,7 +78,18 @@ class Builder extends Criteria implements BuilderInterface
             ];
         }
 
-        if ($value === null) {
+        if ($operator === null && $value === null) {
+            return [
+                'conditions' => $field,
+                'bind' => [],
+            ];
+        }
+
+        if (is_array($operator) && $value === null) {
+            return $this->compilePositionalCondition($field, $operator);
+        }
+
+        if ($value === null && !$this->isOperator($operator)) {
             $value = $operator;
             $operator = '=';
         }
@@ -73,6 +100,129 @@ class Builder extends Criteria implements BuilderInterface
             'conditions' => "$field $operator :$bindKey:",
             'bind' => [$bindKey => $value],
         ];
+    }
+
+    private function compilePositionalCondition(string $condition, array $values): array
+    {
+        $bind = [];
+
+        foreach (array_values($values) as $index => $value) {
+            $bindKey = 'bind_' . $this->bindIndex++;
+            $condition = preg_replace('/\?/', ':' . $bindKey . ':', $condition, 1);
+            $bind[$bindKey] = $value;
+        }
+
+        return [
+            'conditions' => $condition,
+            'bind' => $bind,
+        ];
+    }
+
+    private function isOperator(mixed $value): bool
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        return in_array(strtoupper($value), [
+            '=',
+            '!=',
+            '<>',
+            '>',
+            '<',
+            '>=',
+            '<=',
+            'LIKE',
+            'NOT LIKE',
+            'IS',
+            'IS NOT',
+        ], true);
+    }
+
+    public function with($relations, $callback = null): BuilderInterface
+    {
+        $relations = is_string($relations) && $callback !== null
+            ? [$relations => $callback]
+            : (is_string($relations) ? [$relations] : $relations);
+
+        foreach ($relations as $name => $constraints) {
+            if (is_int($name)) {
+                $this->eagerLoad[$constraints] = null;
+                continue;
+            }
+
+            $this->eagerLoad[$name] = $constraints instanceof \Closure ? $constraints : null;
+        }
+
+        return $this;
+    }
+
+    private function eagerLoadRelations(ResultsetInterface $results): Collection
+    {
+        $models = iterator_to_array($results, false);
+
+        if ($models === []) {
+            return new Collection();
+        }
+
+        foreach ($this->eagerLoad as $name => $constraints) {
+            $this->eagerLoadRelation($models, $name, $constraints);
+        }
+
+        return new Collection($models);
+    }
+
+    private function eagerLoadRelation(array $models, string $name, ?\Closure $constraints): void
+    {
+        $relation = \Phare\Eloquent\Relations\Relation::noConstraints(
+            fn () => $models[0]->$name()
+        );
+
+        if (!$relation instanceof \Phare\Eloquent\Relations\Relation) {
+            throw new \RuntimeException(sprintf(
+                'Relationship [%s] on model [%s] must return a relation instance.',
+                $name,
+                $this->getModelName()
+            ));
+        }
+
+        $relation->addEagerConstraints($models);
+
+        if ($constraints !== null) {
+            $constraints($relation);
+        }
+
+        $relation->match(
+            $relation->initRelation($models, $name),
+            $relation->getEager(),
+            $name
+        );
+    }
+
+    public function update(array $attributes): int
+    {
+        $updated = 0;
+
+        foreach ($this->get() as $model) {
+            if ($model->update($attributes)) {
+                $updated++;
+            }
+        }
+
+        return $updated;
+    }
+
+    public function delete(): int
+    {
+        $deleted = 0;
+
+        foreach ($this->get() as $model) {
+            if ($model->delete()) {
+                $deleted++;
+            }
+        }
+
+        return $deleted;
     }
 
     /**

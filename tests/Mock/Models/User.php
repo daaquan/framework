@@ -51,4 +51,19 @@ class User extends Model implements AuthenticatableContract
         'email_verified_at' => 'datetime',
         'birthday' => 'date',
     ];
+
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function labels()
+    {
+        return $this->morphMany(Label::class, 'labelable');
+    }
 }
