@@ -8,12 +8,15 @@ use Phalcon\Http\ResponseInterface;
 use Phalcon\Mvc\ControllerInterface;
 use Phalcon\Mvc\Dispatcher;
 use Phalcon\Mvc\Micro\Collection;
+use Phalcon\Mvc\Router;
 use Phalcon\Mvc\Router\Exception as RouteException;
 use Phalcon\Mvc\Router\Route;
 use Phare\Contracts\Foundation\Application;
 use Phare\Contracts\Http\Kernel as HttpKernel;
 use Phare\Contracts\Http\Validation\Validator;
 use Phare\Debug\DebugLogger;
+use Phare\Foundation\Micro;
+use Phare\Foundation\Web;
 use Phare\Http\Request;
 use Phare\Routing\RouteLoader;
 
@@ -96,11 +99,11 @@ abstract class Kernel implements HttpKernel
             $allRoutes = $this->loadRoutesWithoutCache();
         }
 
-        /** @var \Phalcon\Mvc\Router $router */
+        /** @var Router $router */
         $router = $this->app['router'];
 
         $appClass = get_class($this->app);
-        if ($appClass === \Phare\Foundation\Web::class) {
+        if ($appClass === Web::class) {
             foreach ($allRoutes as $routes) {
                 if (!is_array($routes)) {
                     continue;
@@ -128,9 +131,9 @@ abstract class Kernel implements HttpKernel
 
         $routeData = $allRoutes[$uri][$method];
 
-        if ($appClass === \Phare\Foundation\Micro::class) {
+        if ($appClass === Micro::class) {
             $this->handleMicroRoutes($routeData);
-        } elseif ($appClass === \Phare\Foundation\Web::class) {
+        } elseif ($appClass === Web::class) {
             $this->handleWebRoutes($routeData);
         } else {
             throw new \RuntimeException("Application class \"{$appClass}\" not supported.");

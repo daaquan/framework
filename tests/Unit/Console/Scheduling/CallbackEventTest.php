@@ -53,12 +53,12 @@ test('callback event handles callback without return value', function () {
 
 test('callback event handles callback exceptions', function () {
     $event = new CallbackEvent('UTC', function () {
-        throw new \Exception('Callback failed');
+        throw new Exception('Callback failed');
     });
 
     expect(function () {
         $event->run();
-    })->toThrow(\Exception::class, 'Callback failed');
+    })->toThrow(Exception::class, 'Callback failed');
 });
 
 test('callback event can write output to file', function () {
@@ -100,7 +100,7 @@ test('callback event can append output to file', function () {
 
 test('callback event handles file output errors gracefully', function () {
     $event = new CallbackEvent('UTC', function () {
-        throw new \Exception('Task error');
+        throw new Exception('Task error');
     });
 
     $outputFile = tempnam(sys_get_temp_dir(), 'test_callback_error');
@@ -108,7 +108,7 @@ test('callback event handles file output errors gracefully', function () {
 
     expect(function () {
         $event->run();
-    })->toThrow(\Exception::class, 'Task error');
+    })->toThrow(Exception::class, 'Task error');
 
     expect(file_exists($outputFile))->toBeTrue();
     expect(file_get_contents($outputFile))->toContain('Callback failed: Task error');

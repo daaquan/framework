@@ -10,4 +10,9 @@ class IndexController extends Controller
     {
         return [];
     }
+
+    public function indexAction(int $id): array
+    {
+        return ['id' => $id];
+    }
 }

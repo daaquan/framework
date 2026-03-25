@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeModelCommand extends Command
 {
-    protected string $signature = 'make:model {name : The name of the model} {--migration : Create a migration file} {--factory : Create a factory file}';
+    protected ?string $signature = 'make:model {name : The name of the model} {--migration : Create a migration file} {--factory : Create a factory file}';
 
-    protected string $description = 'Create a new Eloquent model class';
+    protected ?string $description = 'Create a new Eloquent model class';
 
     public function handle(): int
     {

@@ -6,6 +6,7 @@ use Phalcon\Di\Di;
 use Phalcon\Http\Request;
 use Phalcon\Http\Response;
 use Phalcon\Mvc\Micro;
+use Phalcon\Mvc\Router;
 use Tests\Mock\app\Http\Controllers\Api\IndexController;
 use Tests\TestCase;
 
@@ -15,7 +16,7 @@ class BinderTest extends TestCase
     {
         $di = Di::getDefault();
         $di->setShared('router', function () {
-            return new \Phalcon\Mvc\Router();
+            return new Router();
         });
         $di->setShared('request', function () {
             return new Request();

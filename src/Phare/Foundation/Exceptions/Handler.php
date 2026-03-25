@@ -22,7 +22,7 @@ class Handler implements ExceptionHandlerContract
     /**
      * A map of exceptions with their corresponding custom log levels.
      *
-     * @var array<class-string<\Throwable>, \Psr\Log\LogLevel::*>
+     * @var array<class-string<\Throwable>, LogLevel::*>
      */
     protected $levels = [];
 
@@ -65,7 +65,7 @@ class Handler implements ExceptionHandlerContract
      * Set the log level for the given exception type.
      *
      * @param class-string<\Throwable> $type
-     * @param \Psr\Log\LogLevel::* $level
+     * @param LogLevel::* $level
      * @return $this
      */
     public function level($type, $level)

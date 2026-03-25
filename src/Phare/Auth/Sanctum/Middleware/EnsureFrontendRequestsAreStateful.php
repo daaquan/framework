@@ -4,16 +4,17 @@ namespace Phare\Auth\Sanctum\Middleware;
 
 use Phalcon\Http\RequestInterface;
 use Phalcon\Http\ResponseInterface;
+use Phare\Contracts\Http\Middleware;
 
-class EnsureFrontendRequestsAreStateful
+class EnsureFrontendRequestsAreStateful implements Middleware
 {
-    public function __invoke(RequestInterface $request, ResponseInterface $response, callable $next)
+    public function handle(RequestInterface $request, \Closure $next): ResponseInterface
     {
         if ($this->fromFrontend($request)) {
             $this->configureSecureCookieSession();
         }
 
-        return $next();
+        return $next($request);
     }
 
     protected function fromFrontend(RequestInterface $request): bool

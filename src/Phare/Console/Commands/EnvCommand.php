@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class EnvCommand extends Command
 {
-    protected string $signature = 'env {--show : Show all environment variables}';
+    protected ?string $signature = 'env {--show : Show all environment variables}';
 
-    protected string $description = 'Display the current framework environment';
+    protected ?string $description = 'Display the current framework environment';
 
     public function handle(): int
     {

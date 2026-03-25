@@ -1,5 +1,31 @@
 <?php
 
+use NunoMaduro\PhpInsights\Domain\Insights\CyclomaticComplexityIsHigh;
+use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenDefineFunctions;
+use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenFinalClasses;
+use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenNormalClasses;
+use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenPrivateMethods;
+use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenTraits;
+use NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Classes;
+use PHP_CodeSniffer\Standards\Generic\Sniffs\Commenting\TodoSniff;
+use PHP_CodeSniffer\Standards\Generic\Sniffs\Formatting\SpaceAfterNotSniff;
+use PhpCsFixer\Fixer\CastNotation\CastSpacesFixer;
+use PhpCsFixer\Fixer\CastNotation\ModernizeTypesCastingFixer;
+use PhpCsFixer\Fixer\ClassNotation\OrderedClassElementsFixer;
+use PhpCsFixer\Fixer\FunctionNotation\VoidReturnFixer;
+use PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer;
+use SlevomatCodingStandard\Sniffs\Classes\ModernClassNameReferenceSniff;
+use SlevomatCodingStandard\Sniffs\Commenting\UselessFunctionDocCommentSniff;
+use SlevomatCodingStandard\Sniffs\Files\LineLengthSniff;
+use SlevomatCodingStandard\Sniffs\Functions\FunctionLengthSniff;
+use SlevomatCodingStandard\Sniffs\Functions\UnusedParameterSniff;
+use SlevomatCodingStandard\Sniffs\Namespaces\AlphabeticallySortedUsesSniff;
+use SlevomatCodingStandard\Sniffs\TypeHints\DeclareStrictTypesSniff;
+use SlevomatCodingStandard\Sniffs\TypeHints\DisallowMixedTypeHintSniff;
+use SlevomatCodingStandard\Sniffs\TypeHints\ParameterTypeHintSniff;
+use SlevomatCodingStandard\Sniffs\TypeHints\PropertyTypeHintSniff;
+use SlevomatCodingStandard\Sniffs\TypeHints\ReturnTypeHintSniff;
+
 return [
 
     /*
@@ -54,62 +80,62 @@ return [
     ],
 
     'add' => [
-        \NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Classes::class => [
-            \NunoMaduro\PhpInsights\Domain\Insights\ForbiddenFinalClasses::class,
-            \PhpCsFixer\Fixer\CastNotation\ModernizeTypesCastingFixer::class, // intval() -> (int)
+        Classes::class => [
+            ForbiddenFinalClasses::class,
+            ModernizeTypesCastingFixer::class, // intval() -> (int)
         ],
     ],
 
     'remove' => [
-        \SlevomatCodingStandard\Sniffs\Namespaces\AlphabeticallySortedUsesSniff::class,
-        \SlevomatCodingStandard\Sniffs\TypeHints\DeclareStrictTypesSniff::class,
-        \SlevomatCodingStandard\Sniffs\TypeHints\DisallowMixedTypeHintSniff::class,
-        \NunoMaduro\PhpInsights\Domain\Insights\ForbiddenDefineFunctions::class,
-        \NunoMaduro\PhpInsights\Domain\Insights\ForbiddenNormalClasses::class,
-        \NunoMaduro\PhpInsights\Domain\Insights\ForbiddenTraits::class,
-        \SlevomatCodingStandard\Sniffs\TypeHints\ParameterTypeHintSniff::class,
-        \SlevomatCodingStandard\Sniffs\TypeHints\PropertyTypeHintSniff::class,
-        \SlevomatCodingStandard\Sniffs\Commenting\UselessFunctionDocCommentSniff::class,
-        \SlevomatCodingStandard\Sniffs\Classes\ModernClassNameReferenceSniff::class,
-        \PhpCsFixer\Fixer\ClassNotation\OrderedClassElementsFixer::class,
+        AlphabeticallySortedUsesSniff::class,
+        DeclareStrictTypesSniff::class,
+        DisallowMixedTypeHintSniff::class,
+        ForbiddenDefineFunctions::class,
+        ForbiddenNormalClasses::class,
+        ForbiddenTraits::class,
+        ParameterTypeHintSniff::class,
+        PropertyTypeHintSniff::class,
+        UselessFunctionDocCommentSniff::class,
+        ModernClassNameReferenceSniff::class,
+        OrderedClassElementsFixer::class,
     ],
 
     'config' => [
-        \PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer::class => [
+        BinaryOperatorSpacesFixer::class => [
             'operators' => [
                 '=>' => 'align',
                 '===' => 'align_single_space_minimal',
             ],
         ],
-        \SlevomatCodingStandard\Sniffs\Files\LineLengthSniff::class => [
+        LineLengthSniff::class => [
             'lineLimit' => 120,
             'absoluteLineLimit' => 120,
             'ignoreComments' => false,
         ],
-        \SlevomatCodingStandard\Sniffs\Functions\FunctionLengthSniff::class => [
+        FunctionLengthSniff::class => [
             'maxLinesLength' => 30,
             'exclude' => [],
         ],
-        \SlevomatCodingStandard\Sniffs\TypeHints\ReturnTypeHintSniff::class => [
+        ReturnTypeHintSniff::class => [
             'exclude' => [],
         ],
-        \PhpCsFixer\Fixer\FunctionNotation\VoidReturnFixer::class => [],
-        \NunoMaduro\PhpInsights\Domain\Insights\CyclomaticComplexityIsHigh::class => [
+        VoidReturnFixer::class => [],
+        CyclomaticComplexityIsHigh::class => [
             'maxComplexity' => 14,
             'exclude' => [],
         ],
-        \SlevomatCodingStandard\Sniffs\Functions\UnusedParameterSniff::class => [
+        UnusedParameterSniff::class => [
             'exclude' => [],
         ],
-        \PHP_CodeSniffer\Standards\Generic\Sniffs\Commenting\TodoSniff::class => [
+        TodoSniff::class => [
             'exclude' => [
             ],
         ],
-        \NunoMaduro\PhpInsights\Domain\Insights\ForbiddenPrivateMethods::class => [
+        ForbiddenPrivateMethods::class => [
             'title' => 'The usage of private methods is not idiomatic in Laravel.',
         ],
-        \PhpCsFixer\Fixer\CastNotation\CastSpacesFixer::class => ['space' => 'none'],
-        \PHP_CodeSniffer\Standards\Generic\Sniffs\Formatting\SpaceAfterNotSniff::class => ['spacing' => 0],
+        CastSpacesFixer::class => ['space' => 'none'],
+        SpaceAfterNotSniff::class => ['spacing' => 0],
     ],
 
     /*

@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeSeederCommand extends Command
 {
-    protected string $signature = 'make:seeder {name : The seeder name}';
+    protected ?string $signature = 'make:seeder {name : The seeder name}';
 
-    protected string $description = 'Create a new seeder class';
+    protected ?string $description = 'Create a new seeder class';
 
     public function handle(): int
     {

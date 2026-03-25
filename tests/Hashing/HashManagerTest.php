@@ -61,7 +61,7 @@ it('provides hash information', function () {
 
 it('throws exception for unknown driver', function () {
     expect(fn () => $this->hashManager->driver('unknown'))
-        ->toThrow(\InvalidArgumentException::class);
+        ->toThrow(InvalidArgumentException::class);
 });
 
 it('allows extending with custom hashers', function () {

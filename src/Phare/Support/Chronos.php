@@ -2,6 +2,9 @@
 
 namespace Phare\Support;
 
+use Phare\Collections\Str;
+use Spatie\PestPluginTestTime\TestTime;
+
 if (!class_exists('\Chronos\Chronos')) {
     throw new \RuntimeException('Please install chronos-ext.');
 }
@@ -84,7 +87,7 @@ class Chronos extends \Chronos\Chronos
         ) {
             if ($interval->$key > 0) {
                 $readable[] = $interval->$key . ($interval->$key > 1 ?
-                        \Phare\Collections\Str::pluralize($translation[$unit]) : $translation[$unit]);
+                        Str::pluralize($translation[$unit]) : $translation[$unit]);
             }
 
             if (count($readable) > 1) {
@@ -104,6 +107,6 @@ class Chronos extends \Chronos\Chronos
 
         $dateTime = $dateTime->format('Y-m-d H:i:s');
 
-        return (new \Spatie\PestPluginTestTime\TestTime())->freeze($dateTime);
+        return (new TestTime())->freeze($dateTime);
     }
 }

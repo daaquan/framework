@@ -1,7 +1,9 @@
 <?php
 
 use Phare\Notifications\Channels\ChannelManager;
+use Phare\Notifications\Channels\MailChannel;
 use Phare\Notifications\Messages\MailMessage;
+use Phare\Notifications\Messages\SmsMessage;
 use Phare\Notifications\Notifiable;
 use Phare\Notifications\Notification;
 use Phare\Notifications\NotificationManager;
@@ -65,9 +67,9 @@ class MultiChannelNotification extends Notification
         return ['type' => 'multi_channel'];
     }
 
-    public function toSms(mixed $notifiable): \Phare\Notifications\Messages\SmsMessage
+    public function toSms(mixed $notifiable): SmsMessage
     {
-        return new \Phare\Notifications\Messages\SmsMessage('Multi channel SMS');
+        return new SmsMessage('Multi channel SMS');
     }
 }
 
@@ -80,7 +82,7 @@ class FailingNotification extends Notification
 
     public function toMail(mixed $notifiable): MailMessage
     {
-        throw new \Exception('Notification failed');
+        throw new Exception('Notification failed');
     }
 }
 
@@ -165,7 +167,7 @@ test('notification manager handles failing notifications', function () {
 
     expect(function () {
         $this->manager->send($this->user, $notification);
-    })->toThrow(\Exception::class, 'Notification failed');
+    })->toThrow(Exception::class, 'Notification failed');
 });
 
 test('notification manager can clear sent notifications', function () {
@@ -182,7 +184,7 @@ test('notification manager can get channel manager', function () {
 
 test('notification manager can access channels', function () {
     $mailChannel = $this->manager->channel('mail');
-    expect($mailChannel)->toBeInstanceOf(\Phare\Notifications\Channels\MailChannel::class);
+    expect($mailChannel)->toBeInstanceOf(MailChannel::class);
 });
 
 test('notification manager can get and set default driver', function () {
@@ -241,5 +243,5 @@ test('notification manager sent notification has timestamp', function () {
     $this->manager->send($this->user, $this->notification);
 
     $sent = $this->manager->getSentNotifications();
-    expect($sent[0]['sent_at'])->toBeInstanceOf(\DateTime::class);
+    expect($sent[0]['sent_at'])->toBeInstanceOf(DateTime::class);
 });

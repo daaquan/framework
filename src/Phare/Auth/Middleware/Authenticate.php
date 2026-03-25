@@ -7,31 +7,31 @@ use Phalcon\Http\ResponseInterface;
 use Phare\Contracts\Foundation\Application;
 use Phare\Contracts\Http\MiddlewareContract;
 use Phare\Foundation\Http\Concerns\BeforeMiddleware;
+use Phare\Foundation\Http\ResponseStatusCode;
 use Phare\Foundation\Micro;
-use Phare\Http\Response;
 use Phare\Support\Facades\Auth;
 
-/**
- * Authentication middleware
- */
 class Authenticate extends MiddlewareContract implements BeforeMiddleware
 {
     public function __construct(private Application $app) {}
 
-    public function handle(RequestInterface $request, ResponseInterface $response)
+    public function handle(RequestInterface $request, \Closure $next): ResponseInterface
     {
         if (Auth::check()) {
-            return true;
+            return $next($request);
         }
 
         $this->app->stop();
 
-        $response->setStatusCode(Response::STATUS_UNAUTHORIZED, 'Unauthorized');
+        $response = $next($request);
+        $response->setStatusCode(ResponseStatusCode::BAD_UNAUTHORIZED->value, ResponseStatusCode::BAD_UNAUTHORIZED->message());
 
         if ($this->app instanceof Micro) {
             $response->send();
         } else {
             $response->redirect(route('login'));
         }
+
+        return $response;
     }
 }

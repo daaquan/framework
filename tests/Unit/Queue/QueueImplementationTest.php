@@ -10,7 +10,7 @@ class QueueImplTestJob extends Job
 {
     public bool $executed = false;
 
-    public ?\Exception $failedException = null;
+    public ?Exception $failedException = null;
 
     public function __construct(public string $data = 'test data', public bool $shouldFail = false)
     {
@@ -20,13 +20,13 @@ class QueueImplTestJob extends Job
     public function handle(): void
     {
         if ($this->shouldFail) {
-            throw new \Exception('Job intentionally failed');
+            throw new Exception('Job intentionally failed');
         }
 
         $this->executed = true;
     }
 
-    public function failed(\Exception $exception): void
+    public function failed(Exception $exception): void
     {
         $this->failedException = $exception;
     }
@@ -50,10 +50,10 @@ describe('SyncQueue', function () {
 
         expect(function () {
             $this->queue->push($job);
-        })->toThrow(\Exception::class, 'Job intentionally failed');
+        })->toThrow(Exception::class, 'Job intentionally failed');
 
         expect($job->executed)->toBeFalse();
-        expect($job->failedException)->toBeInstanceOf(\Exception::class);
+        expect($job->failedException)->toBeInstanceOf(Exception::class);
     });
 
     test('sync queue pop returns null', function () {

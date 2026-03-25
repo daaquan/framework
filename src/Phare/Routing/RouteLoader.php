@@ -2,6 +2,7 @@
 
 namespace Phare\Routing;
 
+use Phalcon\Mvc\Router;
 use Phare\Foundation\AbstractApplication as Application;
 
 abstract class RouteLoader
@@ -14,7 +15,7 @@ abstract class RouteLoader
 
     protected function __construct(protected Application $app, protected array $routePaths = [])
     {
-        $app->singleton('router', fn () => new \Phalcon\Mvc\Router(false));
+        $app->singleton('router', fn () => new Router(false));
     }
 
     public static function create(Application $app): RouteLoader

@@ -2,7 +2,9 @@
 
 namespace Phare\Contracts\Http;
 
-interface Request extends \Phalcon\Http\RequestInterface
+use Phalcon\Http\RequestInterface;
+
+interface Request extends RequestInterface
 {
     public function all();
 

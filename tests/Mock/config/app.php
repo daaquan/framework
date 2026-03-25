@@ -1,5 +1,26 @@
 <?php
 
+use Phare\Providers\AuthServiceProvider;
+use Phare\Providers\ChronosProvider;
+use Phare\Providers\DatabaseProvider;
+use Phare\Providers\DispatcherProvider;
+use Phare\Providers\EncrypterProvider;
+use Phare\Providers\ErrorHandlerProvider;
+use Phare\Providers\LogServiceProvider;
+use Phare\Providers\ModelProvider;
+use Phare\Providers\RequestProvider;
+use Phare\Providers\ResponseProvider;
+use Phare\Providers\RouteServiceProvider;
+use Phare\Providers\SessionProvider;
+use Phare\Providers\SqidsProvider;
+use Phare\Support\Facades\Application;
+use Phare\Support\Facades\Auth;
+use Phare\Support\Facades\DB;
+use Phare\Support\Facades\Log;
+use Phare\Support\Facades\Request;
+use Phare\Support\Facades\Response;
+use Phare\Support\Facades\Security;
+
 return [
 
     /*
@@ -150,28 +171,28 @@ return [
     */
 
     'providers' => [
-        \Phare\Providers\LogServiceProvider::class,
-        \Phare\Providers\ErrorHandlerProvider::class,
-        \Phare\Providers\EncrypterProvider::class,
-        \Phare\Providers\DispatcherProvider::class,
-        \Phare\Providers\RouteServiceProvider::class,
-        \Phare\Providers\RequestProvider::class,
-        \Phare\Providers\ResponseProvider::class,
-        \Phare\Providers\SessionProvider::class,
-        \Phare\Providers\AuthServiceProvider::class,
-        \Phare\Providers\ModelProvider::class,
-        \Phare\Providers\DatabaseProvider::class,
-        \Phare\Providers\ChronosProvider::class,
-        \Phare\Providers\SqidsProvider::class,
+        LogServiceProvider::class,
+        ErrorHandlerProvider::class,
+        EncrypterProvider::class,
+        DispatcherProvider::class,
+        RouteServiceProvider::class,
+        RequestProvider::class,
+        ResponseProvider::class,
+        SessionProvider::class,
+        AuthServiceProvider::class,
+        ModelProvider::class,
+        DatabaseProvider::class,
+        ChronosProvider::class,
+        SqidsProvider::class,
     ],
 
     'aliases' => [
-        'App' => \Phare\Support\Facades\Application::class,
-        'DB' => \Phare\Support\Facades\DB::class,
-        'Log' => \Phare\Support\Facades\Log::class,
-        'Auth' => \Phare\Support\Facades\Auth::class,
-        'Security' => \Phare\Support\Facades\Security::class,
-        'Request' => \Phare\Support\Facades\Request::class,
-        'Response' => \Phare\Support\Facades\Response::class,
+        'App' => Application::class,
+        'DB' => DB::class,
+        'Log' => Log::class,
+        'Auth' => Auth::class,
+        'Security' => Security::class,
+        'Request' => Request::class,
+        'Response' => Response::class,
     ],
 ];

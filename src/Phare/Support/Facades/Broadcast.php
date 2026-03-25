@@ -2,6 +2,7 @@
 
 namespace Phare\Support\Facades;
 
+use Phare\Broadcasting\BroadcastManager;
 use Phare\Support\Facade;
 
 /**
@@ -15,7 +16,7 @@ use Phare\Support\Facade;
  * @method static \Phare\Broadcasting\BroadcastManager extend(string $driver, callable $callback)
  * @method static void purge(string $name = null)
  *
- * @see \Phare\Broadcasting\BroadcastManager
+ * @see BroadcastManager
  */
 class Broadcast extends Facade
 {

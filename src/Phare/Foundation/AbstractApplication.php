@@ -10,6 +10,8 @@ use Phalcon\Events\Manager;
 use Phalcon\Mvc\Micro;
 use Phare\Container\Container;
 use Phare\Contracts\Foundation\Application as ApplicationContract;
+use Phare\Foundation\Events\ApplicationBooted;
+use Phare\Foundation\Events\ApplicationBooting;
 
 /**
  * This abstract class serves as the foundation for all applications built on the framework.
@@ -432,8 +434,8 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         // Fire event if event dispatcher is available
         if ($this->bound('events')) {
             $eventClass = match ($event) {
-                'booting' => \Phare\Foundation\Events\ApplicationBooting::class,
-                'booted' => \Phare\Foundation\Events\ApplicationBooted::class,
+                'booting' => ApplicationBooting::class,
+                'booted' => ApplicationBooted::class,
                 default => null,
             };
 

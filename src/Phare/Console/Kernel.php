@@ -86,7 +86,7 @@ class Kernel implements ConsoleKernel
     /**
      * Get the Artisan application instance.
      *
-     * @return \Phare\Console\Application
+     * @return Artisan
      */
     protected function getArtisan()
     {

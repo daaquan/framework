@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeRequestCommand extends Command
 {
-    protected string $signature = 'make:request {name : The name of the form request}';
+    protected ?string $signature = 'make:request {name : The name of the form request}';
 
-    protected string $description = 'Create a new form request class';
+    protected ?string $description = 'Create a new form request class';
 
     public function handle(): int
     {

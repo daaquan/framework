@@ -1,16 +1,26 @@
 <?php
 
+use Phalcon\Config\Config;
+use Phalcon\Http\Request;
+use Phalcon\Http\Response;
+use Phalcon\Mvc\Micro;
+use Phalcon\Mvc\Router;
+use Phare\Contracts\Foundation\Container;
+use Phare\Foundation\AbstractApplication;
+use Phare\Foundation\Bootstrap\HandleExceptions;
+use Phare\Log\LogManager;
+
 // We're using a mock here because AbstractApplication is an abstract class.
 // You'll need to create a concrete implementation for testing purposes.
 
-class MockApplication extends \Phare\Foundation\AbstractApplication
+class MockApplication extends AbstractApplication
 {
     protected function createApplication()
     {
-        $this->singleton('config', \Phalcon\Config\Config::class);
+        $this->singleton('config', Config::class);
 
         // Return the actual application instance you want to test, e.g., Micro or other.
-        return (new Phalcon\Mvc\Micro())
+        return (new Micro())
             ->notFound(function () {
                 return 'Not found';
             });
@@ -19,10 +29,10 @@ class MockApplication extends \Phare\Foundation\AbstractApplication
     public function handle($uri)
     {
         $this->setDI($this->app->getDI());
-        $this->singleton('request', Phalcon\Http\Request::class);
-        $this->singleton('response', Phalcon\Http\Response::class);
+        $this->singleton('request', Request::class);
+        $this->singleton('response', Response::class);
         $this->singleton('router', function () {
-            return new Phalcon\Mvc\Router(false);
+            return new Router(false);
         });
 
         return $this->app->handle($uri);
@@ -36,8 +46,8 @@ class MockApplication extends \Phare\Foundation\AbstractApplication
 
 it('can be instantiated', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
-    expect($app)->toBeInstanceOf(\Phare\Foundation\AbstractApplication::class);
-    expect($app)->toBeInstanceOf(\Phare\Contracts\Foundation\Container::class);
+    expect($app)->toBeInstanceOf(AbstractApplication::class);
+    expect($app)->toBeInstanceOf(Container::class);
 });
 
 it('has a version', function () {
@@ -91,7 +101,7 @@ it('registers configured providers', function () {
 
     // Assuming you have a ServiceProvider that binds a service named 'exampleService'
     $service = $app->make('log');
-    expect($service)->toBeInstanceOf(\Phare\Log\LogManager::class);
+    expect($service)->toBeInstanceOf(LogManager::class);
     // Replace ExpectedServiceProviderClass with the actual class you expect
 });
 
@@ -113,7 +123,7 @@ it('bootstrap the application with given bootstrappers', function () {
 
     // Mock bootstrapper classes
     $bootstrappers = [
-        \Phare\Foundation\Bootstrap\HandleExceptions::class,
+        HandleExceptions::class,
     ];
 
     $app->bootstrapWith($bootstrappers);
@@ -130,7 +140,7 @@ it('determines if the application has been bootstrapped', function () {
     expect($app->hasBeenBootstrapped())->toBe(false);
 
     // Perform bootstrapping then check again
-    $app->bootstrapWith([\Phare\Foundation\Bootstrap\HandleExceptions::class]);
+    $app->bootstrapWith([HandleExceptions::class]);
     expect($app->hasBeenBootstrapped())->toBe(true);
 });
 
