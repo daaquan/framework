@@ -6,8 +6,15 @@ namespace Phare\Auth;
 
 use Phalcon\Config\ConfigInterface;
 use Phalcon\Mvc\ModelInterface as Model;
+use Phare\Auth\Events\Attempting;
+use Phare\Auth\Events\Authenticated;
+use Phare\Auth\Events\Failed;
+use Phare\Auth\Events\Login;
+use Phare\Auth\Events\Logout;
+use Phare\Auth\Events\Validated;
 use Phare\Collections\Arr;
 use Phare\Contracts\Auth\Authenticatable as User;
+use Phare\Events\Contracts\Dispatcher as EventsDispatcher;
 use Phare\Contracts\Session\Session;
 
 class Manager
@@ -21,7 +28,13 @@ class Manager
 
     protected string|User $model;
 
-    public function __construct(private Session $session, private ConfigInterface $config) {}
+    protected bool $authEventDispatched = false;
+
+    public function __construct(
+        private Session $session,
+        private ConfigInterface $config,
+        private ?EventsDispatcher $events = null
+    ) {}
 
     public function user(): ?User
     {
@@ -37,6 +50,11 @@ class Manager
 
         if ($id !== null) {
             $this->user = $this->retrieveUserByIdentifier($id);
+
+            if ($this->user !== null && !$this->authEventDispatched) {
+                $this->dispatchEvent(new Authenticated($this->user));
+                $this->authEventDispatched = true;
+            }
         }
 
         return $this->user;
@@ -57,11 +75,17 @@ class Manager
      */
     public function attempt(array $credentials = []): bool
     {
+        $this->dispatchEvent(new Attempting($credentials));
+
         $user = $this->retrieveUserByCredentials($credentials);
 
         if ($user) {
+            $this->dispatchEvent(new Validated($user, $credentials));
+
             return $this->login($user);
         }
+
+        $this->dispatchEvent(new Failed($user, $credentials));
 
         return false;
     }
@@ -79,10 +103,15 @@ class Manager
      */
     public function logout(): void
     {
+        $user = $this->user();
+
         $this->user = null;
         $this->loggedOut = true;
+        $this->authEventDispatched = false;
 
         $this->session->destroy();
+
+        $this->dispatchEvent(new Logout($user));
     }
 
     /**
@@ -106,6 +135,9 @@ class Manager
 
         $this->user = $user;
         $this->loggedOut = false;
+        $this->authEventDispatched = true;
+
+        $this->dispatchEvent(new Login($user));
 
         return true;
     }
@@ -120,6 +152,31 @@ class Manager
         $this->login($user);
 
         return $user;
+    }
+
+    public function id(): int|string|null
+    {
+        if ($this->loggedOut) {
+            return null;
+        }
+
+        return $this->user()?->getAuthIdentifier();
+    }
+
+    public function validate(array $credentials = []): bool
+    {
+        $this->dispatchEvent(new Attempting($credentials));
+        $user = $this->retrieveUserByCredentials($credentials);
+
+        if ($user !== null) {
+            $this->dispatchEvent(new Validated($user, $credentials));
+
+            return true;
+        }
+
+        $this->dispatchEvent(new Failed($user, $credentials));
+
+        return false;
     }
 
     /**
@@ -186,5 +243,10 @@ class Manager
     private function modelClass(): string|User
     {
         return $this->model = $this->config->model;
+    }
+
+    protected function dispatchEvent(object $event): void
+    {
+        $this->events?->dispatch($event);
     }
 }

@@ -262,3 +262,39 @@ test('it defers should dispatch after commit events until transaction commit', f
 
     expect($called)->toBe(1);
 });
+
+test('it can defer all events within callback', function () {
+    $captured = [];
+
+    $this->dispatcher->listen('sample.deferred', function (string $value) use (&$captured) {
+        $captured[] = $value;
+    });
+
+    $this->dispatcher->defer(function () use (&$captured) {
+        $this->dispatcher->dispatch('sample.deferred', ['first']);
+        expect($captured)->toBe([]);
+        $this->dispatcher->dispatch('sample.deferred', ['second']);
+    });
+
+    expect($captured)->toBe(['first', 'second']);
+});
+
+test('it can defer only selected events', function () {
+    $captured = [];
+
+    $this->dispatcher->listen('sample.delayed', function (string $value) use (&$captured) {
+        $captured[] = "delayed:{$value}";
+    });
+
+    $this->dispatcher->listen('sample.instant', function (string $value) use (&$captured) {
+        $captured[] = "instant:{$value}";
+    });
+
+    $this->dispatcher->defer(function () use (&$captured) {
+        $this->dispatcher->dispatch('sample.instant', ['a']);
+        $this->dispatcher->dispatch('sample.delayed', ['b']);
+        expect($captured)->toBe(['instant:a']);
+    }, ['sample.delayed']);
+
+    expect($captured)->toBe(['instant:a', 'delayed:b']);
+});

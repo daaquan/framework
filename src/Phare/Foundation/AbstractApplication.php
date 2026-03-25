@@ -33,9 +33,36 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     protected bool $hasBeenBootstrapped = false;
 
     /**
+     * Indicates if the application has completed bootstrapping.
+     */
+    protected bool $booted = false;
+
+    /**
      * All the loaded configuration files.
      */
     protected array $loadedConfigurations = [];
+
+    /**
+     * Registered callbacks to run while terminating the application.
+     *
+     * @var array<int, \Closure>
+     */
+    protected array $terminatingCallbacks = [];
+
+    /**
+     * The custom environment path for .env files.
+     */
+    protected ?string $environmentPath = null;
+
+    /**
+     * The environment file name.
+     */
+    protected string $environmentFile = '.env';
+
+    /**
+     * Current environment resolver.
+     */
+    protected ?\Closure $environmentResolver = null;
 
     /**
      * The closure to be executed when a route is not found.
@@ -111,13 +138,23 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function environment(...$patterns)
     {
-        $env = getenv('APP_ENV') ?: 'production';
+        $env = $this->resolveEnvironment();
 
         if (count($patterns) === 0) {
             return $env;
         }
 
         return in_array($env, $patterns, true);
+    }
+
+    /**
+     * Set the environment resolver callback.
+     */
+    public function detectEnvironment(\Closure $callback): string
+    {
+        $this->environmentResolver = $callback;
+
+        return $this->resolveEnvironment();
     }
 
     /**
@@ -185,6 +222,22 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     public function configurationIsCached(): bool
     {
         return file_exists($this->getCachedConfigPath());
+    }
+
+    /**
+     * Get the path to the events cache file.
+     */
+    public function getCachedEventsPath(): string
+    {
+        return $this->bootstrapPath('cache/events.php');
+    }
+
+    /**
+     * Determine if the events metadata has been cached.
+     */
+    public function eventsAreCached(): bool
+    {
+        return file_exists($this->getCachedEventsPath());
     }
 
     public function loadConfiguration(): void
@@ -279,6 +332,10 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function bootstrapWith(array $bootstrappers)
     {
+        if ($this->booted) {
+            return;
+        }
+
         $this->fireAppCallbacks('booting');
 
         $this->hasBeenBootstrapped = true;
@@ -290,6 +347,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         }
 
         $this->fireAppCallbacks('booted');
+        $this->booted = true;
     }
 
     /**
@@ -357,6 +415,14 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     }
 
     /**
+     * Determine if the application has fully booted.
+     */
+    public function isBooted(): bool
+    {
+        return $this->booted;
+    }
+
+    /**
      * Get the base path for the app base.
      */
     public function basePath(string $path = ''): string
@@ -372,6 +438,50 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         }
 
         return $this->basePath($path);
+    }
+
+    /**
+     * Get the path to the environment file directory.
+     */
+    public function environmentPath(): string
+    {
+        return $this->environmentPath ?? $this->basePath();
+    }
+
+    /**
+     * Set the directory containing environment files.
+     */
+    public function useEnvironmentPath(string $path): static
+    {
+        $this->environmentPath = rtrim($path, '/');
+
+        return $this;
+    }
+
+    /**
+     * Set the environment file name.
+     */
+    public function loadEnvironmentFrom(string $file): static
+    {
+        $this->environmentFile = $file;
+
+        return $this;
+    }
+
+    /**
+     * Get the environment file name.
+     */
+    public function environmentFile(): string
+    {
+        return $this->environmentFile;
+    }
+
+    /**
+     * Get the fully-qualified environment file path.
+     */
+    public function environmentFilePath(): string
+    {
+        return $this->environmentPath() . '/' . $this->environmentFile();
     }
 
     /**
@@ -501,6 +611,24 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     }
 
     /**
+     * Register a terminating callback.
+     */
+    public function terminating(\Closure $callback): void
+    {
+        $this->terminatingCallbacks[] = $callback;
+    }
+
+    /**
+     * Run all registered terminating callbacks.
+     */
+    public function callTerminatingCallbacks(): void
+    {
+        foreach ($this->terminatingCallbacks as $callback) {
+            $callback($this);
+        }
+    }
+
+    /**
      * Fire the registered callbacks for the given event.
      */
     protected function fireAppCallbacks(string $event): void
@@ -523,5 +651,14 @@ abstract class AbstractApplication extends Container implements ApplicationContr
                 $this['events']->dispatch(new $eventClass($this));
             }
         }
+    }
+
+    protected function resolveEnvironment(): string
+    {
+        if ($this->environmentResolver instanceof \Closure) {
+            return (string) ($this->environmentResolver)();
+        }
+
+        return getenv('APP_ENV') ?: 'production';
     }
 }
