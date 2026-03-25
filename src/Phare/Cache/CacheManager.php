@@ -42,7 +42,7 @@ class CacheManager
             'redis' => $this->makeRedisAdapter($factory, $config),
             'apc', 'apcu' => $this->makeApcuAdapter($factory, $config),
             'array' => $this->makeArrayAdapter($config),
-            'null' => $this->makeArrayAdapter($config),
+            'null' => $this->makeNullAdapter(),
             default => throw new InvalidArgumentException("Invalid cache driver: {$driver}"),
         };
     }
@@ -80,6 +80,11 @@ class CacheManager
     protected function makeArrayAdapter(array $config): ArrayAdapter
     {
         return new ArrayAdapter($config['prefix'] ?? '');
+    }
+
+    protected function makeNullAdapter(): NullAdapter
+    {
+        return new NullAdapter();
     }
 
     public function get(string $key, mixed $default = null): mixed
