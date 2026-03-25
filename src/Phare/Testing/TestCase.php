@@ -29,10 +29,8 @@ abstract class TestCase extends BaseTestCase
 
     protected function tearDown(): void
     {
-        // Restore error/exception handlers registered by HandleExceptions bootstrapper
-        restore_error_handler();
-        restore_exception_handler();
-
+        // In unit tests, HandleExceptions bootstrapper does not register handlers,
+        // so avoid restoring handlers here to prevent popping PHPUnit/Pest handlers.
         Di::reset();
 
         parent::tearDown();
