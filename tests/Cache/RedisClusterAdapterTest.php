@@ -4,56 +4,24 @@ use Phalcon\Storage\Exception as StorageException;
 use Phalcon\Storage\SerializerFactory;
 use Phare\Storage\Adapter\RedisCluster;
 
-beforeEach(function () {
-    $this->serializerFactory = Mockery::mock(SerializerFactory::class);
+test('getAdapter returns existing RedisCluster instance when already connected', function () {
+    $adapter = new RedisCluster(new SerializerFactory(), ['host' => '127.0.0.1', 'port' => '7000']);
+    $existing = (new ReflectionClass(\RedisCluster::class))->newInstanceWithoutConstructor();
 
-    $this->redisOptions = [
-        'host' => '127.0.0.1',
-        'port' => '7000',
-        'persistent' => false,
-    ];
+    $property = new ReflectionProperty(\Phalcon\Storage\Adapter\Redis::class, 'adapter');
+    $property->setValue($adapter, $existing);
 
-    // Mock the RedisCluster class and its methods
-    $this->redisClusterMock = Mockery::mock(\RedisCluster::class);
-    $this->redisClusterMock->shouldReceive('setOption')->andReturn(true);
-    $this->redisClusterMock->shouldReceive('connect')->andReturn(true);
+    expect($adapter->getAdapter())->toBe($existing);
 });
 
-test('getAdapter returns RedisCluster instance', function () {
-    // Requires a running RedisCluster at 127.0.0.1:7000 — skip in CI/unit test environments
-    $socket = @fsockopen('127.0.0.1', 7000, $errno, $errstr, 0.2);
-    if ($socket === false) {
-        $this->markTestSkipped('RedisCluster not available at 127.0.0.1:7000');
-    }
-    fclose($socket);
+test('getAdapter wraps connection failures in StorageException', function () {
+    $adapter = new RedisCluster(new SerializerFactory(), [
+        'seeds' => ['127.0.0.1:7000'],
+        'timeout' => 0.05,
+        'readTimeout' => 0.05,
+        'auth' => null,
+    ]);
 
-    // Pass the mocked SerializerFactory to the RedisCluster constructor
-    $redisClusterAdapter = new RedisCluster($this->serializerFactory, $this->redisOptions);
-    $redisCluster = $redisClusterAdapter->getAdapter();
-
-    // Assert that the getAdapter method returns an instance of RedisCluster
-    expect($redisCluster)->toBeInstanceOf(\RedisCluster::class);
-});
-
-test('getAdapter throws exception on connection failure', function () {
-    // This test requires RedisCluster extension with cluster support — skip in unit test environment
-    $socket = @fsockopen('127.0.0.1', 7000, $errno, $errstr, 0.2);
-    if ($socket === false) {
-        $this->markTestSkipped('RedisCluster not available at 127.0.0.1:7000');
-    }
-    fclose($socket);
-
-    // Simulate connection failure by throwing an exception when connect is called
-    $this->redisClusterMock->shouldReceive('connect')->andThrow(new RedisClusterException('Connection failed'));
-
-    $redisClusterAdapter = new RedisCluster($this->serializerFactory, $this->redisOptions + ['seeds' => []]);
-
-    $this->expectException(StorageException::class);
-
-    $redisClusterAdapter->getAdapter();
-});
-
-afterEach(function () {
-    // This will check that the shouldReceive expectations set in the test were met
-    Mockery::close();
+    expect(fn () => $adapter->getAdapter())
+        ->toThrow(StorageException::class, 'Failed to connect to the Redis cluster');
 });

@@ -26,7 +26,9 @@ class Sanctum
 
     public static function actingAs(mixed $user, array $abilities = ['*'], ?string $guard = null): mixed
     {
-        $token = new PersonalAccessToken();
+        $model = static::$personalAccessTokenModel;
+        $token = new $model();
+
         $token->forceFill([
             'tokenable_id' => $user->getKey(),
             'tokenable_type' => get_class($user),

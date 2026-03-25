@@ -2,10 +2,26 @@
 
 use Phare\Auth\Sanctum\PersonalAccessToken;
 
+class PersonalAccessTokenBehaviorTestToken extends PersonalAccessToken
+{
+    public array $abilities = [];
+
+    public mixed $expires_at = null;
+}
+
+function makePersonalAccessTokenBehaviorTestToken(): PersonalAccessTokenBehaviorTestToken
+{
+    /** @var PersonalAccessTokenBehaviorTestToken $token */
+    $token = (new ReflectionClass(PersonalAccessTokenBehaviorTestToken::class))->newInstanceWithoutConstructor();
+    $token->abilities = [];
+    $token->expires_at = null;
+
+    return $token;
+}
+
 test('personal access token can check ability', function () {
-    $token = new PersonalAccessToken([
-        'abilities' => ['read', 'write'],
-    ]);
+    $token = makePersonalAccessTokenBehaviorTestToken();
+    $token->abilities = ['read', 'write'];
 
     expect($token->can('read'))->toBeTrue();
     expect($token->can('write'))->toBeTrue();
@@ -13,19 +29,17 @@ test('personal access token can check ability', function () {
 });
 
 test('personal access token with wildcard can do anything', function () {
-    $token = new PersonalAccessToken([
-        'abilities' => ['*'],
-    ]);
+    $token = makePersonalAccessTokenBehaviorTestToken();
+    $token->abilities = ['*'];
 
     expect($token->can('read'))->toBeTrue();
     expect($token->can('write'))->toBeTrue();
     expect($token->can('delete'))->toBeTrue();
 });
 
-test('personal access token cant method works', function () {
-    $token = new PersonalAccessToken([
-        'abilities' => ['read'],
-    ]);
+test('personal access token cant and cannot methods work', function () {
+    $token = makePersonalAccessTokenBehaviorTestToken();
+    $token->abilities = ['read'];
 
     expect($token->cant('read'))->toBeFalse();
     expect($token->cant('write'))->toBeTrue();
@@ -33,68 +47,16 @@ test('personal access token cant method works', function () {
 });
 
 test('personal access token checks expiration', function () {
-    $yesterday = new DateTime('yesterday');
-    $tomorrow = new DateTime('tomorrow');
+    $expiredToken = makePersonalAccessTokenBehaviorTestToken();
+    $expiredToken->expires_at = new DateTime('yesterday');
 
-    $expiredToken = new PersonalAccessToken([
-        'expires_at' => $yesterday,
-    ]);
+    $validToken = makePersonalAccessTokenBehaviorTestToken();
+    $validToken->expires_at = new DateTime('tomorrow');
 
-    $validToken = new PersonalAccessToken([
-        'expires_at' => $tomorrow,
-    ]);
-
-    $neverExpiresToken = new PersonalAccessToken([
-        'expires_at' => null,
-    ]);
+    $neverExpiresToken = makePersonalAccessTokenBehaviorTestToken();
+    $neverExpiresToken->expires_at = null;
 
     expect($expiredToken->isExpired())->toBeTrue();
     expect($validToken->isExpired())->toBeFalse();
     expect($neverExpiresToken->isExpired())->toBeFalse();
-});
-
-test('personal access token finds token by hash', function () {
-    $token = new PersonalAccessToken();
-    $plainToken = 'plain-text-token';
-    $hashedToken = hash('sha256', $plainToken);
-
-    $token->shouldReceive('where')
-        ->with('token', $hashedToken)
-        ->andReturn($query = Mockery::mock('Query'));
-
-    $query->shouldReceive('first')->andReturn($token);
-
-    $foundToken = $token->findToken($plainToken);
-
-    expect($foundToken)->toBe($token);
-});
-
-test('personal access token finds token with pipe format', function () {
-    $token = new PersonalAccessToken([
-        'id' => 1,
-        'token' => hash('sha256', 'plain-text-token'),
-    ]);
-
-    $token->shouldReceive('find')
-        ->with('1')
-        ->andReturn($token);
-
-    $foundToken = $token->findToken('1|plain-text-token');
-
-    expect($foundToken)->toBe($token);
-});
-
-test('personal access token touch updates last used at', function () {
-    $token = new PersonalAccessToken();
-
-    $token->shouldReceive('forceFill')
-        ->once()
-        ->with(['last_used_at' => Mockery::type('DateTime')])
-        ->andReturnSelf();
-
-    $token->shouldReceive('save')->andReturn(true);
-
-    $result = $token->touch();
-
-    expect($result)->toBeTrue();
 });

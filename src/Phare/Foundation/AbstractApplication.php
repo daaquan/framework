@@ -35,9 +35,36 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     protected bool $hasBeenBootstrapped = false;
 
     /**
+     * Indicates if the application has completed bootstrapping.
+     */
+    protected bool $booted = false;
+
+    /**
      * All the loaded configuration files.
      */
     protected array $loadedConfigurations = [];
+
+    /**
+     * Registered callbacks to run while terminating the application.
+     *
+     * @var array<int, \Closure>
+     */
+    protected array $terminatingCallbacks = [];
+
+    /**
+     * The custom environment path for .env files.
+     */
+    protected ?string $environmentPath = null;
+
+    /**
+     * The environment file name.
+     */
+    protected string $environmentFile = '.env';
+
+    /**
+     * Current environment resolver.
+     */
+    protected ?\Closure $environmentResolver = null;
 
     /**
      * The closure to be executed when a route is not found.
@@ -50,6 +77,20 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      * @var array<string, array>
      */
     protected array $appCallbacks = [];
+
+    /**
+     * Callbacks invoked before a specific bootstrapper runs.
+     *
+     * @var array<string, array<int, \Closure>>
+     */
+    protected array $beforeBootstrappingCallbacks = [];
+
+    /**
+     * Callbacks invoked after a specific bootstrapper runs.
+     *
+     * @var array<string, array<int, \Closure>>
+     */
+    protected array $afterBootstrappingCallbacks = [];
 
     /**
      * Create a new AbstractApplication instance.
@@ -99,13 +140,23 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function environment(...$patterns)
     {
-        $env = getenv('APP_ENV') ?: 'production';
+        $env = $this->resolveEnvironment();
 
         if (count($patterns) === 0) {
             return $env;
         }
 
         return in_array($env, $patterns, true);
+    }
+
+    /**
+     * Set the environment resolver callback.
+     */
+    public function detectEnvironment(\Closure $callback): string
+    {
+        $this->environmentResolver = $callback;
+
+        return $this->resolveEnvironment();
     }
 
     /**
@@ -125,7 +176,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         $path = $this->getConfigurationPath($name);
 
         if ($path) {
-            $config = $this['config'];
+            $config = $this->make('config');
             $config->set($name, require $path);
         }
     }
@@ -175,6 +226,22 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         return file_exists($this->getCachedConfigPath());
     }
 
+    /**
+     * Get the path to the events cache file.
+     */
+    public function getCachedEventsPath(): string
+    {
+        return $this->bootstrapPath('cache/events.php');
+    }
+
+    /**
+     * Determine if the events metadata has been cached.
+     */
+    public function eventsAreCached(): bool
+    {
+        return file_exists($this->getCachedEventsPath());
+    }
+
     public function loadConfiguration(): void
     {
         if (!$this->configurationIsCached()) {
@@ -182,8 +249,9 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         }
 
         $full = require $this->getCachedConfigPath();
+        unset($full['@timestamp']);
 
-        $this['config']->merge($full);
+        $this->make('config')->merge($full);
         foreach ($full as $name => $config) {
             $this->loadedConfigurations[$name] = true;
         }
@@ -214,7 +282,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function registerConfiguredAliases()
     {
-        $config = $this['config'];
+        $config = $this->make('config');
         $appAliases = $config->path('app.aliases', []);
         $appAliases = is_array($appAliases) ? $appAliases : $appAliases->toArray();
 
@@ -237,13 +305,24 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     public function registerConfiguredProviders()
     {
         /** @var Config $config */
-        $config = $this['config'];
+        $config = $this->make('config');
 
         $appProviders = $config->path('app.providers', []);
         $appProviders = is_array($appProviders) ? $appProviders : $appProviders->toArray();
 
         foreach ($appProviders as $providerClass) {
-            (new $providerClass())->register($this);
+            if (is_subclass_of($providerClass, \Phare\Support\ServiceProvider::class)) {
+                $provider = new $providerClass($this);
+                $provider->register();
+                $provider->boot();
+
+                continue;
+            }
+
+            $provider = new $providerClass();
+            if ($provider instanceof \Phalcon\Di\ServiceProviderInterface) {
+                $provider->register($this);
+            }
         }
     }
 
@@ -255,15 +334,76 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function bootstrapWith(array $bootstrappers)
     {
-        $this->fireAppCallbacks('booting');
-
-        foreach ($bootstrappers as $bootstrapper) {
-            $this->make($bootstrapper)->register($this);
+        if ($this->booted) {
+            return;
         }
+
+        $this->fireAppCallbacks('booting');
 
         $this->hasBeenBootstrapped = true;
 
+        foreach ($bootstrappers as $bootstrapper) {
+            $this->fireBootstrapperCallbacks($this->beforeBootstrappingCallbacks, $bootstrapper);
+            $this->bootstrapUsing($bootstrapper);
+            $this->fireBootstrapperCallbacks($this->afterBootstrappingCallbacks, $bootstrapper);
+        }
+
         $this->fireAppCallbacks('booted');
+        $this->booted = true;
+    }
+
+    /**
+     * Register a callback to run before a bootstrapper.
+     */
+    public function beforeBootstrapping(string $bootstrapper, \Closure $callback): void
+    {
+        $this->beforeBootstrappingCallbacks[$bootstrapper][] = $callback;
+    }
+
+    /**
+     * Register a callback to run after a bootstrapper.
+     */
+    public function afterBootstrapping(string $bootstrapper, \Closure $callback): void
+    {
+        $this->afterBootstrappingCallbacks[$bootstrapper][] = $callback;
+    }
+
+    /**
+     * Run a bootstrapper, preferring Laravel-style bootstrap() while
+     * preserving register() compatibility for existing Phare bootstrappers.
+     */
+    protected function bootstrapUsing(string $bootstrapper): void
+    {
+        $instance = $this->make($bootstrapper);
+
+        if (method_exists($instance, 'bootstrap')) {
+            $instance->bootstrap($this);
+
+            return;
+        }
+
+        if (method_exists($instance, 'register')) {
+            $instance->register($this);
+
+            return;
+        }
+
+        throw new \RuntimeException(sprintf(
+            'Bootstrapper [%s] must define bootstrap(Application) or register(Application).',
+            $bootstrapper
+        ));
+    }
+
+    /**
+     * Fire callbacks bound to a specific bootstrapper class.
+     *
+     * @param array<string, array<int, \Closure>> $callbacks
+     */
+    protected function fireBootstrapperCallbacks(array $callbacks, string $bootstrapper): void
+    {
+        foreach ($callbacks[$bootstrapper] ?? [] as $callback) {
+            $callback($this);
+        }
     }
 
     /**
@@ -274,6 +414,14 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     public function hasBeenBootstrapped()
     {
         return $this->hasBeenBootstrapped;
+    }
+
+    /**
+     * Determine if the application has fully booted.
+     */
+    public function isBooted(): bool
+    {
+        return $this->booted;
     }
 
     /**
@@ -292,6 +440,50 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         }
 
         return $this->basePath($path);
+    }
+
+    /**
+     * Get the path to the environment file directory.
+     */
+    public function environmentPath(): string
+    {
+        return $this->environmentPath ?? $this->basePath();
+    }
+
+    /**
+     * Set the directory containing environment files.
+     */
+    public function useEnvironmentPath(string $path): static
+    {
+        $this->environmentPath = rtrim($path, '/');
+
+        return $this;
+    }
+
+    /**
+     * Set the environment file name.
+     */
+    public function loadEnvironmentFrom(string $file): static
+    {
+        $this->environmentFile = $file;
+
+        return $this;
+    }
+
+    /**
+     * Get the environment file name.
+     */
+    public function environmentFile(): string
+    {
+        return $this->environmentFile;
+    }
+
+    /**
+     * Get the fully-qualified environment file path.
+     */
+    public function environmentFilePath(): string
+    {
+        return $this->environmentPath() . '/' . $this->environmentFile();
     }
 
     /**
@@ -421,6 +613,24 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     }
 
     /**
+     * Register a terminating callback.
+     */
+    public function terminating(\Closure $callback): void
+    {
+        $this->terminatingCallbacks[] = $callback;
+    }
+
+    /**
+     * Run all registered terminating callbacks.
+     */
+    public function callTerminatingCallbacks(): void
+    {
+        foreach ($this->terminatingCallbacks as $callback) {
+            $callback($this);
+        }
+    }
+
+    /**
      * Fire the registered callbacks for the given event.
      */
     protected function fireAppCallbacks(string $event): void
@@ -443,5 +653,14 @@ abstract class AbstractApplication extends Container implements ApplicationContr
                 $this['events']->dispatch(new $eventClass($this));
             }
         }
+    }
+
+    protected function resolveEnvironment(): string
+    {
+        if ($this->environmentResolver instanceof \Closure) {
+            return (string) ($this->environmentResolver)();
+        }
+
+        return getenv('APP_ENV') ?: 'production';
     }
 }

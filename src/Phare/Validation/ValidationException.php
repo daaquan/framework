@@ -47,14 +47,13 @@ class ValidationException extends \Exception
         $data = [];
         $rules = [];
 
-        foreach ($messages as $key => $msgs) {
+        foreach (array_keys($messages) as $key) {
             $rules[$key] = 'required';
         }
 
         $validator = new Validator($data, $rules);
         $validator->passes();
 
-        // Override errors with custom messages
         $bag = new MessageBag($messages);
 
         return new static(new class($bag) extends Validator

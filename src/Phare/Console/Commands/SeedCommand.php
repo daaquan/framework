@@ -12,7 +12,7 @@ class SeedCommand extends Command
 
     public function handle(): int
     {
-        if ($this->getApplication()->environment('production') && !$this->option('force')) {
+        if ($this->getFrameworkApplication()->environment('production') && !$this->option('force')) {
             $this->error('Seeding is not allowed in production environment. Use --force to override.');
 
             return 1;

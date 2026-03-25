@@ -7,10 +7,35 @@ use Phare\Support\ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
 {
+    /**
+     * The event listener mappings for the application.
+     *
+     * @var array<string, array<int, string|array|\Closure>>
+     */
+    protected array $listen = [];
+
+    /**
+     * The subscriber classes to register.
+     *
+     * @var array<int, string|object>
+     */
+    protected array $subscribe = [];
+
     public function register(): void
     {
-        $this->app->singleton('events', function ($app) {
-            return new Dispatcher($app);
+        $container = $this->app;
+
+        $this->app->singleton('events', function () use ($container) {
+            $dispatcher = new Dispatcher($container);
+            $dispatcher->setTransactionManagerResolver(function () use ($container) {
+                if (method_exists($container, 'bound') && $container->bound('dbManager')) {
+                    return $container->make('dbManager');
+                }
+
+                return null;
+            });
+
+            return $dispatcher;
         });
 
         $this->app->bind(DispatcherContract::class, function ($app) {
@@ -27,10 +52,10 @@ class EventServiceProvider extends ServiceProvider
 
     protected function registerEventListeners(): void
     {
-        $listeners = $this->listens();
+        $listeners = $this->getEvents();
 
         foreach ($listeners as $event => $eventListeners) {
-            foreach ($eventListeners as $listener) {
+            foreach (array_unique($eventListeners, SORT_REGULAR) as $listener) {
                 $this->app['events']->listen($event, $listener);
             }
         }
@@ -50,13 +75,39 @@ class EventServiceProvider extends ServiceProvider
      */
     protected function listens(): array
     {
-        return [];
+        return $this->listen;
     }
 
     /**
      * The subscriber classes to register.
      */
     protected function subscribe(): array
+    {
+        return $this->subscribe;
+    }
+
+    protected function getEvents(): array
+    {
+        if (method_exists($this->app, 'eventsAreCached')
+            && method_exists($this->app, 'getCachedEventsPath')
+            && $this->app->eventsAreCached()) {
+            $cache = require $this->app->getCachedEventsPath();
+
+            return $cache[static::class] ?? [];
+        }
+
+        return array_merge_recursive(
+            $this->discoveredEvents(),
+            $this->listens()
+        );
+    }
+
+    /**
+     * Get the discovered events and listeners.
+     *
+     * @return array<string, array<int, string|array|\Closure>>
+     */
+    protected function discoveredEvents(): array
     {
         return [];
     }

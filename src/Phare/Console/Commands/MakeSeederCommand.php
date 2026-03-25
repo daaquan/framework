@@ -16,7 +16,7 @@ class MakeSeederCommand extends Command
         $className = $this->getClassName($name);
         $fileName = "{$className}.php";
 
-        $directory = $this->getApplication()->databasePath('seeders');
+        $directory = $this->getFrameworkApplication()->databasePath('seeders');
         $path = $directory . '/' . $fileName;
 
         if (file_exists($path)) {

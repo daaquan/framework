@@ -86,7 +86,11 @@ class UploadedFile
         $destination = $directory . '/' . $name;
 
         if ($this->isValid()) {
-            if ($this->test || move_uploaded_file($this->path, $destination)) {
+            $moved = $this->test
+                ? $this->files->move($this->path, $destination)
+                : move_uploaded_file($this->path, $destination);
+
+            if ($moved) {
                 $this->path = $destination;
 
                 return $this;

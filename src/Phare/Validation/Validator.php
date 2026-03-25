@@ -71,7 +71,7 @@ class Validator
         $rules = is_string($rules) ? explode('|', $rules) : $rules;
         $value = $this->getValue($attribute);
 
-        if (in_array('nullable', $rules) && ($value === null || $value === '')) {
+        if (in_array('nullable', $rules, true) && ($value === null || $value === '')) {
             return;
         }
 
@@ -289,7 +289,7 @@ class Validator
 
     protected function getSize(string $attribute, $value): int|float
     {
-        if (is_numeric($value)) {
+        if (is_int($value) || is_float($value)) {
             return (float)$value;
         }
 
@@ -297,7 +297,11 @@ class Validator
             return count($value);
         }
 
-        return mb_strlen($value);
+        if ($value === null) {
+            return 0;
+        }
+
+        return mb_strlen((string)$value);
     }
 
     public function addCustomRule(string $rule, \Closure $callback): void

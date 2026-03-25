@@ -67,11 +67,16 @@ class Xss
 
     public static function cleanAttributes(string $input, array $allowedAttributes): string
     {
+        if ($input === '') {
+            return '';
+        }
+
         try {
             $dom = new \DOMDocument();
-            libxml_use_internal_errors(true);
+            $previous = libxml_use_internal_errors(true);
             $dom->loadHTML($input, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
             libxml_clear_errors();
+            libxml_use_internal_errors($previous);
 
             $xpath = new \DOMXPath($dom);
             $elements = $xpath->query('//*[@*]');
@@ -89,7 +94,9 @@ class Xss
                 }
             }
 
-            return $dom->saveHTML();
+            $html = $dom->saveHTML();
+
+            return is_string($html) ? $html : '';
         } catch (\Exception $e) {
             // Fallback to regex-based attribute cleaning
             return preg_replace_callback('/<([^>]+)>/', function ($matches) use ($allowedAttributes) {

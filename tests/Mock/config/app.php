@@ -3,6 +3,7 @@
 use Phare\Providers\AuthServiceProvider;
 use Phare\Providers\ChronosProvider;
 use Phare\Providers\DatabaseProvider;
+use Phare\Events\EventServiceProvider;
 use Phare\Providers\DispatcherProvider;
 use Phare\Providers\EncrypterProvider;
 use Phare\Providers\ErrorHandlerProvider;
@@ -16,6 +17,7 @@ use Phare\Providers\SqidsProvider;
 use Phare\Support\Facades\Application;
 use Phare\Support\Facades\Auth;
 use Phare\Support\Facades\DB;
+use Phare\Support\Facades\Event;
 use Phare\Support\Facades\Log;
 use Phare\Support\Facades\Request;
 use Phare\Support\Facades\Response;
@@ -182,6 +184,7 @@ return [
         RouteServiceProvider::class,
         RequestProvider::class,
         ResponseProvider::class,
+        EventServiceProvider::class,
         SessionProvider::class,
         AuthServiceProvider::class,
         ModelProvider::class,
@@ -193,6 +196,7 @@ return [
     'aliases' => [
         'App' => Application::class,
         'DB' => DB::class,
+        'Event' => Event::class,
         'Log' => Log::class,
         'Auth' => Auth::class,
         'Security' => Security::class,
