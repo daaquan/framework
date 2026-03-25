@@ -5,9 +5,12 @@ namespace Phare\Events;
 use Phare\Contracts\Foundation\Container;
 use Phare\Events\Contracts\Dispatcher as DispatcherContract;
 use Phare\Events\Contracts\ShouldDispatchAfterCommit;
+use Phare\Support\Traits\ReflectsClosures;
 
 class Dispatcher implements DispatcherContract
 {
+    use ReflectsClosures;
+
     protected Container $app;
 
     protected array $listeners = [];
@@ -195,25 +198,30 @@ class Dispatcher implements DispatcherContract
 
     public function defer(callable $callback, ?array $events = null): mixed
     {
-        [$previousDeferring, $previousEventsToDefer] = [$this->deferringEvents, $this->eventsToDefer];
+        $previousDeferring = $this->deferringEvents;
+        $previousDeferredEvents = $this->deferredEvents;
+        $previousEventsToDefer = $this->eventsToDefer;
+
         $this->deferringEvents = true;
+        $this->deferredEvents = [];
         $this->eventsToDefer = $events;
 
         try {
             $result = $callback();
-        } finally {
-            $this->deferringEvents = $previousDeferring;
-            $this->eventsToDefer = $previousEventsToDefer;
-        }
 
-        if (!$previousDeferring) {
-            while ($deferredEvent = array_shift($this->deferredEvents)) {
+            $this->deferringEvents = false;
+
+            foreach ($this->deferredEvents as $deferredEvent) {
                 [$event, $payload, $halt] = $deferredEvent;
                 $this->dispatch($event, $payload, $halt);
             }
-        }
 
-        return $result;
+            return $result;
+        } finally {
+            $this->deferringEvents = $previousDeferring;
+            $this->deferredEvents = $previousDeferredEvents;
+            $this->eventsToDefer = $previousEventsToDefer;
+        }
     }
 
     public function subscribe(object|string $subscriber): void
@@ -283,20 +291,13 @@ class Dispatcher implements DispatcherContract
             return [get_class($event), [$event]];
         }
 
-        return [$event, is_array($payload) ? $payload : [$payload]];
+        return [$event, $this->wrapPayload($payload)];
     }
 
     protected function shouldDeferEvent(string $eventName): bool
     {
-        if (!$this->deferringEvents) {
-            return false;
-        }
-
-        if ($this->eventsToDefer === null) {
-            return true;
-        }
-
-        return in_array($eventName, $this->eventsToDefer, true);
+        return $this->deferringEvents
+            && ($this->eventsToDefer === null || in_array($eventName, $this->eventsToDefer, true));
     }
 
     protected function prepareListeners(string $eventName): array
@@ -417,51 +418,20 @@ class Dispatcher implements DispatcherContract
         return $events;
     }
 
-    /**
-     * Resolve event class names from the first typed Closure parameter.
-     *
-     * @return list<string>
-     */
-    protected function firstClosureParameterTypes(\Closure $closure): array
+    public function getRawListeners(): array
     {
-        $reflection = new \ReflectionFunction($closure);
-        $parameters = $reflection->getParameters();
-
-        if ($parameters === []) {
-            throw new \InvalidArgumentException('Unable to infer event type from listener Closure.');
-        }
-
-        $type = $parameters[0]->getType();
-
-        if ($type instanceof \ReflectionNamedType) {
-            return $this->resolveNamedType($type);
-        }
-
-        if ($type instanceof \ReflectionUnionType) {
-            $types = [];
-            foreach ($type->getTypes() as $namedType) {
-                $types = array_merge($types, $this->resolveNamedType($namedType));
-            }
-
-            if ($types !== []) {
-                return array_values(array_unique($types));
-            }
-        }
-
-        throw new \InvalidArgumentException('Unable to infer event type from listener Closure.');
+        return $this->listeners;
     }
 
     /**
-     * @return list<string>
+     * @return array<int, mixed>
      */
-    protected function resolveNamedType(\ReflectionNamedType $type): array
+    protected function wrapPayload(mixed $payload): array
     {
-        if ($type->isBuiltin()) {
+        if ($payload === null) {
             return [];
         }
 
-        $name = $type->getName();
-
-        return $name === '' ? [] : [$name];
+        return is_array($payload) ? $payload : [$payload];
     }
 }
