@@ -18,6 +18,7 @@ use Phare\Debug\DebugLogger;
 use Phare\Foundation\Micro;
 use Phare\Foundation\Web;
 use Phare\Http\Request;
+use Phare\Pipeline\Pipeline;
 use Phare\Routing\RouteLoader;
 
 abstract class Kernel implements HttpKernel
@@ -256,5 +257,21 @@ abstract class Kernel implements HttpKernel
     public function getApplication(): Application
     {
         return $this->app;
+    }
+
+    /**
+     * Send the given request through the middleware pipeline.
+     *
+     * This provides a Laravel-style Pipeline-based middleware execution
+     * alternative to Phalcon's native middleware registration.
+     *
+     * @param array<int, string|callable> $middleware
+     */
+    protected function sendThroughPipeline(RequestInterface $request, array $middleware, \Closure $then): mixed
+    {
+        return (new Pipeline($this->app))
+            ->send($request)
+            ->through($middleware)
+            ->then($then);
     }
 }
