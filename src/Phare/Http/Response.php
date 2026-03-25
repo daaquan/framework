@@ -2,6 +2,8 @@
 
 namespace Phare\Http;
 
+use Phalcon\Http\ResponseInterface;
+
 class Response extends \Phalcon\Http\Response implements \Phare\Contracts\Http\Response
 {
     public function json(mixed $data, int $status = 200, array $headers = []): static
@@ -56,12 +58,12 @@ class Response extends \Phalcon\Http\Response implements \Phare\Contracts\Http\R
         return $this;
     }
 
-    public function redirect($location = null, bool $externalRedirect = false, int $statusCode = 302): \Phalcon\Http\ResponseInterface
+    public function redirect($location = null, bool $externalRedirect = false, int $statusCode = 302): ResponseInterface
     {
         return parent::redirect($location, $externalRedirect, $statusCode);
     }
 
-    public function back(int $status = 302): \Phalcon\Http\ResponseInterface
+    public function back(int $status = 302): ResponseInterface
     {
         // Get the referrer from the request or use a default fallback
         $referer = $_SERVER['HTTP_REFERER'] ?? '/';
@@ -72,7 +74,7 @@ class Response extends \Phalcon\Http\Response implements \Phare\Contracts\Http\R
     /**
      * Convenience method for Laravel-style redirects
      */
-    public function redirectTo(string $location, int $status = 302): \Phalcon\Http\ResponseInterface
+    public function redirectTo(string $location, int $status = 302): ResponseInterface
     {
         return $this->redirect($location, false, $status);
     }

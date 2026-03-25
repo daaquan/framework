@@ -4,14 +4,15 @@ namespace Phare\Eloquent;
 
 use Phalcon\Mvc\Model\CriteriaInterface;
 use Phalcon\Mvc\Model\ResultsetInterface;
+use Phalcon\Mvc\ModelInterface;
 
 interface BuilderInterface extends CriteriaInterface
 {
     public function get(): ResultsetInterface;
 
-    public function first(): ?\Phalcon\Mvc\ModelInterface;
+    public function first(): ?ModelInterface;
 
-    public function last(): ?\Phalcon\Mvc\ModelInterface;
+    public function last(): ?ModelInterface;
 
     public function where($field, $operator = null, $value = null): BuilderInterface;
 

@@ -1,7 +1,9 @@
 <?php
 
+use Phare\Queue\Connectors\ConnectorInterface;
 use Phare\Queue\DatabaseQueue;
 use Phare\Queue\Job;
+use Phare\Queue\QueueInterface;
 use Phare\Queue\QueueManager;
 use Phare\Queue\RedisQueue;
 use Phare\Queue\SyncQueue;
@@ -11,7 +13,7 @@ class QueueTestJob extends Job
 {
     public bool $handled = false;
 
-    public ?\Exception $exception = null;
+    public ?Exception $exception = null;
 
     public function __construct(public string $message = 'Queue test')
     {
@@ -23,7 +25,7 @@ class QueueTestJob extends Job
         $this->handled = true;
     }
 
-    public function failed(\Exception $exception): void
+    public function failed(Exception $exception): void
     {
         $this->exception = $exception;
     }
@@ -39,7 +41,7 @@ class FailingQueueJob extends Job
     public function handle(): void
     {
         if ($this->getRetries() >= $this->failAfter) {
-            throw new \Exception('Job failed after ' . $this->getRetries() . ' retries');
+            throw new Exception('Job failed after ' . $this->getRetries() . ' retries');
         }
     }
 }
@@ -136,11 +138,11 @@ test('queue manager can clear queue', function () {
 
 test('queue manager can extend with custom driver', function () {
     $this->manager->extend('custom', function ($config) {
-        return new class() implements \Phare\Queue\Connectors\ConnectorInterface
+        return new class() implements ConnectorInterface
         {
-            public function connect(array $config): \Phare\Queue\QueueInterface
+            public function connect(array $config): QueueInterface
             {
-                return new class() implements \Phare\Queue\QueueInterface
+                return new class() implements QueueInterface
                 {
                     public function push(Job $job, ?string $queue = null): string
                     {
@@ -180,7 +182,7 @@ test('queue manager can extend with custom driver', function () {
     ]);
 
     $connection = $manager->connection('custom');
-    expect($connection)->toBeInstanceOf(\Phare\Queue\QueueInterface::class);
+    expect($connection)->toBeInstanceOf(QueueInterface::class);
 });
 
 test('queue manager throws exception for unknown driver', function () {
@@ -193,7 +195,7 @@ test('queue manager throws exception for unknown driver', function () {
 
     expect(function () use ($manager) {
         $manager->connection('unknown');
-    })->toThrow(\InvalidArgumentException::class, 'No connector for [unknown]');
+    })->toThrow(InvalidArgumentException::class, 'No connector for [unknown]');
 });
 
 test('queue manager can get all connections', function () {
@@ -230,7 +232,7 @@ test('queue manager handles job failures correctly', function () {
     $method->setAccessible(true);
 
     $job = new FailingQueueJob(0); // Fail immediately
-    $exception = new \Exception('Test failure');
+    $exception = new Exception('Test failure');
 
     $method->invoke($this->manager, $job, $exception);
 

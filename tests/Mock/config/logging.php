@@ -1,5 +1,9 @@
 <?php
 
+use Phalcon\Logger\Adapter\Noop;
+use Phalcon\Logger\Adapter\Stream;
+use Phalcon\Logger\Adapter\Syslog;
+
 return [
 
     /*
@@ -51,14 +55,14 @@ return [
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/app.log'),
-            'handler' => \Phalcon\Logger\Adapter\Stream::class,
+            'handler' => Stream::class,
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/app.log'),
-            'handler' => \Phalcon\Logger\Adapter\Stream::class,
+            'handler' => Stream::class,
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => 14,
             'permission' => 0666,
@@ -67,7 +71,7 @@ return [
         'stderr' => [
             'driver' => 'syslog',
             'level' => env('LOG_LEVEL', 'debug'),
-            'handler' => \Phalcon\Logger\Adapter\Syslog::class,
+            'handler' => Syslog::class,
             'formatter' => env('LOG_STDERR_FORMATTER'),
             'with' => [
                 'stream' => 'php://stderr',
@@ -76,7 +80,7 @@ return [
 
         'syslog' => [
             'driver' => 'syslog',
-            'handler' => \Phalcon\Logger\Adapter\Syslog::class,
+            'handler' => Syslog::class,
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
@@ -87,7 +91,7 @@ return [
 
         'null' => [
             'driver' => 'noop',
-            'handler' => \Phalcon\Logger\Adapter\Noop::class,
+            'handler' => Noop::class,
         ],
     ],
 

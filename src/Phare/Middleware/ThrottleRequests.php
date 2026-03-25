@@ -3,12 +3,15 @@
 namespace Phare\Middleware;
 
 use Phalcon\Http\Request;
+use Phalcon\Http\RequestInterface;
 use Phalcon\Http\Response;
+use Phalcon\Http\ResponseInterface;
 use Phare\Contracts\Foundation\Application;
+use Phare\Contracts\Http\Middleware;
 use Phare\RateLimit\RateLimiter;
 use Phare\RateLimit\TooManyRequestsException;
 
-class ThrottleRequests
+class ThrottleRequests implements Middleware
 {
     protected Application $app;
 
@@ -20,7 +23,7 @@ class ThrottleRequests
         $this->limiter = $limiter;
     }
 
-    public function handle(Request $request, \Closure $next, int $maxAttempts = 60, int $decayMinutes = 1, string $prefix = ''): Response
+    public function handle(RequestInterface $request, \Closure $next, int $maxAttempts = 60, int $decayMinutes = 1, string $prefix = ''): ResponseInterface
     {
         if (is_string($maxAttempts) && $this->limiter->limiter($maxAttempts)) {
             return $this->handleRequestUsingNamedLimiter($request, $next, $maxAttempts, $prefix);

@@ -6,7 +6,10 @@ use Phalcon\Di\DiInterface;
 use Phare\Console\Output\Logger as ConsoleOutput;
 use Phare\Contracts\Debug\ExceptionHandler;
 use Phare\Contracts\Foundation\Application;
+use Phare\Log\Logger;
 use Symfony\Component\ErrorHandler\Error\FatalError;
+use Whoops\Handler\PrettyPageHandler;
+use Whoops\Run;
 
 /**
  * Error handling bootstrapper.
@@ -28,6 +31,12 @@ class HandleExceptions
         // Configure error display
         ini_set('display_errors', $debugEnabled ? 'On' : 'Off');
         ini_set('phalcon.warning.enable', $debugEnabled ? $this->getPhalconWarningEnabled($app) : false);
+
+        // In test environments, skip registering error/exception handlers so PHPUnit
+        // can manage them cleanly (avoids "did not remove its own error handlers" risky warnings)
+        if ($app->runningUnitTests()) {
+            return;
+        }
 
         // Register error handler
         set_error_handler([$this, 'handleError']);
@@ -79,7 +88,7 @@ class HandleExceptions
         }
 
         try {
-            /** @var \Phare\Log\Logger $logger */
+            /** @var Logger $logger */
             $logger = $this->app->make('log');
         } catch (\Exception $e) {
             return;
@@ -213,12 +222,12 @@ class HandleExceptions
         }
 
         try {
-            $whoops = new \Whoops\Run();
+            $whoops = new Run();
             $whoops->allowQuit(false);
             $whoops->writeToOutput(false);
 
             // Add pretty page handler for web requests
-            $handler = new \Whoops\Handler\PrettyPageHandler();
+            $handler = new PrettyPageHandler();
 
             // Set application name if available
             try {

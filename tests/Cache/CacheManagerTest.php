@@ -1,6 +1,7 @@
 <?php
 
 use InvalidArgumentException;
+use Phalcon\Cache\Adapter\Apcu;
 use Phalcon\Cache\Adapter\Redis;
 use Phalcon\Cache\Adapter\Stream;
 use Phare\Cache\CacheManager;
@@ -79,5 +80,5 @@ test('apcu cache driver uses apcu adapter', function () {
     $this->setUpApplication();
 
     $manager = new CacheManager();
-    expect($manager->adapter())->toBeInstanceOf(\Phalcon\Cache\Adapter\Apcu::class);
+    expect($manager->adapter())->toBeInstanceOf(Apcu::class);
 });

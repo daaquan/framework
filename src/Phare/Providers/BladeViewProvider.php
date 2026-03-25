@@ -6,9 +6,11 @@ use Phalcon\Di\DiInterface;
 use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Flash\Session as FlashSession;
 use Phalcon\Html\Escaper;
+use Phalcon\Mvc\Dispatcher;
 use Phare\Foundation\AbstractApplication as Application;
 use Phare\View\Blade;
 use Phare\View\BladeOne;
+use Phare\View\BladeView;
 use Phare\View\BladeView as View;
 
 /**
@@ -46,7 +48,7 @@ class BladeViewProvider implements ServiceProviderInterface
         $app->singleton('view', function () use ($app) {
             $viewDir = $app->basePath('resources/views');
 
-            return (new \Phare\View\BladeView())
+            return (new BladeView())
                 ->enable()
                 ->registerEngines(['.blade.php' => 'blade'])
                 ->setLayoutsDir($viewDir . 'layouts/')
@@ -59,7 +61,7 @@ class BladeViewProvider implements ServiceProviderInterface
         $eventsManager = $app['eventsManager'];
         $eventsManager->attach('dispatch:afterExecuteRoute', function () use ($app) {
             try {
-                /** @var \Phalcon\Mvc\Dispatcher $dispatcher */
+                /** @var Dispatcher $dispatcher */
                 $dispatcher = $app['dispatcher'];
 
                 $view = $dispatcher->getParam('bladeView');

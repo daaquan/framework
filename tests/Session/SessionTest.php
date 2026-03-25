@@ -1,23 +1,29 @@
 <?php
 
+use Phalcon\Session\Adapter\Redis;
+use Phalcon\Session\Adapter\Stream;
+use Phalcon\Storage\AdapterFactory;
+use Phalcon\Storage\SerializerFactory;
+use Phare\Session\SessionManager;
+
 dataset('session', [
     'file' => function () {
-        $adapter = new \Phalcon\Session\Adapter\Stream(['savePath' => sys_get_temp_dir()]);
-        $session = (new \Phare\Session\SessionManager())->setAdapter($adapter);
+        $adapter = new Stream(['savePath' => sys_get_temp_dir()]);
+        $session = (new SessionManager())->setAdapter($adapter);
         $session->start();
 
         return $session;
     },
     'redis' => function () {
-        $factory = new \Phalcon\Storage\AdapterFactory(new \Phalcon\Storage\SerializerFactory());
-        $adapter = new \Phalcon\Session\Adapter\Redis(
+        $factory = new AdapterFactory(new SerializerFactory());
+        $adapter = new Redis(
             $factory,
             [
                 'host' => '127.0.0.1',
                 'port' => 6379,
             ]
         );
-        $session = (new \Phare\Session\SessionManager())->setAdapter($adapter);
+        $session = (new SessionManager())->setAdapter($adapter);
         $session->start();
 
         return $session;

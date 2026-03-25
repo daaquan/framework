@@ -3,11 +3,13 @@
 namespace Phare\Middleware;
 
 use Phalcon\Http\Request;
-use Phalcon\Http\Response;
+use Phalcon\Http\RequestInterface;
+use Phalcon\Http\ResponseInterface;
 use Phare\Contracts\Foundation\Application;
+use Phare\Contracts\Http\Middleware;
 use Phare\Security\Csrf;
 
-class VerifyCsrfToken
+class VerifyCsrfToken implements Middleware
 {
     protected Application $app;
 
@@ -21,7 +23,7 @@ class VerifyCsrfToken
         $this->csrf = $app->make(Csrf::class);
     }
 
-    public function handle(Request $request, \Closure $next): Response
+    public function handle(RequestInterface $request, \Closure $next): ResponseInterface
     {
         if ($this->shouldSkip($request)) {
             return $next($request);

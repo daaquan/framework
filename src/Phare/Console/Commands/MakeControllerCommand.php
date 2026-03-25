@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeControllerCommand extends Command
 {
-    protected string $signature = 'make:controller {name : The name of the controller} {--resource : Generate a resource controller}';
+    protected ?string $signature = 'make:controller {name : The name of the controller} {--resource : Generate a resource controller}';
 
-    protected string $description = 'Create a new controller class';
+    protected ?string $description = 'Create a new controller class';
 
     public function handle(): int
     {

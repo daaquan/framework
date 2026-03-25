@@ -2,4 +2,6 @@
 
 namespace Phare\Contracts\Http;
 
-interface Response extends \Phalcon\Http\ResponseInterface {}
+use Phalcon\Http\ResponseInterface;
+
+interface Response extends ResponseInterface {}

@@ -2,6 +2,8 @@
 
 namespace Phare\Foundation\Testing\Concerns;
 
+use Phalcon\Http\Request;
+use Phare\Contracts\Http\Kernel;
 use Phare\Testing\TestResponse;
 
 trait MakesHttpRequests
@@ -62,11 +64,11 @@ trait MakesHttpRequests
         $this->transformHeadersToServerVars($uri, $method, $headers);
         $this->initializeRequestData($method, $data);
 
-        /** @var \Phare\Contracts\Http\Kernel $kernel */
-        $kernel = $this->app->make(\Phare\Contracts\Http\Kernel::class);
+        /** @var Kernel $kernel */
+        $kernel = $this->app->make(Kernel::class);
 
-        /** @var \Phalcon\Http\Request $request */
-        $request = $this->app->make(\Phalcon\Http\Request::class);
+        /** @var Request $request */
+        $request = $this->app->make(Request::class);
         $response = $kernel->handle($request);
         $kernel->terminate($request, $response);
 

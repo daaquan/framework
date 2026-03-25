@@ -1,5 +1,7 @@
 <?php
 
+use Phare\Collections\Str;
+
 return [
 
     /*
@@ -71,6 +73,6 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', \Phare\Collections\Str::slug(env('APP_NAME', 'app'), '_') . '_cache_'),
+    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'app'), '_') . '_cache_'),
 
 ];

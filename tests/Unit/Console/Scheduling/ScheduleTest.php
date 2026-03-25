@@ -111,14 +111,14 @@ test('schedule can get due events', function () {
 
 test('schedule handles failed events', function () {
     $this->schedule->call(function () {
-        throw new \Exception('Test failure');
+        throw new Exception('Test failure');
     })->everyMinute();
 
     $results = $this->schedule->run();
 
     expect($results)->toHaveCount(1);
     expect($results[0]['success'])->toBeFalse();
-    expect($results[0]['exception'])->toBeInstanceOf(\Exception::class);
+    expect($results[0]['exception'])->toBeInstanceOf(Exception::class);
     expect($results[0]['output'])->toContain('Test failure');
 });
 

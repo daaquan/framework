@@ -1,5 +1,8 @@
 <?php
 
+use Phare\Auth\Sanctum\Middleware\EnsureFrontendRequestsAreStateful;
+use Phare\Foundation\Http\Middleware\EncryptCookies;
+
 return [
 
     /*
@@ -58,8 +61,8 @@ return [
     */
 
     'middleware' => [
-        'verify_csrf_token' => Phare\Auth\Sanctum\Middleware\EnsureFrontendRequestsAreStateful::class,
-        'encrypt_cookies' => Phare\Foundation\Http\Middleware\EncryptCookies::class,
+        'verify_csrf_token' => EnsureFrontendRequestsAreStateful::class,
+        'encrypt_cookies' => EncryptCookies::class,
     ],
 
 ];

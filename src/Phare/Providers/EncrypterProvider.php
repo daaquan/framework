@@ -4,6 +4,9 @@ namespace Phare\Providers;
 
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\ServiceProviderInterface;
+use Phalcon\Encryption\Crypt;
+use Phalcon\Encryption\Security;
+use Phalcon\Encryption\Security\Random;
 use Phare\Foundation\AbstractApplication as Application;
 
 /**
@@ -16,10 +19,10 @@ class EncrypterProvider implements ServiceProviderInterface
      */
     public function register(Application|DiInterface $app): void
     {
-        $app->singleton('random', \Phalcon\Encryption\Security\Random::class);
+        $app->singleton('random', Random::class);
 
         $app->singleton('security', function () use ($app) {
-            $security = new \Phalcon\Encryption\Security();
+            $security = new Security();
             $security->setWorkFactor(12);
             $security->setDI($app);
 
@@ -41,7 +44,7 @@ class EncrypterProvider implements ServiceProviderInterface
             $key = $decodeMethod(substr($encoded, strlen($method) + 1));
 
             // Instantiate Crypt with the key and set the cipher method
-            return (new \Phalcon\Encryption\Crypt())
+            return (new Crypt())
                 ->setKey($key)
                 ->setCipher($config->path('app.cipher'));
         });

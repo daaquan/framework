@@ -1,5 +1,6 @@
 <?php
 
+use Phare\Notifications\Channels\ChannelInterface;
 use Phare\Notifications\Channels\ChannelManager;
 use Phare\Notifications\Channels\DatabaseChannel;
 use Phare\Notifications\Channels\MailChannel;
@@ -118,12 +119,12 @@ test('channel manager returns default driver when none specified', function () {
 test('channel manager throws exception for unknown driver', function () {
     expect(function () {
         $this->channelManager->driver('unknown');
-    })->toThrow(\InvalidArgumentException::class, 'Driver [unknown] not supported.');
+    })->toThrow(InvalidArgumentException::class, 'Driver [unknown] not supported.');
 });
 
 test('channel manager can extend with custom driver', function () {
     $this->channelManager->extend('custom', function () {
-        return new class() implements \Phare\Notifications\Channels\ChannelInterface
+        return new class() implements ChannelInterface
         {
             public function send(mixed $notifiable, Notification $notification): void
             {
@@ -133,7 +134,7 @@ test('channel manager can extend with custom driver', function () {
     });
 
     $driver = $this->channelManager->driver('custom');
-    expect($driver)->toBeInstanceOf(\Phare\Notifications\Channels\ChannelInterface::class);
+    expect($driver)->toBeInstanceOf(ChannelInterface::class);
 });
 
 test('channel manager can clear drivers', function () {

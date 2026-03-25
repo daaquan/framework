@@ -98,7 +98,7 @@ class LogManager implements LoggerInterface
      * Resolve the given log instance by name.
      *
      * @param string $name
-     * @return \Psr\Log\LoggerInterface
+     * @return LoggerInterface
      *
      * @throws \InvalidArgumentException
      */

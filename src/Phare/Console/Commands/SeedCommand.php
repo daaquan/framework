@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class SeedCommand extends Command
 {
-    protected string $signature = 'db:seed {--class= : The class name of the root seeder} {--force : Force the operation to run when in production}';
+    protected ?string $signature = 'db:seed {--class= : The class name of the root seeder} {--force : Force the operation to run when in production}';
 
-    protected string $description = 'Seed the database with records';
+    protected ?string $description = 'Seed the database with records';
 
     public function handle(): int
     {

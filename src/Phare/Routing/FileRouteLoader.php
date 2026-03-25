@@ -12,7 +12,7 @@ class FileRouteLoader extends RouteLoader
         $routes = ['@timestamp' => $this->getRoutesFilesModificationTime($this->routePaths)];
         foreach ($this->routePaths as $routeFile) {
             $fileRouter = require $routeFile;
-            if (!$fileRouter instanceof \Phare\Routing\Router) {
+            if (!$fileRouter instanceof Router) {
                 continue;
             }
 

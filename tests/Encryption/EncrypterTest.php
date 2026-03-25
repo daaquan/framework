@@ -48,12 +48,12 @@ it('throws exception for invalid key size', function () {
     $shortKey = 'short';
 
     expect(fn () => new Encrypter($shortKey))
-        ->toThrow(\InvalidArgumentException::class);
+        ->toThrow(InvalidArgumentException::class);
 });
 
 it('throws exception for unsupported cipher', function () {
     expect(fn () => new Encrypter($this->key, 'unsupported-cipher'))
-        ->toThrow(\InvalidArgumentException::class);
+        ->toThrow(InvalidArgumentException::class);
 });
 
 it('throws exception when decrypting invalid payload', function () {

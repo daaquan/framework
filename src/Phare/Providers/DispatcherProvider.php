@@ -9,6 +9,7 @@ use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Events\Event;
 use Phalcon\Events\Manager;
 use Phalcon\Mvc\Dispatcher;
+use Phalcon\Mvc\Dispatcher\Exception;
 use Phare\Foundation\AbstractApplication as Application;
 
 class DispatcherProvider implements ServiceProviderInterface
@@ -19,7 +20,7 @@ class DispatcherProvider implements ServiceProviderInterface
             $eventsManager = new Manager();
             $eventsManager->attach('dispatch:beforeException',
                 function (Event $event, Dispatcher $dispatcher, \Throwable $exception) use ($app) {
-                    if ($exception instanceof \Phalcon\Mvc\Dispatcher\Exception) {
+                    if ($exception instanceof Exception) {
                         $dispatcher->setReturnedValue('');
 
                         $app['response']

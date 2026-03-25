@@ -12,7 +12,7 @@ class CheckForMaintenanceMode extends MiddlewareContract implements BeforeMiddle
 {
     public function __construct(private Application $app) {}
 
-    public function handle(RequestInterface $request, ResponseInterface $response)
+    public function handle(RequestInterface $request, \Closure $next): ResponseInterface
     {
         $whitelist = config('whitelist.ip');
 
@@ -21,11 +21,16 @@ class CheckForMaintenanceMode extends MiddlewareContract implements BeforeMiddle
         if (!in_array($ipAddress, $whitelist?->toArray() ?? [], true)) {
             $this->app->stop();
 
+            $response = $next($request);
             $response
                 ->setStatusCode(403, 'Forbidden')
                 ->setContentType('text/html')
                 ->sendHeaders()
                 ->send();
+
+            return $response;
         }
+
+        return $next($request);
     }
 }

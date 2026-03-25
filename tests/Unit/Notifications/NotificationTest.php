@@ -126,7 +126,7 @@ test('notification can be marked as read', function () {
     $this->notification->markAsRead();
 
     expect($this->notification->isRead())->toBeTrue();
-    expect($this->notification->getReadAt())->toBeInstanceOf(\DateTime::class);
+    expect($this->notification->getReadAt())->toBeInstanceOf(DateTime::class);
 });
 
 test('notification can be marked as unread', function () {
@@ -151,7 +151,7 @@ test('notification can chain with data', function () {
 });
 
 test('notification has creation timestamp', function () {
-    expect($this->notification->getCreatedAt())->toBeInstanceOf(\DateTime::class);
+    expect($this->notification->getCreatedAt())->toBeInstanceOf(DateTime::class);
 });
 
 test('notification via method returns channels', function () {
@@ -233,7 +233,7 @@ test('notification returns null for unsupported channels', function () {
 });
 
 test('notification can set read at timestamp', function () {
-    $timestamp = new \DateTime('2023-01-01 12:00:00');
+    $timestamp = new DateTime('2023-01-01 12:00:00');
     $this->notification->setReadAt($timestamp);
 
     expect($this->notification->getReadAt())->toBe($timestamp);

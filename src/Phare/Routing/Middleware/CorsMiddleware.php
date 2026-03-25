@@ -9,12 +9,17 @@ use Phare\Foundation\Http\Concerns\AfterMiddleware;
 
 class CorsMiddleware extends MiddlewareContract implements AfterMiddleware
 {
-    public function handle(RequestInterface $request, ResponseInterface $response)
+    public function handle(RequestInterface $request, \Closure $next): ResponseInterface
     {
+        $response = $next($request);
+
         $response
             ->setHeader('Access-Control-Allow-Origin', '*')
             ->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
             ->setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Authorization')
-            ->setHeader('Access-Control-Allow-Credentials', 'true')->setHeader('Access-Control-Max-Age', '86400');
+            ->setHeader('Access-Control-Allow-Credentials', 'true')
+            ->setHeader('Access-Control-Max-Age', '86400');
+
+        return $response;
     }
 }

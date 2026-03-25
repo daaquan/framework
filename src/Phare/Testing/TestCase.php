@@ -5,6 +5,11 @@ namespace Phare\Testing;
 use Phalcon\Di\Di;
 use Phalcon\Di\DiInterface;
 use Phare\Foundation\AbstractApplication as Application;
+use Phare\Foundation\Bootstrap\HandleExceptions;
+use Phare\Foundation\Bootstrap\LoadConfiguration;
+use Phare\Foundation\Bootstrap\LoadEnvironmentVariables;
+use Phare\Foundation\Bootstrap\RegisterFacades;
+use Phare\Foundation\Bootstrap\RegisterProviders;
 use Phare\Foundation\Testing\Concerns\MakesHttpRequests;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 
@@ -22,6 +27,17 @@ abstract class TestCase extends BaseTestCase
         $this->setUpApplication();
     }
 
+    protected function tearDown(): void
+    {
+        // Restore error/exception handlers registered by HandleExceptions bootstrapper
+        restore_error_handler();
+        restore_exception_handler();
+
+        Di::reset();
+
+        parent::tearDown();
+    }
+
     public function setUpApplication(): void
     {
         if (!defined('APP_RUNNING_UNIT_TEST')) {
@@ -32,11 +48,11 @@ abstract class TestCase extends BaseTestCase
 
         $app = $this->createApplication();
         $app->bootstrapWith([
-            \Phare\Foundation\Bootstrap\LoadEnvironmentVariables::class,
-            \Phare\Foundation\Bootstrap\LoadConfiguration::class,
-            \Phare\Foundation\Bootstrap\HandleExceptions::class,
-            \Phare\Foundation\Bootstrap\RegisterProviders::class,
-            \Phare\Foundation\Bootstrap\RegisterFacades::class,
+            LoadEnvironmentVariables::class,
+            LoadConfiguration::class,
+            HandleExceptions::class,
+            RegisterProviders::class,
+            RegisterFacades::class,
         ]);
 
         Di::setDefault($this->app = $app);
