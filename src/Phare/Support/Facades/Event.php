@@ -11,6 +11,8 @@ namespace Phare\Support\Facades;
  * @method static void subscribe(object|string $subscriber)
  * @method static mixed until(string|object $event, mixed $payload = [])
  * @method static mixed dispatch(string|object $event, mixed $payload = [], bool $halt = false)
+ * @method static mixed dispatchIf(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false)
+ * @method static mixed dispatchUnless(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false)
  * @method static array getListeners(string $eventName)
  * @method static void forget(string $event)
  * @method static void forgetPushed()

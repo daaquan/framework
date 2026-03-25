@@ -20,6 +20,16 @@ interface Dispatcher
     public function dispatch(string|object $event, mixed $payload = [], bool $halt = false): mixed;
 
     /**
+     * Fire an event when the given condition resolves to true.
+     */
+    public function dispatchIf(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false): mixed;
+
+    /**
+     * Fire an event when the given condition resolves to false.
+     */
+    public function dispatchUnless(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false): mixed;
+
+    /**
      * Fire an event until the first non-null response is returned.
      */
     public function until(string|object $event, mixed $payload = []);
