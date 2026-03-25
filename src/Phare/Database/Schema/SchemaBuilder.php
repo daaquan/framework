@@ -3,6 +3,7 @@
 namespace Phare\Database\Schema;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
+use Phalcon\Db\Enum;
 
 class SchemaBuilder
 {
@@ -43,7 +44,14 @@ class SchemaBuilder
 
     public function rename(string $from, string $to): void
     {
-        $this->connection->execute("RENAME TABLE {$from} TO {$to}");
+        $driver = $this->getDriverName();
+
+        $sql = match ($driver) {
+            'mysql' => "RENAME TABLE {$from} TO {$to}",
+            default => "ALTER TABLE {$from} RENAME TO {$to}",
+        };
+
+        $this->connection->execute($sql);
     }
 
     public function hasTable(string $table): bool
@@ -53,14 +61,17 @@ class SchemaBuilder
         return match ($driver) {
             'mysql' => $this->connection->fetchOne(
                 'SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?',
+                Enum::FETCH_ASSOC,
                 [$table]
             )['count'] > 0,
             'sqlite' => $this->connection->fetchOne(
                 "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name = ?",
+                Enum::FETCH_ASSOC,
                 [$table]
             )['count'] > 0,
             'pgsql' => $this->connection->fetchOne(
                 "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = ? AND table_schema = 'public'",
+                Enum::FETCH_ASSOC,
                 [$table]
             )['count'] > 0,
             default => false,
@@ -74,6 +85,7 @@ class SchemaBuilder
         return match ($driver) {
             'mysql' => $this->connection->fetchOne(
                 'SELECT COUNT(*) as count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?',
+                Enum::FETCH_ASSOC,
                 [$table, $column]
             )['count'] > 0,
             'sqlite' => !empty($this->connection->fetchAll(
@@ -81,6 +93,7 @@ class SchemaBuilder
             )) && in_array($column, array_column($this->connection->fetchAll("PRAGMA table_info({$table})"), 'name')),
             'pgsql' => $this->connection->fetchOne(
                 "SELECT COUNT(*) as count FROM information_schema.columns WHERE table_name = ? AND column_name = ? AND table_schema = 'public'",
+                Enum::FETCH_ASSOC,
                 [$table, $column]
             )['count'] > 0,
             default => false,
@@ -95,6 +108,7 @@ class SchemaBuilder
             'mysql' => array_column(
                 $this->connection->fetchAll(
                     'SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? ORDER BY ordinal_position',
+                    Enum::FETCH_ASSOC,
                     [$table]
                 ),
                 'column_name'
@@ -103,6 +117,7 @@ class SchemaBuilder
             'pgsql' => array_column(
                 $this->connection->fetchAll(
                     "SELECT column_name FROM information_schema.columns WHERE table_name = ? AND table_schema = 'public' ORDER BY ordinal_position",
+                    Enum::FETCH_ASSOC,
                     [$table]
                 ),
                 'column_name'

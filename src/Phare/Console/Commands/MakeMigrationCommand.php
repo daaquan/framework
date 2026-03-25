@@ -6,9 +6,9 @@ use Phare\Console\Command;
 
 class MakeMigrationCommand extends Command
 {
-    protected string $signature = 'make:migration {name : The migration name} {--create= : Create a new table} {--table= : Modify an existing table}';
+    protected ?string $signature = 'make:migration {name : The migration name} {--create= : Create a new table} {--table= : Modify an existing table}';
 
-    protected string $description = 'Create a new migration file';
+    protected ?string $description = 'Create a new migration file';
 
     public function handle(): int
     {

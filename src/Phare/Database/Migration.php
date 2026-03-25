@@ -8,9 +8,18 @@ abstract class Migration
 {
     protected SchemaBuilder $schema;
 
-    public function __construct(SchemaBuilder $schema)
+    public function __construct(?SchemaBuilder $schema = null)
+    {
+        if ($schema) {
+            $this->schema = $schema;
+        }
+    }
+
+    public function setSchema(SchemaBuilder $schema): static
     {
         $this->schema = $schema;
+
+        return $this;
     }
 
     abstract public function up(): void;

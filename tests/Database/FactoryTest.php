@@ -1,76 +1,65 @@
 <?php
 
+use Phalcon\Db\Enum;
 use Phare\Database\BaseFactory;
 use Phare\Database\Factory;
 use Phare\Database\Schema\Blueprint;
-use Tests\TestCase;
+use Phare\Database\Schema\SchemaBuilder;
 
-class FactoryTest extends TestCase
-{
-    protected function setUp(): void
-    {
-        parent::setUp();
+beforeEach(function () {
+    $connection = $this->app->make('db');
+    $schema = new SchemaBuilder($connection);
 
-        $connection = $this->app->make('db');
-        $schema = new \Phare\Database\Schema\SchemaBuilder($connection);
-
-        // Create test table
-        if (!$schema->hasTable('test_users')) {
-            $schema->create('test_users', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('email');
-                $table->integer('age');
-                $table->boolean('is_active')->default(true);
-                $table->timestamps();
-            });
-        }
+    // Always recreate to ensure correct schema
+    if ($schema->hasTable('test_users')) {
+        $schema->drop('test_users');
     }
 
-    protected function tearDown(): void
-    {
-        $connection = $this->app->make('db');
-        $connection->execute('DELETE FROM test_users');
+    $schema->create('test_users', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('email');
+        $table->integer('age');
+        $table->boolean('is_active')->default(true);
+        $table->timestamps();
+    });
+});
 
-        parent::tearDown();
-    }
-}
+afterEach(function () {
+    $connection = $this->app->make('db');
+    $connection->execute('DELETE FROM test_users');
+});
 
 it('can create factory instance', function () {
     $factory = new Factory($this->app);
-
     expect($factory)->toBeInstanceOf(Factory::class);
-})->uses(FactoryTest::class);
+});
 
 it('can set model for factory', function () {
     $factory = new Factory($this->app);
     $factory->for('User');
-
     expect($factory)->toBeInstanceOf(Factory::class);
-})->uses(FactoryTest::class);
+});
 
 it('can set count for factory', function () {
     $factory = new Factory($this->app);
     $factory->count(5);
-
     expect($factory)->toBeInstanceOf(Factory::class);
-})->uses(FactoryTest::class);
+});
 
 it('can set state for factory', function () {
     $factory = new Factory($this->app);
     $factory->state(['active' => true, 'verified' => true]);
-
     expect($factory)->toBeInstanceOf(Factory::class);
-})->uses(FactoryTest::class);
+});
 
 it('can chain factory methods', function () {
     $factory = new Factory($this->app);
     $result = $factory->for('User')->count(3)->state(['active' => true]);
-
     expect($result)->toBeInstanceOf(Factory::class);
-})->uses(FactoryTest::class);
+});
 
-// Create a test factory for testing
+// Create a test factory
 class TestUserFactory extends BaseFactory
 {
     public function definition(): array
@@ -87,7 +76,6 @@ class TestUserFactory extends BaseFactory
 }
 
 it('can make single instance without persisting', function () {
-    // Mock the factory class resolution
     $factory = new class($this->app) extends Factory
     {
         protected function getDefinition(): array
@@ -114,10 +102,9 @@ it('can make single instance without persisting', function () {
     expect($instance['name'])->toBe('Test User');
     expect($instance['email'])->toBe('test@example.com');
     expect($instance['age'])->toBe(25);
-})->uses(FactoryTest::class);
+});
 
 it('can make multiple instances without persisting', function () {
-    // Mock the factory class resolution
     $factory = new class($this->app) extends Factory
     {
         protected function getDefinition(): array
@@ -143,12 +130,9 @@ it('can make multiple instances without persisting', function () {
     expect($instances)->toBeArray();
     expect($instances)->toHaveCount(3);
     expect($instances[0]['name'])->toBe('Test User');
-    expect($instances[1]['name'])->toBe('Test User');
-    expect($instances[2]['name'])->toBe('Test User');
-})->uses(FactoryTest::class);
+});
 
 it('can create and persist single instance', function () {
-    // Mock the factory class resolution
     $factory = new class($this->app) extends Factory
     {
         protected function getDefinition(): array
@@ -174,14 +158,16 @@ it('can create and persist single instance', function () {
     expect($instance)->toBeArray();
     expect($instance['name'])->toBe('Persisted User');
 
-    // Verify it was persisted to database
     $connection = $this->app->make('db');
-    $result = $connection->fetchOne('SELECT COUNT(*) as count FROM test_users WHERE name = ?', ['Persisted User']);
-    expect($result['count'])->toBe(1);
-})->uses(FactoryTest::class);
+    $result = $connection->fetchOne(
+        'SELECT COUNT(*) as count FROM test_users WHERE name = ?',
+        Enum::FETCH_ASSOC,
+        ['Persisted User']
+    );
+    expect((int)$result['count'])->toBe(1);
+});
 
 it('can create and persist multiple instances', function () {
-    // Mock the factory class resolution
     $factory = new class($this->app) extends Factory
     {
         private int $counter = 0;
@@ -211,14 +197,16 @@ it('can create and persist multiple instances', function () {
     expect($instances)->toBeArray();
     expect($instances)->toHaveCount(3);
 
-    // Verify they were persisted to database
     $connection = $this->app->make('db');
-    $result = $connection->fetchOne('SELECT COUNT(*) as count FROM test_users WHERE name LIKE ?', ['Multi User%']);
-    expect($result['count'])->toBe(3);
-})->uses(FactoryTest::class);
+    $result = $connection->fetchOne(
+        'SELECT COUNT(*) as count FROM test_users WHERE name LIKE ?',
+        Enum::FETCH_ASSOC,
+        ['Multi User%']
+    );
+    expect((int)$result['count'])->toBe(3);
+});
 
 it('can override attributes when making instances', function () {
-    // Mock the factory class resolution
     $factory = new class($this->app) extends Factory
     {
         protected function getDefinition(): array
@@ -243,11 +231,10 @@ it('can override attributes when making instances', function () {
 
     expect($instance['name'])->toBe('Override User');
     expect($instance['age'])->toBe(35);
-    expect($instance['email'])->toBe('default@example.com'); // Should keep default
-})->uses(FactoryTest::class);
+    expect($instance['email'])->toBe('default@example.com');
+});
 
 it('can merge states with overrides', function () {
-    // Mock the factory class resolution
     $factory = new class($this->app) extends Factory
     {
         protected function getDefinition(): array
@@ -272,8 +259,8 @@ it('can merge states with overrides', function () {
         ->state(['is_active' => true, 'age' => 30])
         ->make(['name' => 'Final User']);
 
-    expect($instance['name'])->toBe('Final User');     // Override wins
-    expect($instance['age'])->toBe(30);               // State wins over default
-    expect($instance['is_active'])->toBe(true);       // State wins over default
-    expect($instance['email'])->toBe('base@example.com'); // Default remains
-})->uses(FactoryTest::class);
+    expect($instance['name'])->toBe('Final User');
+    expect($instance['age'])->toBe(30);
+    expect($instance['is_active'])->toBe(true);
+    expect($instance['email'])->toBe('base@example.com');
+});

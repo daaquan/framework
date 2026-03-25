@@ -30,11 +30,28 @@ class Config extends Injectable
     {
         if (!self::$instance) {
             $instance = new self();
-            $config = $instance->getDI()->getShared('config');
-            self::$instance = $instance->setConfig($config);
+            try {
+                $di = Di::getDefault();
+                if ($di && $di->has('config')) {
+                    $config = $di->getShared('config');
+                    self::$instance = $instance->setConfig($config);
+                } else {
+                    $instance->config = new PhalconConfig();
+                    self::$instance = $instance;
+                }
+            } catch (\Exception $e) {
+                $instance->config = new PhalconConfig();
+                self::$instance = $instance;
+            }
         }
 
         return self::$instance;
+    }
+
+    /** Reset the singleton instance (useful for testing) */
+    public static function reset(): void
+    {
+        self::$instance = null;
     }
 
     /** Object-like access (e.g. $config->foo) */
