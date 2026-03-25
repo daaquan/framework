@@ -41,6 +41,8 @@ class CacheManager
             'file', 'stream' => $this->makeStreamAdapter($factory, $config),
             'redis' => $this->makeRedisAdapter($factory, $config),
             'apc', 'apcu' => $this->makeApcuAdapter($factory, $config),
+            'array' => $this->makeArrayAdapter($config),
+            'null' => $this->makeArrayAdapter($config),
             default => throw new InvalidArgumentException("Invalid cache driver: {$driver}"),
         };
     }
@@ -73,6 +75,11 @@ class CacheManager
     protected function makeApcuAdapter(SerializerFactory $factory, array $config): Apcu
     {
         return new Apcu($factory, $config);
+    }
+
+    protected function makeArrayAdapter(array $config): ArrayAdapter
+    {
+        return new ArrayAdapter($config['prefix'] ?? '');
     }
 
     public function get(string $key, mixed $default = null): mixed
