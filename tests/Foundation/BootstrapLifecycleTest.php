@@ -99,3 +99,35 @@ it('throws when bootstrapper does not define bootstrap or register', function ()
     expect(fn () => $app->bootstrapWith([EmptyBootstrapper::class]))
         ->toThrow(RuntimeException::class, 'must define bootstrap(Application) or register(Application)');
 });
+
+it('supports custom environment resolver and environment path helpers', function () {
+    $app = new BootstrapLifecycleTestApplication($_ENV['APP_BASE_PATH']);
+
+    $resolved = $app->detectEnvironment(fn () => 'staging');
+
+    expect($resolved)->toBe('staging');
+    expect($app->environment())->toBe('staging');
+    expect($app->environment('staging'))->toBeTrue();
+
+    $app->useEnvironmentPath('/tmp/phare-env')->loadEnvironmentFrom('.env.staging');
+
+    expect($app->environmentPath())->toBe('/tmp/phare-env');
+    expect($app->environmentFile())->toBe('.env.staging');
+    expect($app->environmentFilePath())->toBe('/tmp/phare-env/.env.staging');
+});
+
+it('exposes events cache helpers and terminating callbacks', function () {
+    $app = new BootstrapLifecycleTestApplication($_ENV['APP_BASE_PATH']);
+    $called = false;
+
+    $app->terminating(function () use (&$called) {
+        $called = true;
+    });
+
+    expect($app->eventsAreCached())->toBeFalse();
+    expect($app->getCachedEventsPath())->toEndWith('bootstrap/cache/events.php');
+
+    $app->callTerminatingCallbacks();
+
+    expect($called)->toBeTrue();
+});

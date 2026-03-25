@@ -20,6 +20,12 @@ class Dispatcher implements DispatcherContract
 
     protected $transactionManagerResolver = null;
 
+    protected bool $deferringEvents = false;
+
+    protected ?array $eventsToDefer = null;
+
+    protected array $deferredEvents = [];
+
     public function __construct(Container $app)
     {
         $this->app = $app;
@@ -88,6 +94,12 @@ class Dispatcher implements DispatcherContract
     {
         $isEventObject = is_object($event);
         [$eventName, $eventPayload] = $this->parseEventAndPayload($event, $payload);
+
+        if ($this->shouldDeferEvent($eventName)) {
+            $this->deferredEvents[] = [$event, $payload, $halt];
+
+            return null;
+        }
 
         if ($isEventObject
             && $eventPayload[0] instanceof ShouldDispatchAfterCommit
@@ -181,6 +193,29 @@ class Dispatcher implements DispatcherContract
         $this->pushedEvents = [];
     }
 
+    public function defer(callable $callback, ?array $events = null): mixed
+    {
+        [$previousDeferring, $previousEventsToDefer] = [$this->deferringEvents, $this->eventsToDefer];
+        $this->deferringEvents = true;
+        $this->eventsToDefer = $events;
+
+        try {
+            $result = $callback();
+        } finally {
+            $this->deferringEvents = $previousDeferring;
+            $this->eventsToDefer = $previousEventsToDefer;
+        }
+
+        if (!$previousDeferring) {
+            while ($deferredEvent = array_shift($this->deferredEvents)) {
+                [$event, $payload, $halt] = $deferredEvent;
+                $this->dispatch($event, $payload, $halt);
+            }
+        }
+
+        return $result;
+    }
+
     public function subscribe(object|string $subscriber): void
     {
         $subscriber = $this->resolveSubscriber($subscriber);
@@ -249,6 +284,19 @@ class Dispatcher implements DispatcherContract
         }
 
         return [$event, is_array($payload) ? $payload : [$payload]];
+    }
+
+    protected function shouldDeferEvent(string $eventName): bool
+    {
+        if (!$this->deferringEvents) {
+            return false;
+        }
+
+        if ($this->eventsToDefer === null) {
+            return true;
+        }
+
+        return in_array($eventName, $this->eventsToDefer, true);
     }
 
     protected function prepareListeners(string $eventName): array

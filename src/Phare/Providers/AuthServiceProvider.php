@@ -12,7 +12,11 @@ class AuthServiceProvider implements ServiceProviderInterface
     public function register(Application|DiInterface $app): void
     {
         $app->singleton('auth', function () use ($app) {
-            return new Auth($app['session'], $app['config']['auth']);
+            return new Auth(
+                $app['session'],
+                $app['config']['auth'],
+                $app['events'] ?? null
+            );
         });
     }
 }

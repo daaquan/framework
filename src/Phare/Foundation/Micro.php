@@ -74,5 +74,7 @@ class Micro extends AbstractApplication
         $this->app->finish(function ($app) {
             // $app['log']?->close();
         });
+
+        $this->callTerminatingCallbacks();
     }
 }
