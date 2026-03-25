@@ -26,17 +26,16 @@ class FactoryTest extends TestCase
         $connection = $this->app->make('db');
         $schema = new \Phare\Database\Schema\SchemaBuilder($connection);
 
-        // Create test table
-        if (!$schema->hasTable('test_users')) {
-            $schema->create('test_users', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('email');
-                $table->integer('age');
-                $table->boolean('is_active')->default(true);
-                $table->timestamps();
-            });
-        }
+        // Drop and recreate test table to ensure fresh schema each run
+        $schema->dropIfExists('test_users');
+        $schema->create('test_users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email');
+            $table->integer('age');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
     }
 
     protected function tearDown(): void
