@@ -2,9 +2,7 @@
 
 namespace Phare\Validation;
 
-use Phare\Contracts\Http\Validation\Validator as ValidatorContract;
-
-class Validator implements ValidatorContract
+class Validator
 {
     protected array $data;
 
@@ -73,6 +71,10 @@ class Validator implements ValidatorContract
         $rules = is_string($rules) ? explode('|', $rules) : $rules;
         $value = $this->getValue($attribute);
 
+        if (in_array('nullable', $rules) && ($value === null || $value === '')) {
+            return;
+        }
+
         foreach ($rules as $rule) {
             $this->validateRule($attribute, $value, $rule);
         }
@@ -139,6 +141,8 @@ class Validator implements ValidatorContract
     protected function getDefaultMessage(string $attribute, string $rule, array $parameters): string
     {
         $attribute = $this->getDisplayableAttribute($attribute);
+        $param0 = $parameters[0] ?? '';
+        $param1 = $parameters[1] ?? '';
 
         $messages = [
             'required' => "The {$attribute} field is required.",
@@ -146,16 +150,16 @@ class Validator implements ValidatorContract
             'integer' => "The {$attribute} must be an integer.",
             'numeric' => "The {$attribute} must be a number.",
             'email' => "The {$attribute} must be a valid email address.",
-            'min' => "The {$attribute} must be at least {$parameters[0]}.",
-            'max' => "The {$attribute} may not be greater than {$parameters[0]}.",
-            'between' => "The {$attribute} must be between {$parameters[0]} and {$parameters[1]}.",
+            'min' => "The {$attribute} must be at least {$param0}.",
+            'max' => "The {$attribute} may not be greater than {$param0}.",
+            'between' => "The {$attribute} must be between {$param0} and {$param1}.",
             'in' => "The selected {$attribute} is invalid.",
             'not_in' => "The selected {$attribute} is invalid.",
             'unique' => "The {$attribute} has already been taken.",
             'exists' => "The selected {$attribute} is invalid.",
             'confirmed' => "The {$attribute} confirmation does not match.",
-            'same' => "The {$attribute} and {$parameters[0]} must match.",
-            'different' => "The {$attribute} and {$parameters[0]} must be different.",
+            'same' => "The {$attribute} and {$param0} must match.",
+            'different' => "The {$attribute} and {$param0} must be different.",
             'array' => "The {$attribute} must be an array.",
             'boolean' => "The {$attribute} field must be true or false.",
             'date' => "The {$attribute} is not a valid date.",

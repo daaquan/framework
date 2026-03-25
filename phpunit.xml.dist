@@ -7,6 +7,15 @@
     <testsuites>
         <testsuite name="Unit Test Suite">
             <directory suffix="Test.php">./tests/Unit</directory>
+            <directory suffix="Test.php">./tests/Validation</directory>
+            <directory suffix="Test.php">./tests/Pipeline</directory>
+            <directory suffix="Test.php">./tests/Cache</directory>
+            <directory suffix="Test.php">./tests/Collections</directory>
+            <directory suffix="Test.php">./tests/Container</directory>
+            <directory suffix="Test.php">./tests/Security</directory>
+            <directory suffix="Test.php">./tests/Session</directory>
+            <directory suffix="Test.php">./tests/RateLimit</directory>
+            <directory suffix="Test.php">./tests/Middleware</directory>
         </testsuite>
     </testsuites>
     <php>
