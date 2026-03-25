@@ -12,7 +12,45 @@ class DatabaseManager
 {
     use HandlesTransactions;
 
-    public function __construct(protected Application $app, protected array $databases) {}
+    protected string $defaultConnection = 'db';
+
+    public function __construct(protected Application $app, protected array $databases)
+    {
+        if (isset($databases['default']) && is_string($databases['default'])) {
+            $this->defaultConnection = $databases['default'];
+        } elseif (method_exists($app, 'bound') && $app->bound('config')) {
+            $this->defaultConnection = (string) $app['config']->path('database.default', 'db');
+        }
+    }
+
+    public function connection(?string $name = null, ?string $type = null): PDO
+    {
+        $serviceName = $this->getConnectionService($name ?? $this->defaultConnection);
+
+        if (!$this->app->bound($serviceName)) {
+            $config = $this->databases[$serviceName] ?? null;
+            if (!is_array($config)) {
+                throw new \RuntimeException("Connection config for `{$serviceName}` is not defined.");
+            }
+
+            $manager = $this;
+            $this->app->singleton($serviceName, function () use ($manager, $config, $type) {
+                return $manager->getConnection($config, $type);
+            });
+        }
+
+        return $this->app->make($serviceName);
+    }
+
+    public function getDefaultConnection(): string
+    {
+        return $this->defaultConnection;
+    }
+
+    public function setDefaultConnection(string $name): void
+    {
+        $this->defaultConnection = $name;
+    }
 
     public function getConnectionService(string $serviceName): string
     {

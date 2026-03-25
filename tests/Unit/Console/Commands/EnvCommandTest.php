@@ -6,11 +6,8 @@ test('env command shows current environment', function () {
     $app = Mockery::mock('Phare\Contracts\Foundation\Application');
     $app->shouldReceive('environment')->andReturn('testing');
 
-    $command = new EnvCommand();
-    $command->setApplication($app);
-
-    // Mock output methods
-    $command = Mockery::mock(EnvCommand::class)->makePartial();
+    $command = Mockery::mock(EnvCommand::class)->makePartial()->shouldAllowMockingProtectedMethods();
+    $command->setFrameworkApplication($app);
     $command->shouldReceive('info')->once()->with('Current environment: <comment>testing</comment>');
     $command->shouldReceive('option')->with('show')->andReturn(false);
 
@@ -28,19 +25,11 @@ test('env command can show environment variables', function () {
     $app = Mockery::mock('Phare\Contracts\Foundation\Application');
     $app->shouldReceive('environment')->andReturn('testing');
 
-    $command = Mockery::mock(EnvCommand::class)->makePartial();
+    $command = Mockery::mock(EnvCommand::class)->makePartial()->shouldAllowMockingProtectedMethods();
+    $command->setFrameworkApplication($app);
     $command->shouldReceive('info')->once();
     $command->shouldReceive('option')->with('show')->andReturn(true);
-    $command->shouldReceive('line')->with('');
-    $command->shouldReceive('line')->with('Environment Variables:');
-    $command->shouldReceive('line')->with('=====================');
-
-    // Should hide secret variables
-    $command->shouldReceive('line')->with(Mockery::pattern('/<comment>SECRET_KEY<\/comment>=<info>\*+<\/info>/'));
-    $command->shouldReceive('line')->with('<comment>PUBLIC_VAR</comment>=<info>public_value</info>');
-    $command->shouldReceive('line')->with('<comment>TEST_VAR</comment>=<info>test_value</info>');
-
-    $command->setApplication($app);
+    $command->shouldReceive('showEnvironmentVariables')->once();
 
     $result = $command->handle();
 

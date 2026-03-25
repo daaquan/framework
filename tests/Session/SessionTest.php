@@ -1,34 +1,45 @@
 <?php
 
-use Phalcon\Session\Adapter\Redis;
-use Phalcon\Session\Adapter\Stream;
-use Phalcon\Storage\AdapterFactory;
-use Phalcon\Storage\SerializerFactory;
-use Phare\Session\SessionManager;
+function redisSessionAvailable(): bool
+{
+    $socket = @fsockopen('127.0.0.1', 6379, $errno, $errstr, 0.2);
+    if ($socket === false) {
+        return false;
+    }
 
-dataset('session', [
+    fclose($socket);
+
+    return true;
+}
+
+$sessionDatasets = [
     'file' => function () {
-        $adapter = new Stream(['savePath' => sys_get_temp_dir()]);
-        $session = (new SessionManager())->setAdapter($adapter);
+        $adapter = new \Phalcon\Session\Adapter\Stream(['savePath' => sys_get_temp_dir()]);
+        $session = (new \Phare\Session\SessionManager())->setAdapter($adapter);
         $session->start();
 
         return $session;
     },
-    'redis' => function () {
-        $factory = new AdapterFactory(new SerializerFactory());
-        $adapter = new Redis(
+];
+
+if (redisSessionAvailable()) {
+    $sessionDatasets['redis'] = function () {
+        $factory = new \Phalcon\Storage\AdapterFactory(new \Phalcon\Storage\SerializerFactory());
+        $adapter = new \Phalcon\Session\Adapter\Redis(
             $factory,
             [
                 'host' => '127.0.0.1',
                 'port' => 6379,
             ]
         );
-        $session = (new SessionManager())->setAdapter($adapter);
+        $session = (new \Phare\Session\SessionManager())->setAdapter($adapter);
         $session->start();
 
         return $session;
-    },
-]);
+    };
+}
+
+dataset('session', $sessionDatasets);
 
 it('can set and get session values', function ($session) {
     $session->put('key', 'value');

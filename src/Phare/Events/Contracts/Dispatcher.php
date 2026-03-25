@@ -7,7 +7,7 @@ interface Dispatcher
     /**
      * Register an event listener with the dispatcher.
      */
-    public function listen(string|array $events, \Closure|string $listener): void;
+    public function listen(mixed $events, mixed $listener = null): void;
 
     /**
      * Determine if a given event has listeners.
@@ -17,12 +17,27 @@ interface Dispatcher
     /**
      * Fire an event and call the listeners.
      */
-    public function dispatch(string|object $event, array $payload = [], bool $halt = false): ?array;
+    public function dispatch(string|object $event, mixed $payload = [], bool $halt = false): mixed;
+
+    /**
+     * Fire an event when the given condition resolves to true.
+     */
+    public function dispatchIf(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false): mixed;
+
+    /**
+     * Fire an event when the given condition resolves to false.
+     */
+    public function dispatchUnless(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false): mixed;
 
     /**
      * Fire an event until the first non-null response is returned.
      */
-    public function until(string|object $event, array $payload = []);
+    public function until(string|object $event, mixed $payload = []);
+
+    /**
+     * Register an event and payload to be fired later.
+     */
+    public function push(string $event, object|array $payload = []): void;
 
     /**
      * Remove a set of listeners from the dispatcher.
@@ -43,4 +58,9 @@ interface Dispatcher
      * Register an event subscriber with the dispatcher.
      */
     public function subscribe(object|string $subscriber): void;
+
+    /**
+     * Defer event dispatching until the callback completes.
+     */
+    public function defer(callable $callback, ?array $events = null): mixed;
 }

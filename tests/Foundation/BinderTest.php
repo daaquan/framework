@@ -32,7 +32,7 @@ class BinderTest extends TestCase
 
         $collection = new Micro\Collection();
         $collection->setHandler(IndexController::class, true);
-        $collection->get('/index/{id}', 'indexAction');
+        $collection->get('/index/{id}', 'index');
 
         $app->mount($collection);
         $response = $app->handle('/index/1?foo=bar');

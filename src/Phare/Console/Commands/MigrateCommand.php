@@ -2,7 +2,6 @@
 
 namespace Phare\Console\Commands;
 
-use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phare\Console\Command;
 use Phare\Database\Migrator;
 
@@ -14,8 +13,7 @@ class MigrateCommand extends Command
 
     public function handle(): int
     {
-        $connection = $this->getApplication()->make('db');
-        $migrator = new Migrator($this->getApplication(), $connection);
+        $migrator = $this->createMigrator();
 
         if ($this->option('fresh')) {
             return $this->runFresh($migrator);
@@ -36,7 +34,7 @@ class MigrateCommand extends Command
         return $this->runMigrations($migrator);
     }
 
-    protected function runMigrations(Migrator $migrator): int
+    protected function runMigrations(object $migrator): int
     {
         $paths = $this->getMigrationPaths();
 
@@ -56,12 +54,12 @@ class MigrateCommand extends Command
         return 0;
     }
 
-    protected function runFresh(Migrator $migrator): int
+    protected function runFresh(object $migrator): int
     {
         $this->info('Dropping all tables...');
 
         // Drop all tables
-        $connection = $this->getApplication()->make('db');
+        $connection = $this->getConnection();
         $tables = $this->getAllTables($connection);
 
         foreach ($tables as $table) {
@@ -73,7 +71,7 @@ class MigrateCommand extends Command
         return $this->runMigrations($migrator);
     }
 
-    protected function runReset(Migrator $migrator): int
+    protected function runReset(object $migrator): int
     {
         $this->info('Rolling back migrations...');
 
@@ -91,14 +89,14 @@ class MigrateCommand extends Command
         return 0;
     }
 
-    protected function runRefresh(Migrator $migrator): int
+    protected function runRefresh(object $migrator): int
     {
         $this->runReset($migrator);
 
         return $this->runMigrations($migrator);
     }
 
-    protected function runRollback(Migrator $migrator): int
+    protected function runRollback(object $migrator): int
     {
         $steps = (int)$this->option('rollback') ?: 1;
 
@@ -125,13 +123,13 @@ class MigrateCommand extends Command
         if ($path = $this->option('path')) {
             $paths[] = $path;
         } else {
-            $paths[] = $this->getApplication()->databasePath('migrations');
+            $paths[] = $this->getFrameworkApplication()->databasePath('migrations');
         }
 
         return $paths;
     }
 
-    protected function getAllTables(AbstractPdo $connection): array
+    protected function getAllTables($connection): array
     {
         $driver = strtolower($connection->getType());
 
@@ -150,5 +148,15 @@ class MigrateCommand extends Command
             ),
             default => [],
         };
+    }
+
+    protected function getConnection(): mixed
+    {
+        return $this->getFrameworkApplication()->make('db');
+    }
+
+    protected function createMigrator(): object
+    {
+        return new Migrator($this->getFrameworkApplication(), $this->getConnection());
     }
 }

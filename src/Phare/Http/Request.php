@@ -57,7 +57,7 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
 
     private array $messages = [];
 
-    private mixed $data;
+    protected mixed $data;
 
     public function __construct(protected array $rules = [])
     {

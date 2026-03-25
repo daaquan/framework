@@ -14,16 +14,34 @@ trait SoftDeletes
 
     public function restore(): bool
     {
+        if ($this->fireModelEvent('restoring', true) === false) {
+            return false;
+        }
+
         $this->{static::DELETED_AT} = null;
 
-        return $this->save();
+        $restored = $this->save();
+        if ($restored) {
+            $this->fireModelEvent('restored');
+        }
+
+        return $restored;
     }
 
     public function forceDelete(): bool
     {
+        if ($this->fireModelEvent('forceDeleting', true) === false) {
+            return false;
+        }
+
         $this->forceDeleting = true;
 
-        return parent::delete();
+        $deleted = parent::delete();
+        if ($deleted) {
+            $this->fireModelEvent('forceDeleted');
+        }
+
+        return $deleted;
     }
 
     protected function beforeDelete()

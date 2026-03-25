@@ -1,5 +1,13 @@
 <?php
 
+if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+    test('migrator integration tests require sqlite driver', function () {
+        $this->markTestSkipped('PDO sqlite driver is required for migrator integration tests.');
+    });
+
+    return;
+}
+
 use Phare\Database\Migration;
 use Phare\Database\Migrator;
 use Phare\Database\Schema\SchemaBuilder;

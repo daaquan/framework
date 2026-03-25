@@ -12,9 +12,16 @@ class QueueImplTestJob extends Job
 
     public ?Exception $failedException = null;
 
-    public function __construct(public string $data = 'test data', public bool $shouldFail = false)
+    public string $message = 'test data';
+
+    public bool $shouldFail = false;
+
+    public function __construct(string $message = 'test data', bool $shouldFail = false)
     {
         parent::__construct();
+        $this->message = $message;
+        $this->shouldFail = $shouldFail;
+        $this->withData(['message' => $message]);
     }
 
     public function handle(): void
@@ -48,7 +55,7 @@ describe('SyncQueue', function () {
     test('sync queue throws exception on job failure', function () {
         $job = new QueueImplTestJob('failing job', true);
 
-        expect(function () {
+        expect(function () use ($job) {
             $this->queue->push($job);
         })->toThrow(Exception::class, 'Job intentionally failed');
 
@@ -101,7 +108,7 @@ describe('DatabaseQueue', function () {
         $poppedJob = $this->queue->pop('test-queue');
 
         expect($poppedJob)->toBeInstanceOf(QueueImplTestJob::class);
-        expect($poppedJob->data)->toBe('pop test');
+        expect($poppedJob->getData()['message'])->toBe('pop test');
     });
 
     test('database queue returns null when no jobs available', function () {
@@ -189,7 +196,7 @@ describe('RedisQueue', function () {
         $poppedJob = $this->queue->pop('redis-test');
 
         expect($poppedJob)->toBeInstanceOf(QueueImplTestJob::class);
-        expect($poppedJob->data)->toBe('redis pop test');
+        expect($poppedJob->getData()['message'])->toBe('redis pop test');
     });
 
     test('redis queue handles delayed jobs', function () {
@@ -244,7 +251,7 @@ describe('RedisQueue', function () {
         // but we can test the moveDelayedJobs method exists
         $reflection = new ReflectionClass($this->queue);
         $method = $reflection->getMethod('moveDelayedJobs');
-        expect($method)->toBeDefined();
+        expect($method)->toBeInstanceOf(ReflectionMethod::class);
     });
 
     test('redis queue can flush all queues', function () {

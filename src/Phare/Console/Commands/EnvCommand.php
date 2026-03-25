@@ -12,7 +12,7 @@ class EnvCommand extends Command
 
     public function handle(): int
     {
-        $environment = $this->app->environment();
+        $environment = $this->getFrameworkApplication()->environment();
 
         $this->info("Current environment: <comment>{$environment}</comment>");
 

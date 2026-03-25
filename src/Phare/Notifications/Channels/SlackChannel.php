@@ -46,7 +46,9 @@ class SlackChannel implements ChannelInterface
         }
 
         if (method_exists($notifiable, 'routeNotificationForSlack')) {
-            return $notifiable->routeNotificationForSlack();
+            $webhook = $notifiable->routeNotificationForSlack();
+
+            return is_string($webhook) ? $webhook : '';
         }
 
         return '';

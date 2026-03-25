@@ -8,7 +8,7 @@ class ScheduleRunCommand extends Command
 {
     protected string $name = 'schedule:run';
 
-    protected string $description = 'Run the scheduled commands';
+    protected ?string $description = 'Run the scheduled commands';
 
     public function handle(): int
     {

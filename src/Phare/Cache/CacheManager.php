@@ -9,6 +9,8 @@ use Phalcon\Cache\Adapter\Redis;
 use Phalcon\Cache\Adapter\Stream;
 use Phalcon\Config\Config;
 use Phalcon\Storage\SerializerFactory;
+use Phare\Cache\Adapter\ArrayAdapter;
+use Phare\Cache\Adapter\NullAdapter;
 
 class CacheManager
 {
@@ -17,9 +19,9 @@ class CacheManager
     public function __construct()
     {
         $store = config('cache.default', 'file');
-        $config = config("cache.stores.{$store}");
+        $config = $this->normalizeConfig(config("cache.stores.{$store}"));
 
-        if (!$config || !isset($config['driver'])) {
+        if ($config === [] || !isset($config['driver'])) {
             throw new InvalidArgumentException("Cache config for '{$store}' is invalid or missing.");
         }
 
@@ -41,8 +43,8 @@ class CacheManager
             'file', 'stream' => $this->makeStreamAdapter($factory, $config),
             'redis' => $this->makeRedisAdapter($factory, $config),
             'apc', 'apcu' => $this->makeApcuAdapter($factory, $config),
-            'array' => $this->makeArrayAdapter($config),
-            'null' => $this->makeNullAdapter(),
+            'array' => $this->makeArrayAdapter($factory, $config),
+            'null' => $this->makeNullAdapter($config),
             default => throw new InvalidArgumentException("Invalid cache driver: {$driver}"),
         };
     }
@@ -58,8 +60,19 @@ class CacheManager
 
     protected function makeRedisAdapter(SerializerFactory $factory, array $config): Redis
     {
-        $conn = config("database.connections.redis.{$config['connection']}");
-        if (!$conn) {
+        $connection = (string)($config['connection'] ?? 'default');
+
+        $conn = $this->normalizeConfig(config("database.connections.redis.{$connection}"));
+
+        if ($conn === []) {
+            $conn = $this->normalizeConfig(config("database.connections.cache.{$connection}"));
+        }
+
+        if ($conn === []) {
+            $conn = $this->normalizeConfig(config("database.connections.{$connection}"));
+        }
+
+        if ($conn === []) {
             throw new InvalidArgumentException('Redis cache: connection config is missing.');
         }
 
@@ -77,14 +90,16 @@ class CacheManager
         return new Apcu($factory, $config);
     }
 
-    protected function makeArrayAdapter(array $config): ArrayAdapter
+    protected function makeArrayAdapter(SerializerFactory $factory, array $config): ArrayAdapter
     {
-        return new ArrayAdapter($config['prefix'] ?? '');
+        unset($factory);
+
+        return new ArrayAdapter($config['prefix'] ?? config('cache.prefix', ''));
     }
 
-    protected function makeNullAdapter(): NullAdapter
+    protected function makeNullAdapter(array $config): NullAdapter
     {
-        return new NullAdapter();
+        return new NullAdapter($config['prefix'] ?? config('cache.prefix', ''));
     }
 
     public function get(string $key, mixed $default = null): mixed
@@ -106,6 +121,15 @@ class CacheManager
 
     public function clear(): bool
     {
-        return $this->cache->flush();
+        return $this->cache->clear();
+    }
+
+    protected function normalizeConfig(mixed $value): array
+    {
+        if ($value instanceof Config) {
+            return $value->toArray();
+        }
+
+        return is_array($value) ? $value : [];
     }
 }

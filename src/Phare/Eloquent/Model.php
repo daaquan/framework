@@ -9,10 +9,13 @@ use Phalcon\Mvc\ModelInterface;
 use Phare\Collections\Collection;
 use Phare\Collections\Str;
 use Phare\Database\MySql\DatabaseManager;
+use Phare\Eloquent\Concerns\HasEvents;
 
 #[\AllowDynamicProperties]
 class Model extends PhModel implements \ArrayAccess
 {
+    use HasEvents;
+
     /**
      * @var string|null The connection name for the model.
      */
@@ -99,7 +102,17 @@ class Model extends PhModel implements \ArrayAccess
             $this->fill($attributes);
         }
 
-        return parent::create();
+        if ($this->fireModelEvent('saving', true) === false || $this->fireModelEvent('creating', true) === false) {
+            return false;
+        }
+
+        $created = parent::create();
+        if ($created) {
+            $this->fireModelEvent('created');
+            $this->fireModelEvent('saved');
+        }
+
+        return $created;
     }
 
     public function update(?array $attributes = null): bool
@@ -108,7 +121,17 @@ class Model extends PhModel implements \ArrayAccess
             $this->fill($attributes);
         }
 
-        return parent::update();
+        if ($this->fireModelEvent('saving', true) === false || $this->fireModelEvent('updating', true) === false) {
+            return false;
+        }
+
+        $updated = parent::update();
+        if ($updated) {
+            $this->fireModelEvent('updated');
+            $this->fireModelEvent('saved');
+        }
+
+        return $updated;
     }
 
     public function save(?array $attributes = null): bool
@@ -117,7 +140,30 @@ class Model extends PhModel implements \ArrayAccess
             $this->fill($attributes);
         }
 
-        return parent::save();
+        if ($this->fireModelEvent('saving', true) === false) {
+            return false;
+        }
+
+        $saved = parent::save();
+        if ($saved) {
+            $this->fireModelEvent('saved');
+        }
+
+        return $saved;
+    }
+
+    public function delete(): bool
+    {
+        if ($this->fireModelEvent('deleting', true) === false) {
+            return false;
+        }
+
+        $deleted = parent::delete();
+        if ($deleted) {
+            $this->fireModelEvent('deleted');
+        }
+
+        return $deleted;
     }
 
     /**

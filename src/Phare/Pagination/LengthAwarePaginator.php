@@ -12,16 +12,23 @@ class LengthAwarePaginator extends Paginator
 
     public function __construct($items, int $total, int $perPage, ?int $currentPage = null, array $options = [])
     {
+        $this->options = $options;
+
+        foreach ($options as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->{$key} = $value;
+            }
+        }
+
         $this->total = $total;
         $this->perPage = $perPage;
+        $this->pageName = $this->pageName ?? 'page';
+        $this->path = $this->path ?? static::resolveCurrentPath();
+        $this->path = $this->path !== '/' ? rtrim($this->path, '/') : $this->path;
         $this->currentPage = $this->setCurrentPage($currentPage);
         $this->lastPage = max((int)ceil($total / $perPage), 1);
 
         $this->items = $items instanceof Collection ? $items : new Collection($items);
-        $this->options = $options;
-
-        $this->path = $this->options['path'] ?? $this->resolveCurrentPath();
-        $this->pageName = $this->options['pageName'] ?? 'page';
     }
 
     public function total(): int
@@ -178,8 +185,11 @@ class LengthAwarePaginator extends Paginator
         return $links;
     }
 
-    public static function make(array $items, int $total, int $perPage, ?int $currentPage = null, array $options = []): static
+    public static function make(array $items, int $perPage, ?int $currentPage = null, array $options = []): static
     {
+        $total = isset($options['total']) ? (int)$options['total'] : count($items);
+        unset($options['total']);
+
         return new static($items, $total, $perPage, $currentPage, $options);
     }
 }

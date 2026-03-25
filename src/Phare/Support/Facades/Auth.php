@@ -7,6 +7,8 @@ namespace Phare\Support\Facades;
  * @method static bool guest()
  * @method static bool attempt(array $credentials = [])
  * @method static bool check()
+ * @method static int|string|null id()
+ * @method static bool validate(array $credentials = [])
  * @method static bool login(\Phare\Contracts\Auth\Authenticatable $user)
  * @method static void logout(): void
  * @method static mixed|null retrieveIdentifier()

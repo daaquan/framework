@@ -3,8 +3,20 @@
 use Phare\Auth\Sanctum\NewAccessToken;
 use Phare\Auth\Sanctum\PersonalAccessToken;
 
+class NewAccessTokenTestToken extends PersonalAccessToken
+{
+}
+
+function makeNewAccessTokenTestToken(): NewAccessTokenTestToken
+{
+    /** @var NewAccessTokenTestToken $token */
+    $token = (new ReflectionClass(NewAccessTokenTestToken::class))->newInstanceWithoutConstructor();
+
+    return $token;
+}
+
 test('new access token can be created', function () {
-    $accessToken = new PersonalAccessToken(['name' => 'test-token']);
+    $accessToken = makeNewAccessTokenTestToken();
     $plainTextToken = 'plain-text-token';
 
     $newToken = new NewAccessToken($accessToken, $plainTextToken);
@@ -14,7 +26,7 @@ test('new access token can be created', function () {
 });
 
 test('new access token can be converted to array', function () {
-    $accessToken = new PersonalAccessToken(['name' => 'test-token']);
+    $accessToken = makeNewAccessTokenTestToken();
     $plainTextToken = 'plain-text-token';
 
     $newToken = new NewAccessToken($accessToken, $plainTextToken);
@@ -25,11 +37,11 @@ test('new access token can be converted to array', function () {
 });
 
 test('new access token can be converted to string', function () {
-    $accessToken = new PersonalAccessToken(['name' => 'test-token']);
+    $accessToken = makeNewAccessTokenTestToken();
     $plainTextToken = 'plain-text-token';
 
     $newToken = new NewAccessToken($accessToken, $plainTextToken);
 
-    expect((string)$newToken)->toBe($plainTextToken);
+    expect((string) $newToken)->toBe($plainTextToken);
     expect($newToken->__toString())->toBe($plainTextToken);
 });

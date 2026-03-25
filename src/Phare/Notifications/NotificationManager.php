@@ -2,7 +2,7 @@
 
 namespace Phare\Notifications;
 
-use Phare\Events\EventDispatcher;
+use Phare\Events\Contracts\Dispatcher as EventDispatcher;
 use Phare\Notifications\Channels\ChannelManager;
 
 class NotificationManager

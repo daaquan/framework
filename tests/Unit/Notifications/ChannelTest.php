@@ -61,12 +61,12 @@ class NotifiableForChannelTest
         return $this->email;
     }
 
-    public function routeNotificationForSms(): string
+    public function routeNotificationForSms(): ?string
     {
         return $this->phone;
     }
 
-    public function routeNotificationForSlack(): string
+    public function routeNotificationForSlack(): ?string
     {
         return $this->slack_webhook;
     }
