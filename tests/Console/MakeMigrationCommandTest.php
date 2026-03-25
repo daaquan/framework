@@ -2,398 +2,178 @@
 
 use Phare\Console\Commands\MakeMigrationCommand;
 
-it('can create basic migration', function () {
-    $testPath = sys_get_temp_dir() . '/test_make_migration_basic';
-    if (!is_dir($testPath)) {
-        mkdir($testPath, 0755, true);
+class TestableMakeMigrationCommand extends MakeMigrationCommand
+{
+    private array $arguments = [];
+
+    private array $options = [];
+
+    private array $messages = [];
+
+    private string $basePath = '';
+
+    public function setBasePath(string $path): void
+    {
+        $this->basePath = $path;
     }
 
-    $command = new class() extends MakeMigrationCommand
+    public function setArgument(string $key, mixed $value): void
     {
-        public array $testArgs = [];
+        $this->arguments[$key] = $value;
+    }
 
-        public array $testOpts = [];
-
-        public array $testOutput = [];
-
-        public $mockApp;
-
-        protected function argument(?string $key = null): mixed
-        {
-            return $key === null ? $this->testArgs : ($this->testArgs[$key] ?? null);
-        }
-
-        protected function option(?string $key = null): mixed
-        {
-            return $key === null ? $this->testOpts : ($this->testOpts[$key] ?? null);
-        }
-
-        protected function info(string $message): void
-        {
-            $this->testOutput[] = $message;
-        }
-
-        protected function error(string $message): void
-        {
-            $this->testOutput[] = 'ERROR: ' . $message;
-        }
-
-        protected function getMigrationFileName(string $name): string
-        {
-            return '2023_01_01_120000_' . $name . '.php';
-        }
-
-        // Use a custom method instead of overriding getApplication()
-        protected function ensureMigrationDirectory(): void
-        {
-            $dir = $this->mockApp->databasePath('migrations');
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-        }
-
-        public function handle(): int
-        {
-            $name = $this->argument('name');
-            $table = $this->option('table');
-            $create = $this->option('create');
-
-            $fileName = $this->getMigrationFileName($name);
-            $path = $this->mockApp->databasePath('migrations') . '/' . $fileName;
-
-            if (file_exists($path)) {
-                $this->error("Migration {$fileName} already exists!");
-
-                return 1;
-            }
-
-            $this->ensureMigrationDirectory();
-
-            $stub = $this->getStub($create, $table);
-            $migrationName = $this->getMigrationName($name);
-            $content = $this->populateStub($stub, $migrationName, $create ?: $table);
-
-            file_put_contents($path, $content);
-            $this->info("Migration {$fileName} created successfully.");
-
-            return 0;
-        }
-    };
-
-    $command->testArgs = ['name' => 'create_posts_table'];
-    $command->mockApp = new class($testPath)
+    public function setOption(string $key, mixed $value): void
     {
-        private string $path;
+        $this->options[$key] = $value;
+    }
 
-        public function __construct(string $path)
-        {
-            $this->path = $path;
+    public function getMessages(): array
+    {
+        return $this->messages;
+    }
+
+    public function argument(?string $key = null): mixed
+    {
+        if ($key === null) {
+            return $this->arguments;
         }
 
-        public function databasePath(string $p = ''): string
-        {
-            return $this->path . ($p ? '/' . $p : '');
+        return $this->arguments[$key] ?? null;
+    }
+
+    public function option(?string $key = null): mixed
+    {
+        if ($key === null) {
+            return $this->options;
         }
-    };
+
+        return $this->options[$key] ?? null;
+    }
+
+    public function info(string $message): void
+    {
+        $this->messages[] = $message;
+    }
+
+    public function error(string $message): void
+    {
+        $this->messages[] = 'ERROR: ' . $message;
+    }
+
+    protected function getMigrationFileName(string $name): string
+    {
+        return '2023_01_01_120000_' . $name . '.php';
+    }
+
+    protected function migrationDirectory(): string
+    {
+        return $this->basePath . '/migrations';
+    }
+}
+
+beforeEach(function () {
+    $this->testMigrationPath = sys_get_temp_dir() . '/test_make_migration_' . bin2hex(random_bytes(4));
+    mkdir($this->testMigrationPath, 0755, true);
+});
+
+afterEach(function () {
+    if (!is_dir($this->testMigrationPath)) {
+        return;
+    }
+
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($this->testMigrationPath, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+
+    foreach ($it as $item) {
+        $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+    }
+
+    rmdir($this->testMigrationPath);
+});
+
+it('can create basic migration', function () {
+    $command = new TestableMakeMigrationCommand();
+    $command->setBasePath($this->testMigrationPath);
+    $command->setArgument('name', 'create_posts_table');
 
     $result = $command->handle();
 
     expect($result)->toBe(0);
-    expect($command->testOutput)->toContain('Migration 2023_01_01_120000_create_posts_table.php created successfully.');
+    expect($command->getMessages())->toContain('Migration 2023_01_01_120000_create_posts_table.php created successfully.');
 
-    $expectedFile = $testPath . '/migrations/2023_01_01_120000_create_posts_table.php';
-    expect(file_exists($expectedFile))->toBe(true);
+    $expectedFile = $this->testMigrationPath . '/migrations/2023_01_01_120000_create_posts_table.php';
+    expect(file_exists($expectedFile))->toBeTrue();
 
     $content = file_get_contents($expectedFile);
     expect($content)->toContain('class extends Migration');
     expect($content)->toContain('public function up()');
     expect($content)->toContain('public function down()');
-
-    // Cleanup
-    @unlink($expectedFile);
-    @rmdir($testPath . '/migrations');
-    @rmdir($testPath);
 });
 
 it('can create migration with create table option', function () {
-    $testPath = sys_get_temp_dir() . '/test_make_migration_create';
-    if (!is_dir($testPath)) {
-        mkdir($testPath, 0755, true);
-    }
-
-    $command = new class() extends MakeMigrationCommand
-    {
-        public array $testArgs = [];
-
-        public array $testOpts = [];
-
-        public array $testOutput = [];
-
-        public $mockApp;
-
-        protected function argument(?string $key = null): mixed
-        {
-            return $key === null ? $this->testArgs : ($this->testArgs[$key] ?? null);
-        }
-
-        protected function option(?string $key = null): mixed
-        {
-            return $key === null ? $this->testOpts : ($this->testOpts[$key] ?? null);
-        }
-
-        protected function info(string $message): void
-        {
-            $this->testOutput[] = $message;
-        }
-
-        protected function error(string $message): void
-        {
-            $this->testOutput[] = 'ERROR: ' . $message;
-        }
-
-        protected function getMigrationFileName(string $name): string
-        {
-            return '2023_01_01_120000_' . $name . '.php';
-        }
-
-        protected function ensureMigrationDirectory(): void
-        {
-            $dir = $this->mockApp->databasePath('migrations');
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-        }
-
-        public function handle(): int
-        {
-            $name = $this->argument('name');
-            $table = $this->option('table');
-            $create = $this->option('create');
-            $fileName = $this->getMigrationFileName($name);
-            $path = $this->mockApp->databasePath('migrations') . '/' . $fileName;
-            if (file_exists($path)) {
-                $this->error("Migration {$fileName} already exists!");
-
-                return 1;
-            }
-            $this->ensureMigrationDirectory();
-            $stub = $this->getStub($create, $table);
-            $content = $this->populateStub($stub, $this->getMigrationName($name), $create ?: $table);
-            file_put_contents($path, $content);
-            $this->info("Migration {$fileName} created successfully.");
-
-            return 0;
-        }
-    };
-
-    $command->testArgs = ['name' => 'create_users_table'];
-    $command->testOpts = ['create' => 'users', 'table' => null];
-    $command->mockApp = new class($testPath)
-    {
-        private string $path;
-
-        public function __construct(string $path)
-        {
-            $this->path = $path;
-        }
-
-        public function databasePath(string $p = ''): string
-        {
-            return $this->path . ($p ? '/' . $p : '');
-        }
-    };
+    $command = new TestableMakeMigrationCommand();
+    $command->setBasePath($this->testMigrationPath);
+    $command->setArgument('name', 'create_users_table');
+    $command->setOption('create', 'users');
 
     $result = $command->handle();
+
     expect($result)->toBe(0);
 
-    $content = file_get_contents($testPath . '/migrations/2023_01_01_120000_create_users_table.php');
+    $expectedFile = $this->testMigrationPath . '/migrations/2023_01_01_120000_create_users_table.php';
+    expect(file_exists($expectedFile))->toBeTrue();
+
+    $content = file_get_contents($expectedFile);
     expect($content)->toContain("create('users'");
     expect($content)->toContain('$table->id()');
     expect($content)->toContain('$table->timestamps()');
     expect($content)->toContain("dropIfExists('users')");
-
-    // Cleanup
-    @unlink($testPath . '/migrations/2023_01_01_120000_create_users_table.php');
-    @rmdir($testPath . '/migrations');
-    @rmdir($testPath);
 });
 
 it('can create migration with table modification option', function () {
-    $testPath = sys_get_temp_dir() . '/test_make_migration_modify';
-    if (!is_dir($testPath)) {
-        mkdir($testPath, 0755, true);
-    }
-
-    $command = new class() extends MakeMigrationCommand
-    {
-        public array $testArgs = [];
-
-        public array $testOpts = [];
-
-        public array $testOutput = [];
-
-        public $mockApp;
-
-        protected function argument(?string $key = null): mixed
-        {
-            return $key === null ? $this->testArgs : ($this->testArgs[$key] ?? null);
-        }
-
-        protected function option(?string $key = null): mixed
-        {
-            return $key === null ? $this->testOpts : ($this->testOpts[$key] ?? null);
-        }
-
-        protected function info(string $message): void
-        {
-            $this->testOutput[] = $message;
-        }
-
-        protected function error(string $message): void
-        {
-            $this->testOutput[] = 'ERROR: ' . $message;
-        }
-
-        protected function getMigrationFileName(string $name): string
-        {
-            return '2023_01_01_120000_' . $name . '.php';
-        }
-
-        protected function ensureMigrationDirectory(): void
-        {
-            $dir = $this->mockApp->databasePath('migrations');
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-        }
-
-        public function handle(): int
-        {
-            $name = $this->argument('name');
-            $table = $this->option('table');
-            $create = $this->option('create');
-            $fileName = $this->getMigrationFileName($name);
-            $path = $this->mockApp->databasePath('migrations') . '/' . $fileName;
-            if (file_exists($path)) {
-                $this->error("Migration {$fileName} already exists!");
-
-                return 1;
-            }
-            $this->ensureMigrationDirectory();
-            $stub = $this->getStub($create, $table);
-            $content = $this->populateStub($stub, $this->getMigrationName($name), $create ?: $table);
-            file_put_contents($path, $content);
-            $this->info("Migration {$fileName} created successfully.");
-
-            return 0;
-        }
-    };
-
-    $command->testArgs = ['name' => 'add_email_to_users'];
-    $command->testOpts = ['table' => 'users', 'create' => null];
-    $command->mockApp = new class($testPath)
-    {
-        private string $path;
-
-        public function __construct(string $path)
-        {
-            $this->path = $path;
-        }
-
-        public function databasePath(string $p = ''): string
-        {
-            return $this->path . ($p ? '/' . $p : '');
-        }
-    };
+    $command = new TestableMakeMigrationCommand();
+    $command->setBasePath($this->testMigrationPath);
+    $command->setArgument('name', 'add_email_to_users');
+    $command->setOption('table', 'users');
 
     $result = $command->handle();
+
     expect($result)->toBe(0);
 
-    $content = file_get_contents($testPath . '/migrations/2023_01_01_120000_add_email_to_users.php');
+    $expectedFile = $this->testMigrationPath . '/migrations/2023_01_01_120000_add_email_to_users.php';
+    expect(file_exists($expectedFile))->toBeTrue();
+
+    $content = file_get_contents($expectedFile);
     expect($content)->toContain("table('users'");
     expect($content)->not->toContain("create('users'");
-
-    @unlink($testPath . '/migrations/2023_01_01_120000_add_email_to_users.php');
-    @rmdir($testPath . '/migrations');
-    @rmdir($testPath);
+    expect($content)->not->toContain("dropIfExists('users')");
 });
 
 it('prevents creating duplicate migration files', function () {
-    $testPath = sys_get_temp_dir() . '/test_make_migration_dup';
-    @mkdir($testPath . '/migrations', 0755, true);
-    file_put_contents($testPath . '/migrations/2023_01_01_120000_create_posts_table.php', '<?php // existing');
+    $dir = $this->testMigrationPath . '/migrations';
+    mkdir($dir, 0755, true);
+    $existingFile = $dir . '/2023_01_01_120000_create_posts_table.php';
+    file_put_contents($existingFile, '<?php // existing file');
 
-    $command = new class() extends MakeMigrationCommand
-    {
-        public array $testArgs = [];
-
-        public array $testOpts = [];
-
-        public array $testOutput = [];
-
-        public $mockApp;
-
-        protected function argument(?string $key = null): mixed
-        {
-            return $key === null ? $this->testArgs : ($this->testArgs[$key] ?? null);
-        }
-
-        protected function option(?string $key = null): mixed
-        {
-            return $key === null ? $this->testOpts : ($this->testOpts[$key] ?? null);
-        }
-
-        protected function info(string $message): void
-        {
-            $this->testOutput[] = $message;
-        }
-
-        protected function error(string $message): void
-        {
-            $this->testOutput[] = 'ERROR: ' . $message;
-        }
-
-        protected function getMigrationFileName(string $name): string
-        {
-            return '2023_01_01_120000_' . $name . '.php';
-        }
-
-        public function handle(): int
-        {
-            $name = $this->argument('name');
-            $fileName = $this->getMigrationFileName($name);
-            $path = $this->mockApp->databasePath('migrations') . '/' . $fileName;
-            if (file_exists($path)) {
-                $this->error("Migration {$fileName} already exists!");
-
-                return 1;
-            }
-
-            return 0;
-        }
-    };
-
-    $command->testArgs = ['name' => 'create_posts_table'];
-    $command->mockApp = new class($testPath)
-    {
-        private string $path;
-
-        public function __construct(string $path)
-        {
-            $this->path = $path;
-        }
-
-        public function databasePath(string $p = ''): string
-        {
-            return $this->path . ($p ? '/' . $p : '');
-        }
-    };
+    $command = new TestableMakeMigrationCommand();
+    $command->setBasePath($this->testMigrationPath);
+    $command->setArgument('name', 'create_posts_table');
 
     $result = $command->handle();
-    expect($result)->toBe(1);
-    expect($command->testOutput)->toContain('ERROR: Migration 2023_01_01_120000_create_posts_table.php already exists!');
 
-    @unlink($testPath . '/migrations/2023_01_01_120000_create_posts_table.php');
-    @rmdir($testPath . '/migrations');
-    @rmdir($testPath);
+    expect($result)->toBe(1);
+    expect($command->getMessages())->toContain('ERROR: Migration 2023_01_01_120000_create_posts_table.php already exists!');
+});
+
+it('creates migration directory if it does not exist', function () {
+    $command = new TestableMakeMigrationCommand();
+    $command->setBasePath($this->testMigrationPath . '/new_migrations');
+    $command->setArgument('name', 'create_test_table');
+
+    $result = $command->handle();
+
+    expect($result)->toBe(0);
+    expect(is_dir($this->testMigrationPath . '/new_migrations/migrations'))->toBeTrue();
 });

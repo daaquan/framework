@@ -9,6 +9,10 @@ class SyncQueue implements QueueInterface
      */
     public function push(Job $job, ?string $queue = null): string
     {
+        if ($queue !== null) {
+            $job->onQueue($queue);
+        }
+
         // In sync queue, execute immediately
         try {
             $job->handle();

@@ -47,8 +47,26 @@ class SimpleApplication implements Application
         return $this->basePath('bootstrap' . ($path ? '/' . ltrim($path, '/') : ''));
     }
 
-    public function environment(): string
+    public function environment(...$environments): string|bool
     {
+        if ($environments === []) {
+            return 'testing';
+        }
+
+        foreach ($environments as $environment) {
+            if (is_array($environment)) {
+                if (in_array('testing', $environment, true)) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if ($environment === 'testing') {
+                return true;
+            }
+        }
+
         return 'testing';
     }
 
@@ -65,6 +83,11 @@ class SimpleApplication implements Application
     public function hasBeenBootstrapped(): bool
     {
         return true;
+    }
+
+    public function bootstrapWith(array $bootstrappers): void
+    {
+        // No-op for testing
     }
 
     public function bootstrap(array $bootstrappers): void

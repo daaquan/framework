@@ -1,5 +1,13 @@
 <?php
 
+if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+    test('schema builder integration tests require sqlite driver', function () {
+        $this->markTestSkipped('PDO sqlite driver is required for schema builder integration tests.');
+    });
+
+    return;
+}
+
 use Phare\Database\Schema\Blueprint;
 use Phare\Database\Schema\SchemaBuilder;
 

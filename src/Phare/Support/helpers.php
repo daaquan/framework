@@ -46,26 +46,44 @@ if (!function_exists('config')) {
             return $config;
         }
         if (is_array($key)) {
-            // Build nested array from dot-notation keys and merge into config
-            $nested = [];
-            foreach ($key as $k => $v) {
-                $keys = explode('.', $k);
-                $ref = &$nested;
-                foreach ($keys as $segment) {
-                    if (!isset($ref[$segment]) || !is_array($ref[$segment])) {
-                        $ref[$segment] = [];
-                    }
-                    $ref = &$ref[$segment];
-                }
-                $ref = $v;
-                unset($ref);
+            foreach ($key as $path => $value) {
+                config_set_path($config, (string)$path, $value);
             }
-            $config->merge(new Config($nested));
 
-            return;
+            return true;
         }
 
         return $config->path($key, $default);
+    }
+}
+
+if (!function_exists('config_set_path')) {
+    function config_set_path(\Phalcon\Config\Config $config, string $path, mixed $value): void
+    {
+        $segments = explode('.', $path);
+        $current = $config;
+
+        while (count($segments) > 1) {
+            $segment = array_shift($segments);
+            $next = $current->path($segment);
+
+            if ($next instanceof \Phalcon\Config\Config) {
+                $current = $next;
+
+                continue;
+            }
+
+            if (is_array($next)) {
+                $next = new \Phalcon\Config\Config($next);
+            } else {
+                $next = new \Phalcon\Config\Config([]);
+            }
+
+            $current->set($segment, $next);
+            $current = $next;
+        }
+
+        $current->set($segments[0], $value);
     }
 }
 
@@ -100,9 +118,15 @@ if (!function_exists('app')) {
             return $app;
         }
 
-        return $app->bound($abstract)
-            ? $app[$abstract]
-            : $app->make($abstract, $parameters);
+        if ($app->bound($abstract)) {
+            if ($app instanceof \ArrayAccess && isset($app[$abstract])) {
+                return $app[$abstract];
+            }
+
+            return $app->make($abstract, $parameters);
+        }
+
+        return $app->make($abstract, $parameters);
     }
 }
 
@@ -213,6 +237,59 @@ if (!function_exists('queue')) {
     function queue(): mixed
     {
         return app('queue');
+    }
+}
+
+// event()
+if (!function_exists('event')) {
+    function event(...$args): mixed
+    {
+        return app('events')->dispatch(...$args);
+    }
+}
+
+// report()
+if (!function_exists('report')) {
+    function report(\Throwable|string $exception): void
+    {
+        if (!$exception instanceof \Throwable) {
+            $exception = new \RuntimeException((string)$exception);
+        }
+
+        $handler = app(\Phare\Contracts\Debug\ExceptionHandler::class);
+
+        if ($handler) {
+            $handler->report($exception);
+
+            return;
+        }
+
+        $logger = app('log');
+        if ($logger && method_exists($logger, 'error')) {
+            $logger->error($exception->getMessage(), ['exception' => $exception]);
+        }
+    }
+}
+
+// info()
+if (!function_exists('info')) {
+    function info(string $message, array $context = []): void
+    {
+        app('log')?->info($message, $context);
+    }
+}
+
+// logger()
+if (!function_exists('logger')) {
+    function logger(?string $message = null, array $context = []): mixed
+    {
+        $logger = app('log');
+
+        if ($message !== null) {
+            $logger?->debug($message, $context);
+        }
+
+        return $logger;
     }
 }
 
@@ -376,6 +453,42 @@ if (!function_exists('value')) {
     }
 }
 
+// blank()
+if (!function_exists('blank')) {
+    function blank(mixed $value): bool
+    {
+        if ($value === null) {
+            return true;
+        }
+
+        if (is_string($value)) {
+            return trim($value) === '';
+        }
+
+        if (is_numeric($value) || is_bool($value)) {
+            return false;
+        }
+
+        if ($value instanceof \Countable) {
+            return count($value) === 0;
+        }
+
+        if ($value instanceof \Stringable) {
+            return trim((string)$value) === '';
+        }
+
+        return empty($value);
+    }
+}
+
+// filled()
+if (!function_exists('filled')) {
+    function filled(mixed $value): bool
+    {
+        return !blank($value);
+    }
+}
+
 // now()
 if (!function_exists('now')) {
     function now()
@@ -487,6 +600,22 @@ if (!function_exists('retry')) {
         } while ($attempts < $times);
 
         return null;
+    }
+}
+
+// rescue()
+if (!function_exists('rescue')) {
+    function rescue(callable $callback, mixed $rescue = null, bool|callable $report = true): mixed
+    {
+        try {
+            return $callback();
+        } catch (\Throwable $e) {
+            if (value($report, $e)) {
+                report($e);
+            }
+
+            return value($rescue, $e);
+        }
     }
 }
 

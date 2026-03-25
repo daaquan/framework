@@ -6,7 +6,7 @@ use Phare\Eloquent\Model;
 
 class PersonalAccessToken extends Model
 {
-    protected string $table = 'personal_access_tokens';
+    protected ?string $table = 'personal_access_tokens';
 
     protected array $fillable = [
         'name',

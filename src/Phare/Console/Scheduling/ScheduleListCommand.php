@@ -8,7 +8,7 @@ class ScheduleListCommand extends Command
 {
     protected string $name = 'schedule:list';
 
-    protected string $description = 'List all scheduled commands';
+    protected ?string $description = 'List all scheduled commands';
 
     public function handle(): int
     {

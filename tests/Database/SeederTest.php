@@ -5,6 +5,14 @@ use Phare\Database\Schema\Blueprint;
 use Phare\Database\Schema\SchemaBuilder;
 use Phare\Database\Seeder;
 
+if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+    test('seeder integration tests require sqlite driver', function () {
+        $this->markTestSkipped('PDO sqlite driver is required for seeder integration tests.');
+    });
+
+    return;
+}
+
 beforeEach(function () {
     $connection = $this->app->make('db');
     $schema = new SchemaBuilder($connection);

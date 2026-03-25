@@ -48,6 +48,11 @@ class Application extends SymfonyApplication implements ApplicationContract
             : '';
     }
 
+    public function getFrameworkApplication(): Container
+    {
+        return $this->app;
+    }
+
     /**
      * Add --env and --language options to all commands.
      */
@@ -76,7 +81,15 @@ class Application extends SymfonyApplication implements ApplicationContract
             '--language',
             null,
             InputOption::VALUE_OPTIONAL,
-            'The language the command should run under'
+            'The language the command should run after'
         );
+    }
+
+    /**
+     * Compatibility shim: Symfony 7+ renamed add() to addCommand().
+     */
+    public function add(\Symfony\Component\Console\Command\Command $command): ?\Symfony\Component\Console\Command\Command
+    {
+        return $this->addCommand($command);
     }
 }

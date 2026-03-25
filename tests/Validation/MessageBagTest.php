@@ -82,7 +82,7 @@ it('can get all messages for key', function () {
     expect($empty)->toBe([]);
 });
 
-it('can get all messages with format', function () {
+it('can get all messages from all keys with format', function () {
     $bag = new MessageBag(['name' => ['Required']]);
 
     $formatted = $bag->get('name', '<li>:message</li>');

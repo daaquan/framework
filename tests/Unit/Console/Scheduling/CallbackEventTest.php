@@ -56,7 +56,7 @@ test('callback event handles callback exceptions', function () {
         throw new Exception('Callback failed');
     });
 
-    expect(function () {
+    expect(function () use ($event) {
         $event->run();
     })->toThrow(Exception::class, 'Callback failed');
 });
@@ -106,7 +106,7 @@ test('callback event handles file output errors gracefully', function () {
     $outputFile = tempnam(sys_get_temp_dir(), 'test_callback_error');
     $event->sendOutputTo($outputFile);
 
-    expect(function () {
+    expect(function () use ($event) {
         $event->run();
     })->toThrow(Exception::class, 'Task error');
 

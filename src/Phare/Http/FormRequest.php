@@ -8,17 +8,25 @@ use Phare\Validation\Validator;
 
 abstract class FormRequest extends Request
 {
-    protected Application $app;
+    protected ?Application $app = null;
 
     protected Validator $validator;
 
     public function __construct()
     {
         parent::__construct();
-        $this->app = \Phare\Support\Facades\Application::getFacadeRoot();
+        try {
+            $root = \Phare\Support\Facades\Application::getFacadeRoot();
+            $this->app = $root instanceof Application ? $root : null;
+        } catch (\RuntimeException) {
+            $this->app = null;
+        }
     }
 
-    abstract public function rules(): array;
+    public function rules(): array
+    {
+        return [];
+    }
 
     public function messages(): array
     {
@@ -57,11 +65,7 @@ abstract class FormRequest extends Request
     public function validateResolved(): void
     {
         if (!$this->authorize()) {
-            throw new \Phare\Foundation\Http\Validation\ValidationException(
-                Validator::make([], []),
-                'This action is unauthorized.',
-                403
-            );
+            $this->failedAuthorization();
         }
 
         $validator = $this->validator();

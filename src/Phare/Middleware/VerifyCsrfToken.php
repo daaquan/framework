@@ -2,7 +2,6 @@
 
 namespace Phare\Middleware;
 
-use Phalcon\Http\Request;
 use Phalcon\Http\RequestInterface;
 use Phalcon\Http\ResponseInterface;
 use Phare\Contracts\Foundation\Application;
@@ -36,7 +35,7 @@ class VerifyCsrfToken implements Middleware
         throw new TokenMismatchException('CSRF token mismatch.');
     }
 
-    protected function shouldSkip(Request $request): bool
+    protected function shouldSkip($request): bool
     {
         if ($this->isReading($request)) {
             return true;
@@ -51,19 +50,19 @@ class VerifyCsrfToken implements Middleware
         return false;
     }
 
-    protected function isReading(Request $request): bool
+    protected function isReading($request): bool
     {
         return in_array($request->getMethod(), ['HEAD', 'GET', 'OPTIONS']);
     }
 
-    protected function tokensMatch(Request $request): bool
+    protected function tokensMatch($request): bool
     {
         $token = $this->getTokenFromRequest($request);
 
         return is_string($token) && $this->csrf->verifyToken($token);
     }
 
-    protected function getTokenFromRequest(Request $request): ?string
+    protected function getTokenFromRequest($request): ?string
     {
         $token = $request->get('_token', 'string');
 
@@ -78,13 +77,10 @@ class VerifyCsrfToken implements Middleware
         return $token;
     }
 
-    protected function inExceptArray(Request $request, string $except): bool
+    protected function inExceptArray($request, string $except): bool
     {
-        if ($except !== '/') {
-            $except = trim($except, '/');
-        }
-
-        $uri = $request->getURI();
+        $except = $this->normalizePath($except);
+        $uri = $this->normalizePath((string)$request->getURI());
 
         if ($except === $uri) {
             return true;
@@ -98,6 +94,15 @@ class VerifyCsrfToken implements Middleware
         }
 
         return false;
+    }
+
+    protected function normalizePath(string $path): string
+    {
+        $normalized = parse_url($path, PHP_URL_PATH);
+        $normalized = is_string($normalized) ? $normalized : $path;
+        $normalized = trim($normalized, '/');
+
+        return $normalized === '' ? '/' : $normalized;
     }
 
     public function addExcept(array $routes): static

@@ -29,7 +29,7 @@ class MakeMiddlewareCommand extends Command
         $this->makeDirectory($path);
         $this->files->put($path, $content);
 
-        $relativePath = str_replace($this->app->basePath() . '/', '', $path);
+        $relativePath = str_replace($this->getFrameworkApplication()->basePath() . '/', '', $path);
         $this->info("Middleware created successfully at [{$relativePath}].");
 
         return 0;
@@ -44,7 +44,7 @@ class MakeMiddlewareCommand extends Command
     {
         $path = str_replace('\\', '/', $name) . '.php';
 
-        return $this->app->basePath('app/Middleware/' . $path);
+        return $this->getFrameworkApplication()->basePath('app/Middleware/' . $path);
     }
 
     protected function buildClass(string $name, string $stub): string
