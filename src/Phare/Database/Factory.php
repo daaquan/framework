@@ -81,8 +81,18 @@ class Factory
 
     public function create(array $attributes = []): array
     {
+        if ($this->count === 1) {
+            $instance = $this->make($attributes);
+            $this->saveInstance($instance);
+
+            foreach ($this->afterCreating as $callback) {
+                $callback($instance);
+            }
+
+            return $instance;
+        }
+
         $instances = $this->make($attributes);
-        $instances = is_array($instances) ? $instances : [$instances];
 
         foreach ($instances as $instance) {
             $this->saveInstance($instance);
@@ -92,7 +102,7 @@ class Factory
             }
         }
 
-        return $this->count === 1 ? $instances[0] : $instances;
+        return $instances;
     }
 
     protected function makeInstance(array $attributes = []): array
@@ -139,15 +149,5 @@ class Factory
         $modelName = class_basename($this->model);
 
         return strtolower($modelName) . 's';
-    }
-}
-
-abstract class BaseFactory
-{
-    abstract public function definition(): array;
-
-    protected function faker(): \Faker\Generator
-    {
-        return \Faker\Factory::create();
     }
 }

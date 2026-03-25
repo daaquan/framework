@@ -7,6 +7,7 @@ use Phalcon\Cache\Adapter\AdapterInterface as CacheAdapterInterface;
 use Phalcon\Cache\Adapter\Apcu;
 use Phalcon\Cache\Adapter\Redis;
 use Phalcon\Cache\Adapter\Stream;
+use Phalcon\Config\Config;
 use Phalcon\Storage\SerializerFactory;
 
 class CacheManager
@@ -21,6 +22,8 @@ class CacheManager
         if (!$config || !isset($config['driver'])) {
             throw new InvalidArgumentException("Cache config for '{$store}' is invalid or missing.");
         }
+
+        $config = $config instanceof Config ? $config->toArray() : (array)$config;
 
         $this->cache = $this->makeAdapter($config['driver'], $config);
     }
@@ -57,6 +60,8 @@ class CacheManager
         if (!$conn) {
             throw new InvalidArgumentException('Redis cache: connection config is missing.');
         }
+
+        $conn = $conn instanceof Config ? $conn->toArray() : (array)$conn;
 
         return new Redis($factory, [
             'host' => $conn['host'] ?? '127.0.0.1',

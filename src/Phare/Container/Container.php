@@ -3,7 +3,31 @@
 namespace Phare\Container;
 
 use Closure;
+use Phalcon\Annotations\Annotation;
+use Phalcon\Assets\Manager;
+use Phalcon\Config\ConfigInterface;
+use Phalcon\Db\Adapter\AdapterInterface;
 use Phalcon\Di\Di;
+use Phalcon\Di\DiInterface;
+use Phalcon\Di\Exception;
+use Phalcon\Encryption\Crypt\CryptInterface;
+use Phalcon\Encryption\Security;
+use Phalcon\Filter\Filter;
+use Phalcon\Flash\Direct;
+use Phalcon\Flash\Session;
+use Phalcon\Html\Escaper\EscaperInterface;
+use Phalcon\Html\TagFactory;
+use Phalcon\Http\RequestInterface;
+use Phalcon\Http\Response\CookiesInterface;
+use Phalcon\Http\ResponseInterface;
+use Phalcon\Mvc\DispatcherInterface;
+use Phalcon\Mvc\Model\MetadataInterface;
+use Phalcon\Mvc\RouterInterface;
+use Phalcon\Mvc\Url\UrlInterface;
+use Phalcon\Mvc\ViewInterface;
+use Phalcon\Session\BagInterface;
+use Phalcon\Session\ManagerInterface;
+use Phalcon\Translate\Adapter\AbstractAdapter;
 use Phare\Container\Exceptions\ContainerException;
 use Phare\Contracts\Foundation\Container as ContractsContainer;
 use TypeError;
@@ -16,32 +40,32 @@ class Container extends Di implements ContractsContainer
      * @var string[]
      */
     protected array $reservedServices = [
-        'config' => \Phalcon\Config\ConfigInterface::class,
-        'dispatcher' => \Phalcon\Mvc\DispatcherInterface::class,
-        'router' => \Phalcon\Mvc\RouterInterface::class,
-        'url' => \Phalcon\Mvc\Url\UrlInterface::class,
-        'request' => \Phalcon\Http\RequestInterface::class,
-        'response' => \Phalcon\Http\ResponseInterface::class,
-        'cookies' => \Phalcon\Http\Response\CookiesInterface::class,
-        'filter' => \Phalcon\Filter\Filter::class,
-        'flashDirect' => \Phalcon\Flash\Direct::class,
-        'flashSession' => \Phalcon\Flash\Session::class,
-        'session' => \Phalcon\Session\ManagerInterface::class,
+        'config' => ConfigInterface::class,
+        'dispatcher' => DispatcherInterface::class,
+        'router' => RouterInterface::class,
+        'url' => UrlInterface::class,
+        'request' => RequestInterface::class,
+        'response' => ResponseInterface::class,
+        'cookies' => CookiesInterface::class,
+        'filter' => Filter::class,
+        'flashDirect' => Direct::class,
+        'flashSession' => Session::class,
+        'session' => ManagerInterface::class,
         'eventsManager' => \Phalcon\Events\ManagerInterface::class,
-        'pdo' => \Phalcon\Db\Adapter\AdapterInterface::class,
-        'security' => \Phalcon\Encryption\Security::class,
-        'encrypter' => \Phalcon\Encryption\Crypt\CryptInterface::class,
-        'tag' => \Phalcon\Html\TagFactory::class,
-        'escaper' => \Phalcon\Html\Escaper\EscaperInterface::class,
-        'annotations' => \Phalcon\Annotations\Annotation::class,
+        'pdo' => AdapterInterface::class,
+        'security' => Security::class,
+        'encrypter' => CryptInterface::class,
+        'tag' => TagFactory::class,
+        'escaper' => EscaperInterface::class,
+        'annotations' => Annotation::class,
         'modelsManager' => \Phalcon\Mvc\Model\ManagerInterface::class,
-        'modelsMetadata' => \Phalcon\Mvc\Model\MetadataInterface::class,
+        'modelsMetadata' => MetadataInterface::class,
         'modelTransaction' => \Phalcon\Mvc\Model\Transaction\ManagerInterface::class,
-        'assets' => \Phalcon\Assets\Manager::class,
-        'di' => \Phalcon\Di\DiInterface::class,
-        'sessionBag' => \Phalcon\Session\BagInterface::class,
-        'view' => \Phalcon\Mvc\ViewInterface::class,
-        'translator' => \Phalcon\Translate\Adapter\AbstractAdapter::class,
+        'assets' => Manager::class,
+        'di' => DiInterface::class,
+        'sessionBag' => BagInterface::class,
+        'view' => ViewInterface::class,
+        'translator' => AbstractAdapter::class,
     ];
 
     /**
@@ -50,32 +74,32 @@ class Container extends Di implements ContractsContainer
      * @var string[]
      */
     protected array $reservedServiceAlias = [
-        \Phalcon\Config\ConfigInterface::class => 'config',
-        \Phalcon\Mvc\DispatcherInterface::class => 'dispatcher',
-        \Phalcon\Mvc\RouterInterface::class => 'router',
-        \Phalcon\Mvc\Url\UrlInterface::class => 'url',
-        \Phalcon\Http\RequestInterface::class => 'request',
-        \Phalcon\Http\ResponseInterface::class => 'response',
-        \Phalcon\Http\Response\CookiesInterface::class => 'cookies',
-        \Phalcon\Filter\Filter::class => 'filter',
-        \Phalcon\Flash\Direct::class => 'flashDirect',
-        \Phalcon\Flash\Session::class => 'flashSession',
-        \Phalcon\Session\ManagerInterface::class => 'session',
+        ConfigInterface::class => 'config',
+        DispatcherInterface::class => 'dispatcher',
+        RouterInterface::class => 'router',
+        UrlInterface::class => 'url',
+        RequestInterface::class => 'request',
+        ResponseInterface::class => 'response',
+        CookiesInterface::class => 'cookies',
+        Filter::class => 'filter',
+        Direct::class => 'flashDirect',
+        Session::class => 'flashSession',
+        ManagerInterface::class => 'session',
         \Phalcon\Events\ManagerInterface::class => 'eventsManager',
-        \Phalcon\Db\Adapter\AdapterInterface::class => 'pdo',
-        \Phalcon\Encryption\Security::class => 'security',
-        \Phalcon\Encryption\Crypt\CryptInterface::class => 'encrypter',
-        \Phalcon\Html\TagFactory::class => 'tag',
-        \Phalcon\Html\Escaper\EscaperInterface::class => 'escaper',
-        \Phalcon\Annotations\Annotation::class => 'annotations',
+        AdapterInterface::class => 'pdo',
+        Security::class => 'security',
+        CryptInterface::class => 'encrypter',
+        TagFactory::class => 'tag',
+        EscaperInterface::class => 'escaper',
+        Annotation::class => 'annotations',
         \Phalcon\Mvc\Model\ManagerInterface::class => 'modelsManager',
-        \Phalcon\Mvc\Model\MetadataInterface::class => 'modelsMetadata',
+        MetadataInterface::class => 'modelsMetadata',
         \Phalcon\Mvc\Model\Transaction\ManagerInterface::class => 'modelTransaction',
-        \Phalcon\Assets\Manager::class => 'assets',
-        \Phalcon\Di\DiInterface::class => 'di',
-        \Phalcon\Session\BagInterface::class => 'sessionBag',
-        \Phalcon\Mvc\ViewInterface::class => 'view',
-        \Phalcon\Translate\Adapter\AbstractAdapter::class => 'translator',
+        Manager::class => 'assets',
+        DiInterface::class => 'di',
+        BagInterface::class => 'sessionBag',
+        ViewInterface::class => 'view',
+        AbstractAdapter::class => 'translator',
     ];
 
     protected array $aliases = [];
@@ -150,6 +174,24 @@ class Container extends Di implements ContractsContainer
             $getter = $this->isShared($abstract) ? 'getShared' : 'get';
 
             return $this->$getter($abstract, $parameters);
+        }
+
+        // For shared services registered via Phalcon DI, use getShared to maintain singleton behavior
+        if ($this->isShared($abstract) || $this->isReserved($abstract)) {
+            try {
+                $service = $this->getService($abstract);
+                if ($service->isShared()) {
+                    $instance = $this->getShared($abstract, $parameters);
+                    $this->resolved[$abstract] = true;
+                    if (is_object($instance)) {
+                        $this->aliases[get_class($instance)] = $abstract;
+                    }
+
+                    return $instance;
+                }
+            } catch (Exception $e) {
+                // Service not found in Phalcon DI, continue to resolve
+            }
         }
 
         $instance = $this->resolve($abstract, $parameters);
@@ -253,7 +295,7 @@ class Container extends Di implements ContractsContainer
         // 3. Inspect the constructor parameters (dependencies)
         // 4. If the constructor parameter is a class then try a resolve that class using the container
         $parameters = $constructor->getParameters();
-        $dependencies = array_map(function (\ReflectionParameter $param) use ($abstract, $shared) {
+        $dependencies = array_map(function (\ReflectionParameter $param) use ($abstract) {
             $name = $param->getName();
             $type = $param->getType();
 
@@ -266,13 +308,7 @@ class Container extends Di implements ContractsContainer
             }
 
             if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
-                $this->set($abstract, $instance = $this->make($type->getName()), $shared);
-
-                if ($this->isShared($abstract)) {
-                    $this->resolved[$abstract] = true;
-                }
-
-                return $instance;
+                return $this->make($type->getName());
             }
 
             if ($param->allowsNull()) {

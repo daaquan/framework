@@ -3,6 +3,7 @@
 namespace Phare\Database;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
+use Phalcon\Db\Enum;
 use Phare\Contracts\Foundation\Application;
 use Phare\Database\Schema\SchemaBuilder;
 
@@ -16,6 +17,8 @@ class Migrator
 
     protected string $table = 'migrations';
 
+    protected array $paths = [];
+
     public function __construct(Application $app, AbstractPdo $connection)
     {
         $this->app = $app;
@@ -27,6 +30,7 @@ class Migrator
 
     public function run(array $paths = []): array
     {
+        $this->paths = array_merge($this->paths, $paths);
         $files = $this->getMigrationFiles($paths);
         $ran = [];
 
@@ -46,7 +50,8 @@ class Migrator
         $rolledBack = [];
 
         foreach ($migrations as $migration) {
-            if ($this->runDown($migration)) {
+            $file = $this->resolveFile($migration);
+            if ($file && $this->runDown($file)) {
                 $this->removeFromLog($migration);
                 $rolledBack[] = $migration;
             }
@@ -61,7 +66,8 @@ class Migrator
         $rolledBack = [];
 
         foreach (array_reverse($migrations) as $migration) {
-            if ($this->runDown($migration)) {
+            $file = $this->resolveFile($migration);
+            if ($file && $this->runDown($file)) {
                 $this->removeFromLog($migration);
                 $rolledBack[] = $migration;
             }
@@ -70,8 +76,25 @@ class Migrator
         return $rolledBack;
     }
 
+    protected function resolveFile(string $migrationName): ?string
+    {
+        $allPaths = $this->paths ?: [$this->app->databasePath('migrations')];
+
+        foreach ($allPaths as $path) {
+            $file = $path . '/' . $migrationName . '.php';
+            if (file_exists($file)) {
+                return $file;
+            }
+        }
+
+        return null;
+    }
+
     public function refresh(array $paths = []): array
     {
+        if (!empty($paths)) {
+            $this->paths = array_merge($this->paths, $paths);
+        }
         $this->reset();
 
         return $this->run($paths);
@@ -111,10 +134,19 @@ class Migrator
 
     protected function resolve(string $file): Migration
     {
+        $result = require $file;
+
+        // Support anonymous class migrations (return new class extends Migration)
+        if ($result instanceof Migration) {
+            $result->setSchema($this->schema);
+
+            return $result;
+        }
+
         $class = $this->getMigrationClass($file);
 
         if (!class_exists($class)) {
-            require_once $file;
+            throw new \RuntimeException("Migration class {$class} not found in {$file}");
         }
 
         return new $class($this->schema);
@@ -156,6 +188,7 @@ class Migrator
 
         return $this->connection->fetchOne(
             "SELECT COUNT(*) as count FROM {$this->table} WHERE migration = ?",
+            Enum::FETCH_ASSOC,
             [$migration]
         )['count'] > 0;
     }
@@ -183,6 +216,7 @@ class Migrator
     {
         $batches = $this->connection->fetchAll(
             "SELECT DISTINCT batch FROM {$this->table} ORDER BY batch DESC LIMIT ?",
+            Enum::FETCH_ASSOC,
             [$steps]
         );
 
@@ -196,6 +230,7 @@ class Migrator
         return array_column(
             $this->connection->fetchAll(
                 "SELECT migration FROM {$this->table} WHERE batch IN ({$placeholders}) ORDER BY migration DESC",
+                Enum::FETCH_ASSOC,
                 $batchNumbers
             ),
             'migration'
