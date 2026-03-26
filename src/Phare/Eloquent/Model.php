@@ -5,61 +5,62 @@ namespace Phare\Eloquent;
 use Phalcon\Di\DiInterface;
 use Phalcon\Mvc\Model as PhModel;
 use Phalcon\Mvc\Model\ResultsetInterface;
-use Phalcon\Mvc\ModelInterface;
-use Phare\Collections\Collection;
+use Phalcon\Mvc\ModelInterface as PhalconModelInterface;
 use Phare\Collections\Str;
 use Phare\Database\MySql\DatabaseManager;
+use Phare\Eloquent\Concerns\GuardsAttributes;
+use Phare\Eloquent\Concerns\HasAttributes;
 use Phare\Eloquent\Concerns\HasEvents;
+use Phare\Eloquent\Concerns\HasGlobalScopes;
 use Phare\Eloquent\Concerns\HasRelationships;
+use Phare\Eloquent\Concerns\HidesAttributes;
 
 #[\AllowDynamicProperties]
 class Model extends PhModel implements \ArrayAccess
 {
+    use GuardsAttributes;
+    use HasAttributes;
     use HasEvents;
+    use HasGlobalScopes;
     use HasRelationships;
+    use HidesAttributes;
 
     /**
-     * @var string|null The connection name for the model.
+     * @var array<class-string, bool>
      */
+    protected static array $booted = [];
+
+    /**
+     * @var array<class-string, bool>
+     */
+    protected static array $initializing = [];
+
+    /**
+     * @var array<class-string, array<int, string>>
+     */
+    protected static array $traitInitializers = [];
+
+    /**
+     * @var array<string, class-string>
+     */
+    protected static array $morphMap = [];
+
     protected ?string $connection = null;
 
-    /**
-     * @var string|null The table associated with the model.
-     */
     protected ?string $table = null;
 
-    /**
-     * @var string The primary key column.
-     */
     protected string $primaryKey = 'id';
 
-    /**
-     * @var array The attributes that are mass assignable.
-     */
-    protected array $fillable = [];
-
-    /**
-     * @var array The attributes that will be hidden for arrays.
-     */
-    protected array $hidden = [];
-
-    /**
-     * @var array The attributes that should be encrypted.
-     */
     protected array $passwordAttributes = [];
 
-    /**
-     * @var array The attributes that should be cast.
-     */
-    protected array $casts = [];
+    protected array $dispatchesEvents = [];
 
-    /**
-     * @return array The attributes that should be appended to arrays.
-     */
-    protected array $appends = [];
+    protected bool $exists = false;
 
     protected function initialize(): void
     {
+        $this->bootIfNotBooted();
+
         if ($this->table === null) {
             $this->table = Str::tableize(class_basename(get_class($this)));
         }
@@ -68,26 +69,34 @@ class Model extends PhModel implements \ArrayAccess
 
         $this->setSource($this->table);
 
-        $this->skipAttributesOnUpdate([$this->primaryKey]);
+        try {
+            $this->skipAttributesOnUpdate([$this->primaryKey]);
+        } catch (\Throwable) {
+            // Allow lightweight models in tests before a backing table exists.
+        }
 
         $this->useDynamicUpdate(true);
 
-        if (defined('static::CREATED_AT')
-            || defined('static::UPDATED_AT')) {
-            $this->initializeTimestampable();
-        }
+        $this->initializeTraits();
     }
 
-    private function setupConnectionService(): void
+    public function afterFetch(): void
+    {
+        $this->markAsRetrieved(true);
+    }
+
+    protected function setupConnectionService(): void
     {
         /** @var DatabaseManager $dbManager */
         $dbManager = $this->getDI()->getShared('dbManager');
 
         if ($this->connection === null) {
             $fragments = explode('\\', get_class($this));
-            $serviceName = strtolower($fragments[count($fragments) - 2]);
+            $serviceName = count($fragments) >= 2
+                ? strtolower($fragments[count($fragments) - 2])
+                : null;
 
-            if ($dbManager->hasConnectionService($serviceName)) {
+            if ($serviceName !== null && $dbManager->hasConnectionService($serviceName)) {
                 $this->connection = $serviceName;
             } elseif ($dbManager->hasConnectionService('db')) {
                 $this->connection = 'db';
@@ -108,10 +117,25 @@ class Model extends PhModel implements \ArrayAccess
             return false;
         }
 
-        $created = parent::create();
+        $dirtyBeforeSave = $this->getDirty();
+        $this->applyTimestampColumns();
+
+        $attributes = $this->getAttributesForPersistence();
+        $created = $this->getWriteConnection()->insertAsDict($this->getTable(), $attributes);
+
         if ($created) {
-            $this->fireModelEvent('created');
-            $this->fireModelEvent('saved');
+            $keyName = $this->getKeyName();
+
+            if (!array_key_exists($keyName, $attributes) || $attributes[$keyName] === null) {
+                $id = $this->getWriteConnection()->lastInsertId();
+
+                if ($id !== false && $id !== null && $id !== '0') {
+                    $this->attributes[$keyName] = ctype_digit((string)$id) ? (int)$id : $id;
+                }
+            }
+
+            $this->exists = true;
+            $this->finishSave(['created', 'saved'], $dirtyBeforeSave);
         }
 
         return $created;
@@ -127,10 +151,15 @@ class Model extends PhModel implements \ArrayAccess
             return false;
         }
 
-        $updated = parent::update();
+        $dirtyBeforeSave = $this->getDirty();
+        $this->applyTimestampColumns();
+
+        $dirty = $this->getDirty();
+        $updated = $dirty === [] ? true : $this->performUpdate($dirty);
+
         if ($updated) {
-            $this->fireModelEvent('updated');
-            $this->fireModelEvent('saved');
+            $this->exists = true;
+            $this->finishSave(['updated', 'saved'], $dirtyBeforeSave);
         }
 
         return $updated;
@@ -142,16 +171,11 @@ class Model extends PhModel implements \ArrayAccess
             $this->fill($attributes);
         }
 
-        if ($this->fireModelEvent('saving', true) === false) {
-            return false;
+        if ($this->exists || $this->original !== [] || $this->getKey() !== null) {
+            return $this->update();
         }
 
-        $saved = parent::save();
-        if ($saved) {
-            $this->fireModelEvent('saved');
-        }
-
-        return $saved;
+        return $this->create();
     }
 
     public function delete(): bool
@@ -160,169 +184,80 @@ class Model extends PhModel implements \ArrayAccess
             return false;
         }
 
+        $this->syncPrimaryKeyForDelete();
+
         $deleted = parent::delete();
+
         if ($deleted) {
-            $this->fireModelEvent('deleted');
+            $this->fireModelEvent('deleted', false);
         }
 
         return $deleted;
     }
 
-    /**
-     * Cast an attribute to a native PHP type.
-     */
-    protected function cast(string $attribute, mixed $value): mixed
-    {
-        if (!isset($this->casts[$attribute]) || $value === null) {
-            return $value;
-        }
-
-        return match ($this->casts[$attribute]) {
-            'int', 'integer' => (int)$value,
-            'real', 'float', 'double' => (float)$value,
-            'decimal' => number_format((float)$value, 2, '.', ''),
-            'string' => (string)$value,
-            'bool', 'boolean' => (bool)$value,
-            'object' => is_string($value) ? unserialize($value, ['allowed_classes' => true]) : $value,
-            'array' => is_string($value) ? json_decode($value, true) : (array)$value,
-            'json' => is_string($value) ? json_decode($value, true) : $value,
-            'collection' => new Collection(is_string($value) ? json_decode($value, true) : $value),
-            'date' => $this->asDate($value),
-            'datetime', 'timestamp' => $this->asDateTime($value),
-            default => $value,
-        };
-    }
-
-    /**
-     * Cast an attribute to its database representation.
-     */
-    protected function decast(string $attribute, mixed $value): mixed
-    {
-        if (!isset($this->casts[$attribute]) || $value === null) {
-            return $value;
-        }
-
-        return match ($this->casts[$attribute]) {
-            'int', 'integer' => (int)$value,
-            'real', 'float', 'double', 'decimal' => (float)$value,
-            'string' => (string)$value,
-            'bool', 'boolean' => (bool)$value,
-            'object' => is_object($value) ? serialize($value) : $value,
-            'array', 'json' => is_array($value) ? json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $value,
-            'collection' => $value instanceof Collection ? json_encode($value->toArray(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $value,
-            'date' => $value instanceof \DateTime ? $value->format('Y-m-d') : $value,
-            'datetime', 'timestamp' => $value instanceof \DateTime ? $value->format('Y-m-d H:i:s') : $value,
-            default => $value,
-        };
-    }
-
-    /**
-     * Return a date as a DateTime object.
-     */
-    protected function asDate(mixed $value): ?\DateTime
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if ($value instanceof \DateTime) {
-            return $value;
-        }
-
-        if (is_numeric($value)) {
-            return new \DateTime('@' . $value);
-        }
-
-        if (is_string($value)) {
-            return new \DateTime($value);
-        }
-
-        return null;
-    }
-
-    /**
-     * Return a datetime as a DateTime object.
-     */
-    protected function asDateTime(mixed $value): ?\DateTime
-    {
-        return $this->asDate($value);
-    }
-
     public function fill(array $data): static
     {
-        return $this->assign($data, $this->fillable);
-    }
+        $attributes = $this->fillableFromArray($data);
 
-    /**
-     * @param array|null $fillable
-     * @param array|null $dataColumnMap
-     */
-    public function assign(array $data, $fillable = null, $dataColumnMap = null): ModelInterface
-    {
-        foreach ($this->passwordAttributes as $attribute) {
-            if (isset($data[$attribute])) {
-                $data[$attribute] = password_hash($data[$attribute], PASSWORD_DEFAULT);
-            }
+        foreach ($attributes as $key => $value) {
+            $this->setAttribute((string)$key, $value);
         }
 
-        return parent::assign($data, $fillable, $dataColumnMap);
+        return $this;
+    }
+
+    public function assign(array $data, $fillable = null, $dataColumnMap = null): PhalconModelInterface
+    {
+        if (is_array($dataColumnMap)) {
+            $mapped = [];
+
+            foreach ($data as $key => $value) {
+                $mapped[$dataColumnMap[$key] ?? $key] = $value;
+            }
+
+            $data = $mapped;
+        }
+
+        $attributes = is_array($fillable) ? array_intersect_key($data, array_flip($fillable)) : $data;
+
+        $this->fill($attributes);
+
+        return $this;
     }
 
     public static function all(array $columns = ['*']): ResultsetInterface
     {
-        return parent::find(['columns' => implode(',', $columns)]);
+        return static::query()->columns($columns)->get();
+    }
+
+    public static function rawFind($parameters = null): ResultsetInterface
+    {
+        return parent::find($parameters);
+    }
+
+    public static function rawFindFirst($parameters = null)
+    {
+        return parent::findFirst($parameters);
     }
 
     public static function find($parameters = null): ResultsetInterface
     {
-        if (!defined('static::DELETED_AT')) {
-            return parent::find($parameters);
-        }
-
-        if (is_array($parameters)) {
-            if (!empty($parameters['conditions'])) {
-                $parameters['conditions'] = "({$parameters['conditions']}) AND " . constant('static::DELETED_AT') . ' IS NULL';
-            } else {
-                $parameters['conditions'] = constant('static::DELETED_AT') . ' IS NULL';
-            }
-        } else {
-            $parameters = [
-                'conditions' => constant('static::DELETED_AT') . ' IS NULL',
-            ];
-        }
-
-        return parent::find($parameters);
+        return static::applyFindParameters(static::query(), $parameters)->get();
     }
 
     public static function findFirst($parameters = null)
     {
-        if (!defined('static::DELETED_AT')) {
-            return parent::findFirst($parameters);
-        }
-
-        if (is_array($parameters)) {
-            if (!empty($parameters['conditions'])) {
-                $parameters['conditions'] = "({$parameters['conditions']}) AND " . constant('static::DELETED_AT') . ' IS NULL';
-            } else {
-                $parameters['conditions'] = constant('static::DELETED_AT') . ' IS NULL';
-            }
-        } else {
-            $parameters = [
-                'conditions' => constant('static::DELETED_AT') . ' IS NULL',
-            ];
-        }
-
-        return parent::findFirst($parameters);
+        return static::applyFindParameters(static::query(), $parameters)->first();
     }
 
     public static function first($id, array $columns = ['*'])
     {
-        return self::findFirst([$id, 'columns' => implode(',', $columns)]);
+        return static::findFirst([$id, 'columns' => implode(',', $columns)]);
     }
 
     public static function firstOrFail($id, $columns = ['*'])
     {
-        $result = self::findFirst([$id, 'columns' => implode(',', $columns)]);
+        $result = static::findFirst([$id, 'columns' => implode(',', $columns)]);
 
         if ($result === null) {
             throw new PhModel\Exception('No query results for model [' . static::class . '] ' . $id);
@@ -333,106 +268,90 @@ class Model extends PhModel implements \ArrayAccess
 
     public function __get(string $property)
     {
-        if ($this->relationLoaded($property)) {
-            return $this->getRelation($property);
+        if ($property === '') {
+            return;
         }
 
-        if (method_exists($this, $property)) {
-            return $this->getRelationshipFromMethod($property);
+        if (
+            array_key_exists($property, $this->getAttributes())
+            || $this->hasGetMutator($property)
+            || $this->hasAttributeGetMutator($property)
+            || array_key_exists($property, $this->getCasts())
+            || in_array($property, $this->appends, true)
+            || $this->relationLoaded($property)
+            || $this->isRelation($property)
+        ) {
+            return $this->getAttribute($property);
         }
 
-        // Check if it's an appended attribute first
-        if (in_array($property, $this->appends, true)) {
-            $method = 'get' . Str::studly($property) . 'Attribute';
-            if (!method_exists($this, $method)) {
-                throw new \RuntimeException('The attribute "' . $property . '" does not have a getter method.');
-            }
-
-            return $this->$method();
-        }
-
-        $value = parent::__get($property);
-
-        // Apply casting if attribute is in casts array
-        if (isset($this->casts[$property])) {
-            return $this->cast($property, $value);
-        }
-
-        return $value;
+        return parent::__get($property);
     }
 
-    public function __set(string $property, $value)
+    public function __set(string $property, $value): void
     {
-        // Apply decasting if attribute is in casts array
-        if (isset($this->casts[$property])) {
-            $value = $this->decast($property, $value);
+        $this->setAttribute($property, $value);
+    }
+
+    public function __isset(string $property): bool
+    {
+        if (array_key_exists($property, $this->attributes)) {
+            return $this->attributes[$property] !== null;
         }
 
-        parent::__set($property, $value);
+        if (
+            $this->hasGetMutator($property)
+            || $this->hasAttributeGetMutator($property)
+            || array_key_exists($property, $this->getCasts())
+            || $this->relationLoaded($property)
+        ) {
+            return $this->getAttribute($property) !== null;
+        }
+
+        return parent::__get($property) !== null;
+    }
+
+    public function writeAttribute(string $attribute, $value): void
+    {
+        parent::assign([$attribute => $value], [$attribute]);
+        $this->attributes[$attribute] = $value;
+        unset($this->{$attribute});
+    }
+
+    public function readAttribute(string $attribute)
+    {
+        if (array_key_exists($attribute, $this->attributes)) {
+            return $this->attributes[$attribute];
+        }
+
+        return parent::readAttribute($attribute);
     }
 
     public function toArray($columns = null, $useGetter = true): array
     {
-        $data = parent::toArray($columns, $useGetter);
-
-        // Apply casting to all attributes
-        foreach ($data as $key => $value) {
-            if (isset($this->casts[$key])) {
-                $data[$key] = $this->cast($key, $value);
-            }
-        }
-
-        // Add appended attributes
-        foreach ($this->appends as $append) {
-            $method = 'get' . Str::studly($append) . 'Attribute';
-            if (method_exists($this, $method)) {
-                $data[$append] = $this->$method();
-            }
-        }
-
-        // Remove password attributes
-        foreach ($this->passwordAttributes as $passwordAttribute) {
-            unset($data[$passwordAttribute]);
-        }
-
-        // Remove hidden attributes
-        foreach ($this->hidden as $hidden) {
-            unset($data[$hidden]);
-        }
-
-        foreach ($this->getRelations() as $name => $relation) {
-            if ($relation instanceof self) {
-                $data[$name] = $relation->toArray();
-                continue;
-            }
-
-            if ($relation instanceof Collection) {
-                $data[$name] = array_map(
-                    static fn ($item) => $item instanceof self ? $item->toArray() : $item,
-                    $relation->toArray()
-                );
-                continue;
-            }
-
-            $data[$name] = $relation;
-        }
-
-        return $data;
+        return array_merge($this->attributesToArray(), $this->relationsToArray());
     }
 
     public static function where(string $field, $operator = null, $value = null)
     {
-        return self::query()->where($field, $operator, $value);
+        return static::query()->where($field, $operator, $value);
     }
 
     public static function query(?DiInterface $container = null): BuilderInterface
     {
-        return (new Builder($container))->setModelName(static::class);
+        $model = new static();
+
+        if ($container !== null) {
+            $model->setDI($container);
+        }
+
+        return $model->newQuery($container);
     }
 
     public function offsetExists(mixed $offset): bool
     {
-        return property_exists($this, $offset);
+        return array_key_exists($offset, $this->attributes)
+            || $this->hasGetMutator((string)$offset)
+            || $this->hasAttributeGetMutator((string)$offset);
     }
 
     public function offsetGet(mixed $offset): mixed
@@ -447,6 +366,309 @@ class Model extends PhModel implements \ArrayAccess
 
     public function offsetUnset(mixed $offset): void
     {
-        unset($this->{$offset});
+        unset($this->attributes[$offset], $this->attributeCastCache[$offset], $this->classCastCache[$offset]);
+        $this->writeAttribute((string)$offset, null);
+    }
+
+    protected function finishSave(array $events, array $dirtyBeforeSave = []): void
+    {
+        $this->changes = array_replace($dirtyBeforeSave, $this->getDirty());
+        $this->syncOriginal();
+
+        foreach ($events as $event) {
+            $this->fireModelEvent($event, false);
+        }
+    }
+
+    protected function syncPrimaryKeyForDelete(): void
+    {
+        $key = $this->getKeyName();
+
+        if (parent::readAttribute($key) !== null) {
+            return;
+        }
+
+        $attributeValue = $this->attributes[$key] ?? null;
+
+        if ($attributeValue !== null) {
+            parent::__set($key, $attributeValue);
+        }
+    }
+
+    protected function getAttributesForPersistence(): array
+    {
+        $attributes = array_filter(
+            $this->attributes,
+            fn ($value, $key) => !($key === $this->getKeyName() && $value === null),
+            ARRAY_FILTER_USE_BOTH
+        );
+
+        foreach ($attributes as $key => $value) {
+            $attributes[$key] = $this->prepareValueForPersistence($value, (string) $key);
+        }
+
+        return $attributes;
+    }
+
+    protected function performUpdate(array $dirty): bool
+    {
+        $keyName = $this->getKeyName();
+        $key = $this->original[$keyName] ?? $this->attributes[$keyName] ?? null;
+
+        if ($key === null) {
+            return false;
+        }
+
+        $columns = array_keys($dirty);
+        $values = [];
+
+        foreach ($dirty as $column => $value) {
+            $values[] = $this->prepareValueForPersistence($value, (string) $column);
+        }
+
+        $assignments = implode(', ', array_map(
+            static fn (string $column): string => $column . ' = ?',
+            $columns
+        ));
+
+        return $this->getWriteConnection()->execute(
+            sprintf('UPDATE %s SET %s WHERE %s = ?', $this->getTable(), $assignments, $keyName),
+            [...$values, $key]
+        );
+    }
+
+    protected function applyTimestampColumns(): void
+    {
+        if (method_exists($this, 'updateTimestamps')) {
+            $this->updateTimestamps();
+        }
+    }
+
+    protected function bootIfNotBooted(): void
+    {
+        if (isset(static::$booted[static::class])) {
+            return;
+        }
+
+        static::boot();
+
+        static::$booted[static::class] = true;
+    }
+
+    protected static function boot(): void
+    {
+        $class = static::class;
+        $bootedMethods = [];
+
+        static::$traitInitializers[$class] = [];
+
+        foreach (static::classUsesRecursive($class) as $trait) {
+            $baseName = class_basename($trait);
+            $bootMethod = 'boot' . $baseName;
+            $initializeMethod = 'initialize' . $baseName;
+
+            if (method_exists($class, $bootMethod) && !in_array($bootMethod, $bootedMethods, true)) {
+                forward_static_call([$class, $bootMethod]);
+                $bootedMethods[] = $bootMethod;
+            }
+
+            if (method_exists($class, $initializeMethod)) {
+                static::$traitInitializers[$class][] = $initializeMethod;
+            }
+        }
+
+        static::$traitInitializers[$class] = array_values(array_unique(static::$traitInitializers[$class]));
+    }
+
+    protected function initializeTraits(): void
+    {
+        $class = static::class;
+
+        if (isset(static::$initializing[$class])) {
+            return;
+        }
+
+        static::$initializing[$class] = true;
+
+        try {
+            foreach (static::$traitInitializers[$class] ?? [] as $method) {
+                $this->{$method}();
+            }
+        } finally {
+            unset(static::$initializing[$class]);
+        }
+    }
+
+    public function newQuery(?DiInterface $container = null): BuilderInterface
+    {
+        return $this->registerGlobalScopes($this->newQueryWithoutScopes($container));
+    }
+
+    public function newModelQuery(?DiInterface $container = null): BuilderInterface
+    {
+        if ($container !== null && $this->getDI() === null) {
+            $this->setDI($container);
+        }
+
+        return (new Builder())
+            ->setModelName(static::class)
+            ->setEloquentModel($this);
+    }
+
+    public function newQueryWithoutScopes(?DiInterface $container = null): BuilderInterface
+    {
+        return $this->newModelQuery($container);
+    }
+
+    public function markAsRetrieved(bool $refreshAttributes = false): static
+    {
+        if ($refreshAttributes) {
+            $this->refreshAttributeState();
+        }
+
+        $this->exists = true;
+        $this->syncOriginal();
+        $this->changes = [];
+        $this->fireModelEvent('retrieved', false);
+
+        return $this;
+    }
+
+    public function hydrate(array $attributes): static
+    {
+        $this->setRawAttributes($attributes, true);
+
+        return $this->markAsRetrieved();
+    }
+
+    protected function prepareValueForPersistence(mixed $value, ?string $key = null): mixed
+    {
+        if ($value instanceof \DateTimeInterface && method_exists($this, 'fromDateTime')) {
+            $withTime = true;
+
+            if ($key !== null && method_exists($this, 'hasCast') && $this->hasCast($key)) {
+                $withTime = !in_array($this->getCastType($key), ['date', 'immutable_date'], true);
+            }
+
+            return $this->fromDateTime($value, $withTime);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, class-string>|null $map
+     * @return array<string, class-string>
+     */
+    public static function morphMap(?array $map = null, bool $merge = true): array
+    {
+        if ($map === null) {
+            return static::$morphMap;
+        }
+
+        static::$morphMap = $merge
+            ? array_merge(static::$morphMap, $map)
+            : $map;
+
+        return static::$morphMap;
+    }
+
+    public static function getActualClassNameForMorph(string $alias): string
+    {
+        return static::$morphMap[$alias] ?? $alias;
+    }
+
+    public function getMorphClass(): string
+    {
+        $alias = array_search(static::class, static::$morphMap, true);
+
+        return $alias === false ? static::class : $alias;
+    }
+
+    public function registerGlobalScopes(BuilderInterface $builder): BuilderInterface
+    {
+        if (!$builder instanceof Builder) {
+            return $builder;
+        }
+
+        foreach (static::getGlobalScopes() as $identifier => $scope) {
+            $builder->withGlobalScope($identifier, $scope);
+        }
+
+        return $builder;
+    }
+
+    /**
+     * @return array<int, class-string>
+     */
+    protected static function classUsesRecursive(string $class): array
+    {
+        $traits = [];
+
+        do {
+            $traits += class_uses($class) ?: [];
+        } while ($class = get_parent_class($class));
+
+        $search = array_values($traits);
+
+        while ($search !== []) {
+            $trait = array_pop($search);
+            $nestedTraits = class_uses($trait) ?: [];
+
+            foreach ($nestedTraits as $nestedTrait) {
+                if (!isset($traits[$nestedTrait])) {
+                    $traits[$nestedTrait] = $nestedTrait;
+                    $search[] = $nestedTrait;
+                }
+            }
+        }
+
+        return array_values($traits);
+    }
+
+    protected static function applyFindParameters(BuilderInterface $builder, mixed $parameters): BuilderInterface
+    {
+        if ($parameters === null) {
+            return $builder;
+        }
+
+        $key = (new static())->getKeyName();
+
+        if (!is_array($parameters)) {
+            return $builder->where($key, $parameters);
+        }
+
+        if (isset($parameters[0])) {
+            $builder->where($key, $parameters[0]);
+            unset($parameters[0]);
+        }
+
+        if (isset($parameters['conditions'])) {
+            $builder->whereRaw($parameters['conditions'], $parameters['bind'] ?? []);
+        }
+
+        if (isset($parameters['columns'])) {
+            $builder->columns($parameters['columns']);
+        }
+
+        if (isset($parameters['order'])) {
+            $builder->orderBy($parameters['order']);
+        }
+
+        if (isset($parameters['group'])) {
+            $builder->groupBy($parameters['group']);
+        }
+
+        if (isset($parameters['limit'])) {
+            $limit = $parameters['limit'];
+
+            if (is_array($limit)) {
+                $builder->limit($limit['number'] ?? 0, $limit['offset'] ?? 0);
+            } else {
+                $builder->limit($limit);
+            }
+        }
+
+        return $builder;
     }
 }

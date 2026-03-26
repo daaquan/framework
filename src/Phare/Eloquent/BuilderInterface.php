@@ -17,6 +17,16 @@ interface BuilderInterface extends CriteriaInterface
 
     public function with($relations, $callback = null): BuilderInterface;
 
+    public function withoutGlobalScope($scope): BuilderInterface;
+
+    public function withoutGlobalScopes($scopes = null): BuilderInterface;
+
+    public function withTrashed(bool $withTrashed = true): BuilderInterface;
+
+    public function onlyTrashed(): BuilderInterface;
+
+    public function withoutTrashed(): BuilderInterface;
+
     public function update(array $attributes): int;
 
     public function delete(): int;

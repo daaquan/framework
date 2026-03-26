@@ -66,4 +66,18 @@ class User extends Model implements AuthenticatableContract
     {
         return $this->morphMany(Label::class, 'labelable');
     }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class)
+            ->withPivot('active')
+            ->withTimestamps();
+    }
+
+    public function rolesWithMembership()
+    {
+        return $this->belongsToMany(Role::class)
+            ->withPivot('active')
+            ->as('membership');
+    }
 }

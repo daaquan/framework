@@ -2,6 +2,7 @@
 
 namespace Phare\Eloquent;
 
+use Closure;
 use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
@@ -23,11 +24,135 @@ class Builder extends Criteria implements BuilderInterface
     private array $eagerLoad = [];
 
     /**
+     * @var array<string, Scope|Closure>
+     */
+    protected array $scopes = [];
+
+    /**
+     * @var array<int, string>
+     */
+    protected array $removedScopes = [];
+
+    /**
+     * @var array<string, Closure>
+     */
+    protected array $macros = [];
+
+    protected ?Model $eloquentModel = null;
+
+    protected bool $scopesApplied = false;
+
+    public function setModel(Model $model): static
+    {
+        $this->eloquentModel = $model;
+        parent::setModelName($model::class);
+
+        return $this;
+    }
+
+    public function setEloquentModel(Model $model): static
+    {
+        $this->eloquentModel = $model;
+
+        return $this;
+    }
+
+    public function getEloquentModel(): ?Model
+    {
+        if ($this->eloquentModel instanceof Model) {
+            return $this->eloquentModel;
+        }
+
+        $modelName = $this->getModelName();
+
+        if (is_string($modelName) && class_exists($modelName) && is_subclass_of($modelName, Model::class)) {
+            /** @var Model $model */
+            $model = new $modelName();
+            $this->eloquentModel = $model;
+
+            return $model;
+        }
+
+        return null;
+    }
+
+    public function withGlobalScope($identifier, $scope): static
+    {
+        $this->scopes[$identifier] = $scope;
+
+        if (is_object($scope) && method_exists($scope, 'extend')) {
+            $scope->extend($this);
+        }
+
+        return $this;
+    }
+
+    public function withoutGlobalScope($scope): BuilderInterface
+    {
+        $identifier = $this->resolveScopeIdentifier($scope);
+
+        unset($this->scopes[$identifier]);
+        $this->removedScopes[] = $identifier;
+
+        return $this;
+    }
+
+    public function withoutGlobalScopes($scopes = null): BuilderInterface
+    {
+        $scopes ??= array_keys($this->scopes);
+
+        foreach ((array)$scopes as $scope) {
+            $this->withoutGlobalScope($scope);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function removedScopes(): array
+    {
+        return $this->removedScopes;
+    }
+
+    public function macro(string $name, Closure $macro): static
+    {
+        $this->macros[$name] = $macro;
+
+        return $this;
+    }
+
+    public function applyScopes(): static
+    {
+        if ($this->scopes === [] || $this->scopesApplied) {
+            return $this;
+        }
+
+        $this->scopesApplied = true;
+
+        foreach ($this->scopes as $identifier => $scope) {
+            if (!isset($this->scopes[$identifier])) {
+                continue;
+            }
+
+            if ($scope instanceof Closure) {
+                $scope($this);
+                continue;
+            }
+
+            $scope->apply($this, $this->getEloquentModel() ?? new ($this->getModelName())());
+        }
+
+        return $this;
+    }
+
+    /**
      * Get the first result of the query.
      */
     public function first(): ?ModelInterface
     {
-        $results = $this->get();
+        $results = $this->applyScopes()->get();
 
         return $results instanceof Collection ? $results->first() : $results->getFirst();
     }
@@ -47,7 +172,13 @@ class Builder extends Criteria implements BuilderInterface
      */
     public function get(): ResultsetInterface|Collection
     {
-        $results = $this->execute();
+        $builder = $this->applyScopes();
+        $modelName = $builder->getModelName();
+        $params = $builder->getParams();
+
+        $results = is_string($modelName) && method_exists($modelName, 'rawFind')
+            ? $modelName::rawFind($params)
+            : $builder->execute();
 
         if ($this->eagerLoad !== []) {
             return $this->eagerLoadRelations($results);
@@ -94,7 +225,7 @@ class Builder extends Criteria implements BuilderInterface
             $operator = '=';
         }
 
-        $bindKey = $field . '_' . $this->bindIndex++;
+        $bindKey = preg_replace('/[^a-zA-Z0-9_]/', '_', (string)$field) . '_' . $this->bindIndex++;
 
         return [
             'conditions' => "$field $operator :$bindKey:",
@@ -145,13 +276,11 @@ class Builder extends Criteria implements BuilderInterface
             ? [$relations => $callback]
             : (is_string($relations) ? [$relations] : $relations);
 
-        foreach ($relations as $name => $constraints) {
-            if (is_int($name)) {
-                $this->eagerLoad[$constraints] = null;
-                continue;
-            }
-
-            $this->eagerLoad[$name] = $constraints instanceof \Closure ? $constraints : null;
+        foreach ($this->parseWithRelations($relations) as $name => $constraints) {
+            $this->eagerLoad[$name] = $this->combineConstraints(
+                $this->eagerLoad[$name] ?? null,
+                $constraints
+            );
         }
 
         return $this;
@@ -161,6 +290,11 @@ class Builder extends Criteria implements BuilderInterface
     {
         $models = iterator_to_array($results, false);
 
+        return $this->eagerLoadModels($models);
+    }
+
+    public function eagerLoadModels(array $models): Collection
+    {
         if ($models === []) {
             return new Collection();
         }
@@ -199,24 +333,117 @@ class Builder extends Criteria implements BuilderInterface
         );
     }
 
-    public function update(array $attributes): int
+    /**
+     * @param array<int|string, mixed> $relations
+     * @return array<string, Closure|null>
+     */
+    private function parseWithRelations(array $relations): array
     {
-        $updated = 0;
+        $parsed = [];
 
-        foreach ($this->get() as $model) {
-            if ($model->update($attributes)) {
-                $updated++;
+        foreach ($relations as $name => $constraints) {
+            if (is_int($name)) {
+                $name = (string)$constraints;
+                $constraints = null;
             }
+
+            $this->addNestedWithRelation(
+                $parsed,
+                (string)$name,
+                $constraints instanceof Closure ? $constraints : null
+            );
         }
 
-        return $updated;
+        return $parsed;
+    }
+
+    /**
+     * @param array<string, Closure|null> $parsed
+     */
+    private function addNestedWithRelation(array &$parsed, string $name, ?Closure $constraints): void
+    {
+        $segments = explode('.', $name);
+        $topLevel = array_shift($segments);
+
+        if ($topLevel === null || $topLevel === '') {
+            return;
+        }
+
+        if ($segments === []) {
+            $parsed[$topLevel] = $this->combineConstraints($parsed[$topLevel] ?? null, $constraints);
+
+            return;
+        }
+
+        $nested = implode('.', $segments);
+
+        $parsed[$topLevel] = $this->combineConstraints(
+            $parsed[$topLevel] ?? null,
+            function ($query) use ($nested, $constraints) {
+                $query->with($nested, $constraints);
+            }
+        );
+    }
+
+    private function combineConstraints(?Closure $first, ?Closure $second): ?Closure
+    {
+        if ($first === null) {
+            return $second;
+        }
+
+        if ($second === null) {
+            return $first;
+        }
+
+        return function ($query) use ($first, $second) {
+            $first($query);
+            $second($query);
+        };
+    }
+
+    public function update(array $attributes): int
+    {
+        $models = iterator_to_array($this->applyScopes()->get(), false);
+
+        if ($models === []) {
+            return 0;
+        }
+
+        /** @var Model $model */
+        $model = $models[0];
+        $keyName = $model->getKeyName();
+        $ids = array_values(array_filter(
+            array_map(static fn (Model $item) => $item->readAttribute($keyName), $models),
+            static fn ($id) => $id !== null
+        ));
+
+        if ($ids === []) {
+            return 0;
+        }
+
+        $columns = array_keys($attributes);
+        $assignments = implode(', ', array_map(static fn (string $column) => $column . ' = ?', $columns));
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        $model->getWriteConnection()->execute(
+            sprintf(
+                'UPDATE %s SET %s WHERE %s IN (%s)',
+                $model->getTable(),
+                $assignments,
+                $keyName,
+                $placeholders
+            ),
+            array_merge(array_values($attributes), $ids)
+        );
+
+        return count($ids);
     }
 
     public function delete(): int
     {
         $deleted = 0;
 
-        foreach ($this->get() as $model) {
+        foreach ($this->applyScopes()->get() as $model) {
             if ($model->delete()) {
                 $deleted++;
             }
@@ -509,5 +736,63 @@ class Builder extends Criteria implements BuilderInterface
         $this->params['group'] = $group;
 
         return $this;
+    }
+
+    public function withTrashed(bool $withTrashed = true): BuilderInterface
+    {
+        return $this->invokeMacro(__FUNCTION__, [$withTrashed]) ?? $this;
+    }
+
+    public function onlyTrashed(): BuilderInterface
+    {
+        return $this->invokeMacro(__FUNCTION__) ?? $this;
+    }
+
+    public function withoutTrashed(): BuilderInterface
+    {
+        return $this->invokeMacro(__FUNCTION__) ?? $this;
+    }
+
+    public function __call(string $method, array $arguments): mixed
+    {
+        $macro = $this->invokeMacro($method, $arguments);
+        if ($macro !== null) {
+            return $macro;
+        }
+
+        $model = $this->getEloquentModel();
+        $scope = 'scope' . ucfirst($method);
+
+        if ($model !== null && method_exists($model, $scope)) {
+            return $model->{$scope}($this, ...$arguments) ?? $this;
+        }
+
+        throw new \BadMethodCallException(sprintf('Call to undefined method [%s] on builder [%s].', $method, static::class));
+    }
+
+    protected function invokeMacro(string $method, array $arguments = []): mixed
+    {
+        if (!isset($this->macros[$method])) {
+            return null;
+        }
+
+        return ($this->macros[$method])($this, ...$arguments);
+    }
+
+    protected function resolveScopeIdentifier($scope): string
+    {
+        if ($scope instanceof Scope) {
+            return get_class($scope);
+        }
+
+        if ($scope instanceof Closure) {
+            return spl_object_hash($scope);
+        }
+
+        if (is_string($scope)) {
+            return $scope;
+        }
+
+        throw new \InvalidArgumentException('Unable to resolve scope identifier.');
     }
 }

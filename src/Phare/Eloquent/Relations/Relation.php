@@ -67,6 +67,11 @@ abstract class Relation extends PhalconRelation
 
     abstract public function getResults(): mixed;
 
+    public function getRelationExistenceQuery(Builder $query, Builder $parentQuery, array|string $columns = ['*']): Builder
+    {
+        return $query;
+    }
+
     public function getQuery(): Builder
     {
         return $this->query;
@@ -80,6 +85,11 @@ abstract class Relation extends PhalconRelation
     public function getRelated(): Model
     {
         return $this->related;
+    }
+
+    public function getQualifiedParentKeyName(): string
+    {
+        return $this->parent->qualifyColumn($this->parent->getKeyName());
     }
 
     public function get(): Collection
