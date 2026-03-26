@@ -19,6 +19,16 @@ class MorphTo extends Relation
 
     protected ?string $resolvedRelated = null;
 
+    /**
+     * @var array<string, array<string, array<int, Model>>>
+     */
+    protected array $dictionary = [];
+
+    /**
+     * @var array<int, Model>
+     */
+    protected array $models = [];
+
     public function __construct(
         Builder $query,
         Model $child,
@@ -51,14 +61,28 @@ class MorphTo extends Relation
             return;
         }
 
-        $this->query->setModelName($type);
-        $this->resolvedRelated = $type;
+        $related = $this->resolveRelatedClass($type);
+        $this->query->setModelName($related);
+        $this->query->setEloquentModel($this->newRelatedInstance($related));
+        $this->resolvedRelated = $related;
         $this->query->where($this->ownerKey, $id);
     }
 
     public function addEagerConstraints(array $models): void
     {
-        throw new \RuntimeException('MorphTo eager loading is not implemented.');
+        $this->models = $models;
+        $this->dictionary = [];
+
+        foreach ($models as $model) {
+            $type = $model->readAttribute($this->morphType);
+            $id = $model->readAttribute($this->foreignKey);
+
+            if ($type === null || $id === null) {
+                continue;
+            }
+
+            $this->dictionary[(string)$type][(string)$id][] = $model;
+        }
     }
 
     public function initRelation(array $models, string $relation): array
@@ -84,10 +108,35 @@ class MorphTo extends Relation
             return null;
         }
 
-        $this->query->setModelName($type);
-        $this->resolvedRelated = $type;
+        $related = $this->resolveRelatedClass($type);
+
+        $this->query->setModelName($related);
+        $this->query->setEloquentModel($this->newRelatedInstance($related));
+        $this->resolvedRelated = $related;
 
         return $this->query->where($this->ownerKey, $id)->first();
+    }
+
+    public function getEager(): iterable
+    {
+        foreach (array_keys($this->dictionary) as $type) {
+            $class = $this->resolveRelatedClass($type);
+            $results = $this->getResultsByType($type, $class);
+
+            foreach ($results as $result) {
+                $ownerKey = $result->readAttribute($this->ownerKey);
+
+                if ($ownerKey === null) {
+                    continue;
+                }
+
+                foreach ($this->dictionary[$type][(string)$ownerKey] ?? [] as $model) {
+                    $model->setRelation($this->relationName, $result);
+                }
+            }
+        }
+
+        return $this->models;
     }
 
     protected function getRelationType(): int
@@ -103,5 +152,49 @@ class MorphTo extends Relation
     protected function getRelatedFields(): mixed
     {
         return $this->ownerKey;
+    }
+
+    protected function resolveRelatedClass(string $type): string
+    {
+        $resolved = Model::getActualClassNameForMorph($type);
+
+        if (!class_exists($resolved)) {
+            throw new \RuntimeException(sprintf(
+                'Unable to resolve morph type [%s] for relationship [%s].',
+                $type,
+                $this->relationName
+            ));
+        }
+
+        return $resolved;
+    }
+
+    protected function newRelatedInstance(string $related): Model
+    {
+        /** @var Model $instance */
+        $instance = new $related();
+
+        if ($this->child->getDI() !== null) {
+            $instance->setDI($this->child->getDI());
+        }
+
+        return $instance;
+    }
+
+    protected function getResultsByType(string $type, string $class): iterable
+    {
+        $instance = $this->newRelatedInstance($class);
+        $query = clone $this->query;
+
+        $query->setModelName($class);
+        $query->setEloquentModel($instance);
+
+        $keys = array_keys($this->dictionary[$type]);
+
+        if ($keys === []) {
+            return [];
+        }
+
+        return $query->whereIn($this->ownerKey, $keys)->get();
     }
 }
