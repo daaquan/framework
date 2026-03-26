@@ -2,6 +2,7 @@
 
 namespace Phare\Console;
 
+use Phare\Console\Concerns\AgentFriendly;
 use Phare\Console\Input\Input;
 use Phare\Console\Output\SymfonyOutput;
 use ReflectionClass;
@@ -15,6 +16,7 @@ use Symfony\Component\Console\Question\Question;
 
 class Command extends SymfonyCommand
 {
+    use AgentFriendly;
     /**
      * Framework application/container instance (not Symfony Console Application).
      */
@@ -120,6 +122,8 @@ class Command extends SymfonyCommand
         if ($this->description) {
             $this->setDescription($this->description);
         }
+        // Register AI-agent / CI flags on every command.
+        $this->configureAgentOptions();
     }
 
     /** Execute the command */
@@ -128,6 +132,9 @@ class Command extends SymfonyCommand
         $this->output = new SymfonyOutput($output);
         $this->input = $input;
         $this->resolveFrameworkApplication();
+
+        // Initialise --json / --no-interactive flags.
+        $this->initAgentMode();
 
         if (method_exists($this, 'handle')) {
             $this->handle();
