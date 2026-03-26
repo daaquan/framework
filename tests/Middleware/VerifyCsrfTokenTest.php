@@ -1,5 +1,7 @@
 <?php
 
+use Phalcon\Http\RequestInterface;
+use Phalcon\Http\ResponseInterface;
 use Phare\Middleware\TokenMismatchException;
 use Phare\Middleware\VerifyCsrfToken;
 use Phare\Security\Csrf;
@@ -16,7 +18,7 @@ beforeEach(function () {
     $this->app->singleton(Csrf::class, fn () => $this->csrf);
 
     $this->middleware = new VerifyCsrfToken($this->app);
-    $this->response = new stdClass();
+    $this->response = Mockery::mock(ResponseInterface::class);
 });
 
 function fakeRequest(
@@ -24,36 +26,21 @@ function fakeRequest(
     string $uri = '/',
     array $input = [],
     array $headers = []
-): object {
-    return new class($method, $uri, $input, $headers)
-    {
-        public function __construct(
-            private string $method,
-            private string $uri,
-            private array $input,
-            private array $headers
-        ) {}
+): RequestInterface {
+    $mock = Mockery::mock(RequestInterface::class);
 
-        public function getMethod(): string
-        {
-            return $this->method;
-        }
+    $mock->allows('getMethod')->andReturn($method);
+    $mock->allows('getURI')->andReturn($uri);
 
-        public function get(string $key, string $filter = 'string')
-        {
-            return $this->input[$key] ?? null;
-        }
+    $mock->allows('get')->andReturnUsing(function ($key, $filter = 'string') use ($input) {
+        return $input[$key] ?? null;
+    });
 
-        public function getHeader(string $name)
-        {
-            return $this->headers[$name] ?? null;
-        }
+    $mock->allows('getHeader')->andReturnUsing(function ($name) use ($headers) {
+        return $headers[$name] ?? '';
+    });
 
-        public function getURI(): string
-        {
-            return $this->uri;
-        }
-    };
+    return $mock;
 }
 
 it('allows GET requests without token', function () {
