@@ -29,3 +29,6 @@ storage/*.key
 .env.backup
 .env.production
 auth.json
+
+# Upload artifacts
+uploads/
