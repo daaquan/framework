@@ -1,0 +1,112 @@
+## Eloquent ORM Expansion — Development Plan
+
+overview: |
+  Phalcon版Eloquent ORMをLaravel同等の機能レベルまで拡張。破壊的リファクタ許可。
+  Phalcon部品は活用しつつ、Laravel Eloquentの設計パターンを移植する。
+
+reference:
+  laravel: /opt/laravel-framework/src/Illuminate/Database/Eloquent/
+  phare: /opt/phare/framework/src/Phare/Eloquent/
+
+architecture_decisions:
+  - Hybrid: Phalcon Model/Criteria/ModelManagerを永続化・クエリ実行に活用、上にEloquent互換trait/Builder構築
+  - SoftDeletes: 静的find/findFirstパッチからbuilder適用型グローバルスコープへ移行
+  - 属性パイプライン: __get/__setベースからgetAttribute/setAttribute/transformModelValueパイプラインへ
+  - Through/多対多: Phalconネイティブrelation metadataではなくカスタムjoinクエリで実装
+
+tasks:
+  ELQ-01:
+    name: Builder基盤 — スコープシステム
+    type: default
+    dependencies: []
+    file_scope:
+      - src/Phare/Eloquent/Builder.php
+      - src/Phare/Eloquent/BuilderInterface.php
+      - src/Phare/Eloquent/Scope.php (new)
+      - src/Phare/Eloquent/Concerns/HasGlobalScopes.php (new)
+      - src/Phare/Eloquent/SoftDeletingScope.php (new)
+      - src/Phare/Eloquent/Model.php
+      - src/Phare/Eloquent/Concerns/SoftDeletes.php
+    test_command: bin/pest tests/Eloquent/BuilderScopesTest.php tests/Eloquent/SoftDeletesScopeTest.php
+    deliverables:
+      - モデルboot/initializeパイプライン
+      - グローバルスコープ登録・適用・除外
+      - ローカルスコープ(scopeXxxパターン)
+      - newQuery/newModelQuery/newQueryWithoutScopes
+      - SoftDeletes withTrashed/onlyTrashed/withoutTrashed
+      - 既存テスト回帰なし
+
+  ELQ-02:
+    name: 属性パイプライン — アクセサ・ミューテータ・キャスト・ダーティトラッキング
+    type: default
+    dependencies: []
+    file_scope:
+      - src/Phare/Eloquent/Model.php
+      - src/Phare/Eloquent/Concerns/HasAttributes.php (new)
+      - src/Phare/Eloquent/Concerns/GuardsAttributes.php (new)
+      - src/Phare/Eloquent/Concerns/HidesAttributes.php (new)
+      - src/Phare/Eloquent/Casts/Attribute.php (new)
+      - src/Phare/Eloquent/Casts/CastsAttributes.php (new)
+      - src/Phare/Eloquent/Casts/CastsInboundAttributes.php (new)
+      - src/Phare/Eloquent/Casts/ (various new cast classes)
+    test_command: bin/pest tests/Eloquent/AttributeCastingTest.php tests/Eloquent/DirtyTrackingTest.php tests/Eloquent/MassAssignmentTest.php
+    deliverables:
+      - getAttribute/setAttributeパイプライン
+      - Laravel Attributeオブジェクト
+      - プリミティブキャスト拡張
+      - カスタムキャストクラス(CastsAttributesインターフェース)
+      - ダーティトラッキング(original, changes, isDirty, getDirty, wasChanged)
+      - fillable/guarded/unguarded
+      - hidden/visible/appendsシリアライゼーション
+
+  ELQ-03:
+    name: リレーション拡張I — MorphOne・MorphToイーガー・Through系
+    type: default
+    dependencies: [ELQ-01]
+    file_scope:
+      - src/Phare/Eloquent/Relations/MorphOne.php (new)
+      - src/Phare/Eloquent/Relations/HasOneThrough.php (new)
+      - src/Phare/Eloquent/Relations/HasManyThrough.php (new)
+      - src/Phare/Eloquent/Relations/MorphTo.php
+      - src/Phare/Eloquent/Relations/Relation.php
+      - src/Phare/Eloquent/Concerns/HasRelationships.php
+      - src/Phare/Eloquent/Builder.php
+    test_command: bin/pest tests/Eloquent/ThroughRelationshipsTest.php tests/Eloquent/MorphRelationshipsTest.php
+    deliverables:
+      - MorphOneリレーション
+      - MorphToイーガーローディング
+      - HasOneThrough/HasManyThroughリレーション
+      - ネステッドイーガーローディング改善
+
+  ELQ-04:
+    name: リレーション拡張II — BelongsToMany・Pivot・MorphToMany
+    type: default
+    dependencies: [ELQ-01]
+    file_scope:
+      - src/Phare/Eloquent/Relations/BelongsToMany.php (new)
+      - src/Phare/Eloquent/Relations/MorphToMany.php (new)
+      - src/Phare/Eloquent/Relations/MorphedByMany.php (new)
+      - src/Phare/Eloquent/Relations/Pivot.php (new)
+      - src/Phare/Eloquent/Concerns/HasRelationships.php
+    test_command: bin/pest tests/Eloquent/BelongsToManyTest.php tests/Eloquent/MorphToManyTest.php
+    deliverables:
+      - BelongsToManyリレーション + ピボットモデル
+      - attach/detach/sync/toggle/updateExistingPivot
+      - MorphToMany/MorphedByManyリレーション
+
+  ELQ-05:
+    name: イベント統合・タイムスタンプ・回帰テスト
+    type: default
+    dependencies: [ELQ-01, ELQ-02]
+    file_scope:
+      - src/Phare/Eloquent/Concerns/HasEvents.php
+      - src/Phare/Eloquent/Concerns/HasTimestamps.php
+      - src/Phare/Eloquent/Concerns/SoftDeletes.php
+      - src/Phare/Eloquent/Model.php
+    test_command: bin/pest tests/Eloquent/EventLifecycleTest.php tests/Eloquent/ModelTest.php tests/Eloquent/RelationshipsTest.php
+    deliverables:
+      - オブザーバークラス登録
+      - withoutEvents/withoutTouching
+      - retrieved/trashed/forceDeletingイベント
+      - タイムスタンプのEloquentセマンティクス
+      - 全既存テスト回帰確認
