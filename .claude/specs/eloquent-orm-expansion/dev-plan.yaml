@@ -1,0 +1,112 @@
+## Eloquent ORM Expansion — Development Plan
+
+overview: |
+  Extend the Phalcon-based Eloquent ORM to match Laravel features. Breaking refactors are permitted.
+  Port Laravel Eloquent design patterns while retaining useful Phalcon components.
+
+reference:
+  laravel: /opt/laravel-framework/src/Illuminate/Database/Eloquent/
+  phare: /opt/phare/framework/src/Phare/Eloquent/
+
+architecture_decisions:
+  - Hybrid: Use Phalcon Model/Criteria/ModelManager for persistence and query execution, with Eloquent-compatible traits and a Builder on top
+  - SoftDeletes: Replace static find/findFirst patches with builder-applied global scopes
+  - Attribute pipeline: Replace __get/__set-based handling with getAttribute/setAttribute/transformModelValue
+  - Through/many-to-many: Implement custom join queries instead of using native Phalcon relation metadata
+
+tasks:
+  ELQ-01:
+    name: Builder foundation — scope system
+    type: default
+    dependencies: []
+    file_scope:
+      - src/Phare/Eloquent/Builder.php
+      - src/Phare/Eloquent/BuilderInterface.php
+      - src/Phare/Eloquent/Scope.php (new)
+      - src/Phare/Eloquent/Concerns/HasGlobalScopes.php (new)
+      - src/Phare/Eloquent/SoftDeletingScope.php (new)
+      - src/Phare/Eloquent/Model.php
+      - src/Phare/Eloquent/Concerns/SoftDeletes.php
+    test_command: bin/pest tests/Eloquent/BuilderScopesTest.php tests/Eloquent/SoftDeletesScopeTest.php
+    deliverables:
+      - Model boot/initialize pipeline
+      - Register, apply, and exclude global scopes
+      - Local scopes (scopeXxx pattern)
+      - newQuery/newModelQuery/newQueryWithoutScopes
+      - SoftDeletes withTrashed/onlyTrashed/withoutTrashed
+      - No regressions in existing tests
+
+  ELQ-02:
+    name: Attribute pipeline — accessors, mutators, casts, and dirty tracking
+    type: default
+    dependencies: []
+    file_scope:
+      - src/Phare/Eloquent/Model.php
+      - src/Phare/Eloquent/Concerns/HasAttributes.php (new)
+      - src/Phare/Eloquent/Concerns/GuardsAttributes.php (new)
+      - src/Phare/Eloquent/Concerns/HidesAttributes.php (new)
+      - src/Phare/Eloquent/Casts/Attribute.php (new)
+      - src/Phare/Eloquent/Casts/CastsAttributes.php (new)
+      - src/Phare/Eloquent/Casts/CastsInboundAttributes.php (new)
+      - src/Phare/Eloquent/Casts/ (various new cast classes)
+    test_command: bin/pest tests/Eloquent/AttributeCastingTest.php tests/Eloquent/DirtyTrackingTest.php tests/Eloquent/MassAssignmentTest.php
+    deliverables:
+      - getAttribute/setAttribute pipeline
+      - Laravel Attribute objects
+      - Expanded primitive casts
+      - Custom cast classes (CastsAttributes interface)
+      - Dirty tracking (original, changes, isDirty, getDirty, wasChanged)
+      - fillable/guarded/unguarded
+      - hidden/visible/appends serialization
+
+  ELQ-03:
+    name: Relation expansion I — MorphOne, eager MorphTo, and through relations
+    type: default
+    dependencies: [ELQ-01]
+    file_scope:
+      - src/Phare/Eloquent/Relations/MorphOne.php (new)
+      - src/Phare/Eloquent/Relations/HasOneThrough.php (new)
+      - src/Phare/Eloquent/Relations/HasManyThrough.php (new)
+      - src/Phare/Eloquent/Relations/MorphTo.php
+      - src/Phare/Eloquent/Relations/Relation.php
+      - src/Phare/Eloquent/Concerns/HasRelationships.php
+      - src/Phare/Eloquent/Builder.php
+    test_command: bin/pest tests/Eloquent/ThroughRelationshipsTest.php tests/Eloquent/MorphRelationshipsTest.php
+    deliverables:
+      - MorphOne relation
+      - MorphTo eager loading
+      - HasOneThrough/HasManyThrough relations
+      - Improved nested eager loading
+
+  ELQ-04:
+    name: Relation expansion II — BelongsToMany, Pivot, and MorphToMany
+    type: default
+    dependencies: [ELQ-01]
+    file_scope:
+      - src/Phare/Eloquent/Relations/BelongsToMany.php (new)
+      - src/Phare/Eloquent/Relations/MorphToMany.php (new)
+      - src/Phare/Eloquent/Relations/MorphedByMany.php (new)
+      - src/Phare/Eloquent/Relations/Pivot.php (new)
+      - src/Phare/Eloquent/Concerns/HasRelationships.php
+    test_command: bin/pest tests/Eloquent/BelongsToManyTest.php tests/Eloquent/MorphToManyTest.php
+    deliverables:
+      - BelongsToMany relation + pivot model
+      - attach/detach/sync/toggle/updateExistingPivot
+      - MorphToMany/MorphedByMany relations
+
+  ELQ-05:
+    name: Event integration, timestamps, and regression tests
+    type: default
+    dependencies: [ELQ-01, ELQ-02]
+    file_scope:
+      - src/Phare/Eloquent/Concerns/HasEvents.php
+      - src/Phare/Eloquent/Concerns/HasTimestamps.php
+      - src/Phare/Eloquent/Concerns/SoftDeletes.php
+      - src/Phare/Eloquent/Model.php
+    test_command: bin/pest tests/Eloquent/EventLifecycleTest.php tests/Eloquent/ModelTest.php tests/Eloquent/RelationshipsTest.php
+    deliverables:
+      - Observer class registration
+      - withoutEvents/withoutTouching
+      - retrieved/trashed/forceDeleting events
+      - Eloquent timestamp semantics
+      - Run all existing tests to check for regressions
