@@ -29,7 +29,7 @@ test('env command can show environment variables', function () {
     $command->setFrameworkApplication($app);
     $command->shouldReceive('info')->once();
     $command->shouldReceive('option')->with('show')->andReturn(true);
-    $command->shouldReceive('showEnvironmentVariables')->once();
+    $command->shouldReceive('renderEnvironmentVariables')->once();
 
     $result = $command->handle();
 
