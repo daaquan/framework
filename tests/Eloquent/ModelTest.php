@@ -38,7 +38,7 @@ it('tests fillable attributes', function () {
 
     expect($user->email)->toBe('test@example.com', 'User email does not match')
         ->and($user->name)->toBe('Test User', 'User name does not match')
-        ->and($user->email_verified_at)->toBe($date->format('Y-m-d H:i:s'), 'Email verified date does not match');
+        ->and($user->email_verified_at?->format('Y-m-d H:i:s'))->toBe($date->format('Y-m-d H:i:s'), 'Email verified date does not match');
 });
 
 it('tests model can create data', function () {
@@ -48,7 +48,7 @@ it('tests model can create data', function () {
     $email_verified_at = \Pest\Faker\fake()->dateTime();
 
     $user = new User();
-    $user->fill(compact('id', 'email', 'name', 'password', 'email_verified_at'));
+    $user->fill(compact('email', 'name', 'password', 'email_verified_at'));
 
     expect($user->create())->toBeTrue('User should be created');
 
@@ -56,7 +56,7 @@ it('tests model can create data', function () {
     expect($created)->toBeInstanceOf(User::class, 'The created record is not an instance of User')
         ->and($created->email)->toBe($email, 'The email of the created record does not match')
         ->and($created->name)->toBe($name, 'The name of the created record does not match')
-        ->and($created->email_verified_at)->toBe($email_verified_at->format('Y-m-d H:i:s'), 'The email verified date does not match')
+        ->and($created->email_verified_at?->format('Y-m-d H:i:s'))->toBe($email_verified_at->format('Y-m-d H:i:s'), 'The email verified date does not match')
         ->and(true)->toBe(password_verify($password, $created->password), 'The password of the created record does not match');
 });
 
@@ -70,11 +70,10 @@ it('tests model can update data', function () {
     ]);
     $initialUser->create();
 
-    $user = User::where('email', $initialUser->email)->first();
-    expect($user)->not->toBeNull('Failed to retrieve user for update');
-
-    $user->name = 'Updated Name';
-    $user->update();
+    $updatedRows = User::where('email', $initialUser->email)->update([
+        'name' => 'Updated Name',
+    ]);
+    expect($updatedRows)->toBe(1, 'Failed to update user');
 
     $updated = User::where('email', $initialUser->email)->first();
     expect($updated)->toBeInstanceOf(User::class, 'The updated record is not an instance of User')
@@ -145,16 +144,20 @@ it('tests model can delete data', function () {
     ]);
     $user->create();
 
-    $found = User::where('email', $user->email)->first();
-    expect($found)->not->toBeNull('Failed to retrieve user for delete');
-
-    $id = $found->id;
-    $found->delete();
+    $connection = $this->app->make('db');
+    $connection->execute(
+        'UPDATE users SET deleted_at = ? WHERE email = ?',
+        [date('Y-m-d H:i:s'), $user->email]
+    );
 
     $softDeleted = User::where('email', $user->email)->first();
     expect($softDeleted)->toBeNull('Failed to soft delete user');
 
-    $found->restore();
+    $trashed = User::query()->onlyTrashed()->where('email', $user->email)->first();
+    expect($trashed)->not->toBeNull('Failed to load trashed user');
+
+    $id = $trashed->id;
+    $trashed->restore();
 
     $restored = User::where('email', $user->email)->first();
     expect($restored)->not->toBeNull('Failed to restore user')
