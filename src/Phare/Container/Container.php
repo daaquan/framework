@@ -246,7 +246,10 @@ class Container extends Di implements ContractsContainer
                     $instance = $this->getShared($abstract, $parameters);
                     $this->resolved[$abstract] = true;
                     if (is_object($instance)) {
-                        $this->aliases[get_class($instance)] = $abstract;
+                        $instanceClass = get_class($instance);
+                        if ($instanceClass !== $abstract) {
+                            $this->aliases[$instanceClass] = $abstract;
+                        }
                     }
 
                     return $instance;
