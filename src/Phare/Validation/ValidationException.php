@@ -75,6 +75,16 @@ class ValidationException extends \Exception
             {
                 return false;
             }
+
+            public function validated(): array
+            {
+                return [];
+            }
+
+            public function safe(): array
+            {
+                return [];
+            }
         });
     }
 }
