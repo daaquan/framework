@@ -23,10 +23,9 @@ use Phalcon\Filter\Validation\Validator\Regex;
 use Phalcon\Filter\Validation\Validator\StringLength;
 use Phalcon\Filter\Validation\Validator\Uniqueness;
 use Phalcon\Filter\Validation\Validator\Url;
-use Phare\Contracts\Http\Validation\Validator;
 use Phare\Foundation\Http\Validation\ValidationException;
 
-class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request, Validator
+class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request
 {
     use FileHelpers;
 
@@ -66,7 +65,7 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         $this->data = $this->get();
     }
 
-    public static function make($data, $rules = [])
+    public static function make(array $data, array $rules = [], array $messages = [], array $customAttributes = []): static
     {
         return (new static($rules))->validate($data);
     }
