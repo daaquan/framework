@@ -14,6 +14,8 @@ it('begins an assertion and returns a challenge payload', function () {
             {
                 return ['id' => $credentialId];
             }
+
+            public function storeCredential(string|int|null $userHandle, array $credential): void {}
         },
         new class implements PasskeyAssertionVerifier {
             public function verify(array $assertion, array $credential, string $expectedChallenge): bool
@@ -51,6 +53,8 @@ it('verifies a passkey assertion and clears challenge on success', function () {
             {
                 return ['credential_id' => $credentialId, 'user' => $userHandle];
             }
+
+            public function storeCredential(string|int|null $userHandle, array $credential): void {}
         },
         new class implements PasskeyAssertionVerifier {
             public function verify(array $assertion, array $credential, string $expectedChallenge): bool
@@ -82,6 +86,8 @@ it('returns false when credential cannot be found', function () {
             {
                 return null;
             }
+
+            public function storeCredential(string|int|null $userHandle, array $credential): void {}
         },
         new class implements PasskeyAssertionVerifier {
             public function verify(array $assertion, array $credential, string $expectedChallenge): bool
