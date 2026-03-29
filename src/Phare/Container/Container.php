@@ -238,24 +238,33 @@ class Container extends Di implements ContractsContainer
             return $instance;
         }
 
-        // For shared services registered via Phalcon DI, use getShared to maintain singleton behavior
+        // For shared services registered via Phalcon DI, use getShared to maintain singleton behavior.
+        // However, if the registered concrete is a Closure we must use our own resolve() path which
+        // correctly passes $this (the container) as the first argument.  Phalcon's getShared() invokes
+        // closures with zero arguments, causing an ArgumentCountError for any closure that expects $app.
         if ($this->isShared($abstract) || $this->isReserved($abstract)) {
-            try {
-                $service = $this->getService($abstract);
-                if ($service->isShared()) {
-                    $instance = $this->getShared($abstract, $parameters);
-                    $this->resolved[$abstract] = true;
-                    if (is_object($instance)) {
-                        $instanceClass = get_class($instance);
-                        if ($instanceClass !== $abstract) {
-                            $this->aliases[$instanceClass] = $abstract;
+            // Skip the Phalcon path when the concrete is a closure — resolve() handles it properly.
+            $registeredConcrete = $this->bindings['concrete'][$abstract] ?? null;
+            if ($registeredConcrete instanceof Closure) {
+                // Fall through to our own resolve() call below.
+            } else {
+                try {
+                    $service = $this->getService($abstract);
+                    if ($service->isShared()) {
+                        $instance = $this->getShared($abstract, $parameters);
+                        $this->resolved[$abstract] = true;
+                        if (is_object($instance)) {
+                            $instanceClass = get_class($instance);
+                            if ($instanceClass !== $abstract) {
+                                $this->aliases[$instanceClass] = $abstract;
+                            }
                         }
-                    }
 
-                    return $instance;
+                        return $instance;
+                    }
+                } catch (Exception $e) {
+                    // Service not found in Phalcon DI, continue to resolve
                 }
-            } catch (Exception $e) {
-                // Service not found in Phalcon DI, continue to resolve
             }
         }
 

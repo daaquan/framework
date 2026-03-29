@@ -16,7 +16,7 @@ abstract class FormRequest extends Request
     {
         parent::__construct();
         try {
-            $root = \Phare\Support\Facades\Application::getFacadeRoot();
+            $root = \Phare\Support\Facades\Application::getFacadeApplication();
             $this->app = $root instanceof Application ? $root : null;
         } catch (\RuntimeException) {
             $this->app = null;
