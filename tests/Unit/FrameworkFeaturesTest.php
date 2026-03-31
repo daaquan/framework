@@ -44,6 +44,8 @@ it('demonstrates Response helper methods', function () {
 
         protected array $headers = [];
 
+        protected string $content = '';
+
         public function status(int $code): static
         {
             $this->statusCode = [$code, null];
