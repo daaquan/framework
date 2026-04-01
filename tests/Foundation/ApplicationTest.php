@@ -34,6 +34,32 @@ class MockApplication extends \Phare\Foundation\AbstractApplication
     }
 }
 
+/**
+ * Save and restore error/exception handlers around a callable that installs its own.
+ * This prevents PHPUnit from marking tests as risky due to leaked handler changes.
+ */
+function withRestoredHandlers(callable $fn): void
+{
+    // Capture the current handlers by temporarily replacing them with null
+    $prevErrorHandler = set_error_handler(null);
+    $prevExceptionHandler = set_exception_handler(null);
+    restore_error_handler();
+    restore_exception_handler();
+
+    try {
+        $fn();
+    } finally {
+        restore_error_handler();
+        restore_exception_handler();
+        if ($prevErrorHandler !== null) {
+            set_error_handler($prevErrorHandler);
+        }
+        if ($prevExceptionHandler !== null) {
+            set_exception_handler($prevExceptionHandler);
+        }
+    }
+}
+
 it('can be instantiated', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
     expect($app)->toBeInstanceOf(\Phare\Foundation\AbstractApplication::class);
@@ -86,13 +112,10 @@ it('registers configured providers', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
     $app->configure('app');
 
-    try {
+    withRestoredHandlers(function () use ($app) {
         // You need to set up some providers in your config for this test to work
         $app->registerConfiguredProviders();
-    } finally {
-        restore_error_handler();
-        restore_exception_handler();
-    }
+    });
 
     // Assuming you have a ServiceProvider that binds a service named 'exampleService'
     $service = $app->make('log');
@@ -121,12 +144,9 @@ it('bootstrap the application with given bootstrappers', function () {
         \Phare\Foundation\Bootstrap\HandleExceptions::class,
     ];
 
-    try {
+    withRestoredHandlers(function () use ($app, $bootstrappers) {
         $app->bootstrapWith($bootstrappers);
-    } finally {
-        restore_error_handler();
-        restore_exception_handler();
-    }
+    });
 
     // Verify that the app has been bootstrapped
     expect($app->hasBeenBootstrapped())->toBe(true);
@@ -140,12 +160,10 @@ it('determines if the application has been bootstrapped', function () {
     expect($app->hasBeenBootstrapped())->toBe(false);
 
     // Perform bootstrapping then check again
-    try {
+    withRestoredHandlers(function () use ($app) {
         $app->bootstrapWith([\Phare\Foundation\Bootstrap\HandleExceptions::class]);
-    } finally {
-        restore_error_handler();
-        restore_exception_handler();
-    }
+    });
+
     expect($app->hasBeenBootstrapped())->toBe(true);
 });
 

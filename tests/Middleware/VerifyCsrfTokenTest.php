@@ -18,25 +18,39 @@ beforeEach(function () {
     $this->app->singleton(Csrf::class, fn () => $this->csrf);
 
     $this->middleware = new VerifyCsrfToken($this->app);
-    $this->response = Mockery::mock(ResponseInterface::class);
+    // Use PHPUnit createMock() to avoid the PHP 8.4 deprecation that Mockery triggers
+    // when generating a proxy for Phalcon\Http\ResponseInterface::redirect()
+    // (implicitly nullable parameter in the Phalcon interface definition).
+    $this->response = $this->createMock(ResponseInterface::class);
 });
 
+/**
+ * Build a PHPUnit stub for RequestInterface to avoid the PHP 8.4 deprecation that
+ * Mockery triggers when proxying Phalcon\Http\RequestInterface::get() (implicitly
+ * nullable parameter).
+ */
 function fakeRequest(
     string $method = 'GET',
     string $uri = '/',
     array $input = [],
     array $headers = []
 ): RequestInterface {
-    $mock = Mockery::mock(RequestInterface::class);
+    // PHPUnit's getMockBuilder() generates explicit-nullable parameters in PHP 8.4+.
+    $mock = (new \PHPUnit\Framework\MockObject\MockBuilder(
+        new class('_fakeRequest') extends \PHPUnit\Framework\TestCase {
+            public function runTest(): void {}
+        },
+        RequestInterface::class
+    ))->getMock();
 
-    $mock->allows('getMethod')->andReturn($method);
-    $mock->allows('getURI')->andReturn($uri);
+    $mock->method('getMethod')->willReturn($method);
+    $mock->method('getURI')->willReturn($uri);
 
-    $mock->allows('get')->andReturnUsing(function ($key, $filter = 'string') use ($input) {
+    $mock->method('get')->willReturnCallback(function ($key) use ($input) {
         return $input[$key] ?? null;
     });
 
-    $mock->allows('getHeader')->andReturnUsing(function ($name) use ($headers) {
+    $mock->method('getHeader')->willReturnCallback(function ($name) use ($headers) {
         return $headers[$name] ?? '';
     });
 
