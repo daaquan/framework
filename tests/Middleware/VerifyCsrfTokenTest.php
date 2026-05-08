@@ -1,5 +1,8 @@
 <?php
 
+use Phalcon\Http\Request;
+use Phalcon\Http\RequestInterface;
+use Phalcon\Http\Response;
 use Phare\Middleware\TokenMismatchException;
 use Phare\Middleware\VerifyCsrfToken;
 use Phare\Security\Csrf;
@@ -16,7 +19,7 @@ beforeEach(function () {
     $this->app->singleton(Csrf::class, fn () => $this->csrf);
 
     $this->middleware = new VerifyCsrfToken($this->app);
-    $this->response = new stdClass();
+    $this->response = new Response();
 });
 
 function fakeRequest(
@@ -24,34 +27,34 @@ function fakeRequest(
     string $uri = '/',
     array $input = [],
     array $headers = []
-): object {
-    return new class($method, $uri, $input, $headers)
+): RequestInterface {
+    return new class($method, $uri, $input, $headers) extends Request
     {
         public function __construct(
-            private string $method,
-            private string $uri,
-            private array $input,
-            private array $headers
+            private string $fakeMethod,
+            private string $fakeUri,
+            private array $fakeInput,
+            private array $fakeHeaders
         ) {}
 
         public function getMethod(): string
         {
-            return $this->method;
+            return $this->fakeMethod;
         }
 
-        public function get(string $key, string $filter = 'string')
+        public function get(?string $name = null, mixed $filters = null, mixed $defaultValue = null, bool $notAllowEmpty = false, bool $noRecursive = false): mixed
         {
-            return $this->input[$key] ?? null;
+            return $this->fakeInput[$name] ?? $defaultValue;
         }
 
-        public function getHeader(string $name)
+        public function getHeader(string $header): string
         {
-            return $this->headers[$name] ?? null;
+            return (string)($this->fakeHeaders[$header] ?? '');
         }
 
-        public function getURI(): string
+        public function getURI(bool $onlyPath = false): string
         {
-            return $this->uri;
+            return $this->fakeUri;
         }
     };
 }
