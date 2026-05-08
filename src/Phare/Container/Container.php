@@ -103,7 +103,12 @@ class Container extends Di implements ContractsContainer
         AbstractAdapter::class => 'translator',
     ];
 
-    protected array $aliases = [];
+    /**
+     * Map of alias => abstract. Inherited from Phalcon\Di\Di untyped, so we cannot add a type here.
+     *
+     * @var array<string, string>
+     */
+    protected $aliases = [];
 
     protected array $bindings = [
         'concrete' => [],
@@ -136,28 +141,28 @@ class Container extends Di implements ContractsContainer
     /**
      * Callbacks fired for every resolved instance.
      *
-     * @var array<int, \Closure>
+     * @var array<int, Closure>
      */
     protected array $globalResolvingCallbacks = [];
 
     /**
      * Callbacks fired when a specific abstract is resolved.
      *
-     * @var array<string, array<int, \Closure>>
+     * @var array<string, array<int, Closure>>
      */
     protected array $resolvingCallbacks = [];
 
     /**
      * Callbacks fired after resolving a specific abstract.
      *
-     * @var array<string, array<int, \Closure>>
+     * @var array<string, array<int, Closure>>
      */
     protected array $afterResolvingCallbacks = [];
 
     /**
      * Callbacks fired when an abstract is rebound.
      *
-     * @var array<string, array<int, \Closure>>
+     * @var array<string, array<int, Closure>>
      */
     protected array $reboundCallbacks = [];
 
@@ -202,7 +207,44 @@ class Container extends Di implements ContractsContainer
             $this->bindings['shared'][$abstract] = true;
         }
 
-        $this->set($abstract, $concrete, $shared);
+        // Class-string concretes go to Phalcon as a closure so that getShared/get
+        // routes through Container::resolve() for autowiring instead of `new $class()`.
+        // skipAliasReserved=true prevents resolve($concrete) from redirecting back to
+        // make($abstract) when $concrete is itself in reservedServiceAlias.
+        // Closure concretes are wrapped so the container ($app) is auto-passed
+        // when the closure declares a parameter — mirroring Laravel's `function ($app) {}` convention.
+        $definition = $concrete;
+        if (is_string($concrete)) {
+            $self = $this;
+            $definition = function ($params = []) use ($concrete, $self) {
+                return $self->resolve($concrete, is_array($params) ? $params : [], true);
+            };
+        } elseif ($concrete instanceof Closure) {
+            $self = $this;
+            $original = $concrete;
+            $definition = function ($params = []) use ($original, $self) {
+                $reflection = new \ReflectionFunction($original);
+                $declared = $reflection->getParameters();
+                if ($declared === []) {
+                    return $original();
+                }
+
+                // If the first declared param expects an `array`, route Phalcon's $params through unchanged.
+                // Otherwise prepend the container so providers can use `function ($app)` / `function (Container $app)`.
+                $firstType = $declared[0]->getType();
+                $firstTypeName = $firstType instanceof \ReflectionNamedType ? $firstType->getName() : null;
+                if ($firstTypeName === 'array') {
+                    $args = is_array($params) ? [$params] : [(array)$params];
+                } else {
+                    $args = is_array($params) ? $params : [$params];
+                    array_unshift($args, $self);
+                }
+
+                return $original(...$args);
+            };
+        }
+
+        $this->set($abstract, $definition, $shared);
         $this->bindings['concrete'][$abstract] = $concrete;
 
         if ($isRebind) {
@@ -278,11 +320,11 @@ class Container extends Di implements ContractsContainer
     /**
      * Register a resolving callback.
      *
-     * @param string|\Closure $abstract
+     * @param string|Closure $abstract
      */
-    public function resolving($abstract, ?\Closure $callback = null): void
+    public function resolving($abstract, ?Closure $callback = null): void
     {
-        if ($abstract instanceof \Closure && $callback === null) {
+        if ($abstract instanceof Closure && $callback === null) {
             $this->globalResolvingCallbacks[] = $abstract;
 
             return;
@@ -298,11 +340,11 @@ class Container extends Di implements ContractsContainer
     /**
      * Register an after resolving callback.
      *
-     * @param string|\Closure $abstract
+     * @param string|Closure $abstract
      */
-    public function afterResolving($abstract, ?\Closure $callback = null): void
+    public function afterResolving($abstract, ?Closure $callback = null): void
     {
-        if ($abstract instanceof \Closure && $callback === null) {
+        if ($abstract instanceof Closure && $callback === null) {
             $this->afterResolvingCallbacks['*'][] = $abstract;
 
             return;
@@ -323,7 +365,7 @@ class Container extends Di implements ContractsContainer
     /**
      * Register a rebinding callback.
      */
-    public function rebinding(string $abstract, \Closure $callback): void
+    public function rebinding(string $abstract, Closure $callback): void
     {
         $this->reboundCallbacks[$abstract][] = $callback;
 
@@ -367,7 +409,7 @@ class Container extends Di implements ContractsContainer
     /**
      * Resolve the given type from the container.
      */
-    protected function resolve(string $abstract, array $parameters = [])
+    protected function resolve(string $abstract, array $parameters = [], bool $skipAliasReserved = false)
     {
         $shared = $this->isShared($abstract);
         $concrete = $this->getConcrete($abstract);
@@ -416,7 +458,7 @@ class Container extends Di implements ContractsContainer
             throw new ContainerException("Class \"$abstract\" must be instance or sub-class of $parent");
         }
 
-        if ($this->isAliasReserved($abstract)) {
+        if (!$skipAliasReserved && $this->isAliasReserved($abstract)) {
             $parent = $this->reservedServiceAlias[$abstract];
 
             return $this->resolveInstance($abstract, $this->make($parent), true);
@@ -486,6 +528,22 @@ class Container extends Di implements ContractsContainer
             }
 
             if (!$type) {
+                if ($param->isOptional()) {
+                    try {
+                        $dependencies[] = $param->getDefaultValue();
+                    } catch (\ReflectionException $exception) {
+                        // Internal-class default value cannot be reflected — stop autowiring further
+                        // params and let PHP use the constructor's native defaults.
+                        break;
+                    }
+
+                    continue;
+                }
+                if ($param->allowsNull()) {
+                    $dependencies[] = null;
+
+                    continue;
+                }
                 array_pop($this->buildStack);
                 throw new ContainerException("Failed to resolve class \"$abstract\" because param '$name' is missing a type hint");
             }
@@ -529,6 +587,7 @@ class Container extends Di implements ContractsContainer
 
             if ($param->allowsNull()) {
                 $dependencies[] = null;
+
                 continue;
             }
             if ($param->isOptional()) {
@@ -540,6 +599,7 @@ class Container extends Di implements ContractsContainer
                 }
 
                 $dependencies[] = $defaultValue;
+
                 continue;
             }
 
@@ -697,7 +757,7 @@ class Container extends Di implements ContractsContainer
     {
         $context = end($this->buildStack);
         if (!is_string($context)) {
-            return null;
+            return;
         }
 
         return $this->contextual[$context][$abstract] ?? null;
