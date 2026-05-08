@@ -6,9 +6,7 @@ use Phalcon\Cache\Adapter\AdapterInterface as CacheAdapterInterface;
 
 class NullAdapter implements CacheAdapterInterface
 {
-    public function __construct(private readonly string $prefix = '')
-    {
-    }
+    public function __construct(private readonly string $prefix = '') {}
 
     public function clear(): bool
     {
@@ -21,6 +19,11 @@ class NullAdapter implements CacheAdapterInterface
     }
 
     public function delete(string $key): bool
+    {
+        return true;
+    }
+
+    public function deleteMultiple(array $keys): bool
     {
         return true;
     }

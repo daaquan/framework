@@ -24,6 +24,11 @@ class NullAdapter implements AdapterInterface
         return true;
     }
 
+    public function deleteMultiple(array $keys): bool
+    {
+        return true;
+    }
+
     public function has(string $key): bool
     {
         return false;
