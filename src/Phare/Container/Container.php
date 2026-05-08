@@ -538,11 +538,18 @@ class Container extends Di implements ContractsContainer
 
         // 3. Inspect the constructor parameters (dependencies)
         // 4. If the constructor parameter is a class then try a resolve that class using the container
-        $parameters = $constructor->getParameters();
+        $constructorParams = $constructor->getParameters();
         $dependencies = [];
-        foreach ($parameters as $param) {
+        foreach ($constructorParams as $param) {
             $name = $param->getName();
             $type = $param->getType();
+
+            // Caller-supplied named overrides win over autowiring.
+            if (array_key_exists($name, $parameters)) {
+                $dependencies[] = $parameters[$name];
+
+                continue;
+            }
 
             if (($attribute = $this->getContextualAttributeFromDependency($param)) !== null) {
                 $resolved = $this->resolveFromAttribute($attribute);
