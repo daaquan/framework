@@ -167,6 +167,13 @@ class Container extends Di implements ContractsContainer
     protected array $reboundCallbacks = [];
 
     /**
+     * Callbacks indexed by contextual attribute class name.
+     *
+     * @var array<class-string, array<int, Closure>>
+     */
+    protected array $afterResolvingAttributeCallbacks = [];
+
+    /**
      * Alias a type to a shortened name.
      */
     public function alias(string $abstract, string $alias): void
@@ -360,6 +367,14 @@ class Container extends Di implements ContractsContainer
             $getter = $this->isShared($abstract) ? 'getShared' : 'get';
             $callback($this->$getter($abstract), $this);
         }
+    }
+
+    /**
+     * Register a callback to fire after a contextual attribute resolves.
+     */
+    public function afterResolvingAttribute(string $attribute, Closure $callback): void
+    {
+        $this->afterResolvingAttributeCallbacks[$attribute][] = $callback;
     }
 
     /**
