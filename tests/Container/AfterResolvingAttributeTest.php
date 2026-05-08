@@ -60,6 +60,58 @@ class AfterResolvingAttributeTest extends TestCase
         $this->assertSame($this->container, $captured[2]);
     }
 
+    public function test_class_level_attribute_fires_once_on_first_resolve(): void
+    {
+        $count = 0;
+        $this->container->afterResolvingAttribute(
+            TestContextualAttribute::class,
+            function ($attribute, $object, $container) use (&$count) {
+                $count++;
+            }
+        );
+
+        $this->container->singleton(StubWithTestAttribute::class);
+
+        $this->container->make(StubWithTestAttribute::class);
+        $this->container->make(StubWithTestAttribute::class);
+        $this->container->make(StubWithTestAttribute::class);
+
+        $this->assertSame(1, $count);
+    }
+
+    public function test_class_level_attribute_fires_each_resolve_for_non_shared(): void
+    {
+        $count = 0;
+        $this->container->afterResolvingAttribute(
+            TestContextualAttribute::class,
+            function ($attribute, $object, $container) use (&$count) {
+                $count++;
+            }
+        );
+
+        $this->container->bind(StubWithTestAttribute::class);
+
+        $this->container->make(StubWithTestAttribute::class);
+        $this->container->make(StubWithTestAttribute::class);
+
+        $this->assertSame(2, $count);
+    }
+
+    public function test_class_level_attribute_callback_throw_propagates(): void
+    {
+        $this->container->afterResolvingAttribute(
+            TestContextualAttribute::class,
+            function () {
+                throw new \LogicException('boom');
+            }
+        );
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('boom');
+
+        $this->container->make(StubWithTestAttribute::class);
+    }
+
     public function test_param_resolution_fires_after_resolving_attribute_callback(): void
     {
         $captured = [];
