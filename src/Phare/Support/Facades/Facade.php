@@ -36,6 +36,30 @@ abstract class Facade
     }
 
     /**
+     * Resolve the facade root instance from the container.
+     *
+     * Returns null when either the application or the bound service is unavailable
+     * so callers can degrade gracefully outside an HTTP context.
+     */
+    public static function getFacadeRoot(): mixed
+    {
+        if (!static::$app) {
+            return null;
+        }
+
+        $accessor = static::getFacadeAccessor();
+        if (is_object($accessor)) {
+            return $accessor;
+        }
+
+        try {
+            return static::$app->make($accessor);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
      * Set the application instance.
      *
      * @param \Phare\Support\Facades\Application $app
