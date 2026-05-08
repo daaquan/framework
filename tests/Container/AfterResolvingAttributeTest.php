@@ -32,7 +32,58 @@ class AfterResolvingAttributeTest extends TestCase
         $this->assertArrayHasKey(TestContextualAttribute::class, $registry);
         $this->assertSame([$callback], $registry[TestContextualAttribute::class]);
     }
+
+    public function test_fire_invokes_registered_callback_with_attribute_instance_object_container(): void
+    {
+        $captured = null;
+        $this->container->afterResolvingAttribute(
+            TestContextualAttribute::class,
+            function ($attribute, $object, $container) use (&$captured) {
+                $captured = [$attribute, $object, $container];
+            }
+        );
+
+        $reflection = new \ReflectionClass(StubWithTestAttribute::class);
+        $attributes = $reflection->getAttributes();
+
+        $sentinel = new \stdClass();
+        $sentinel->id = 'resolved-object';
+
+        $fire = (new \ReflectionMethod($this->container, 'fireAfterResolvingAttributeCallbacks'))
+            ->getClosure($this->container);
+        $fire($attributes, $sentinel);
+
+        $this->assertNotNull($captured);
+        $this->assertInstanceOf(TestContextualAttribute::class, $captured[0]);
+        $this->assertSame('logger', $captured[0]->value);
+        $this->assertSame($sentinel, $captured[1]);
+        $this->assertSame($this->container, $captured[2]);
+    }
+
+    public function test_fire_skips_non_contextual_attributes(): void
+    {
+        $invoked = false;
+        $this->container->afterResolvingAttribute(
+            \Attribute::class,
+            function () use (&$invoked) {
+                $invoked = true;
+            }
+        );
+
+        $reflection = new \ReflectionClass(StubWithPlainAttribute::class);
+        $fire = (new \ReflectionMethod($this->container, 'fireAfterResolvingAttributeCallbacks'))
+            ->getClosure($this->container);
+        $fire($reflection->getAttributes(), new \stdClass());
+
+        $this->assertFalse($invoked);
+    }
 }
+
+#[TestContextualAttribute('logger')]
+class StubWithTestAttribute {}
+
+#[\Attribute]
+class StubWithPlainAttribute {}
 
 #[\Attribute(\Attribute::TARGET_ALL)]
 final class TestContextualAttribute implements ContextualAttributeContract
