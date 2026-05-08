@@ -298,6 +298,8 @@ class Container extends Di implements ContractsContainer
                         $this->aliases[get_class($instance)] = $abstract;
                     }
 
+                    $this->fireAfterResolvingClassAttributes($instance);
+
                     return $instance;
                 }
             } catch (Exception $e) {
@@ -315,8 +317,22 @@ class Container extends Di implements ContractsContainer
         }
 
         $this->fireResolvingCallbacks($abstract, $instance);
+        $this->fireAfterResolvingClassAttributes($instance);
 
         return $instance;
+    }
+
+    /**
+     * Fire after-resolving attribute callbacks for the resolved object's class-level attributes.
+     */
+    protected function fireAfterResolvingClassAttributes(mixed $instance): void
+    {
+        if (!is_object($instance)) {
+            return;
+        }
+
+        $reflection = new \ReflectionClass($instance);
+        $this->fireAfterResolvingAttributeCallbacks($reflection->getAttributes(), $instance);
     }
 
     public function resolved(string $abstract): bool
