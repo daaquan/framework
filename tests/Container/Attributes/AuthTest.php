@@ -22,16 +22,6 @@ class AuthTest extends TestCase
     }
 }
 
-class FakeAuthManager
-{
-    public ?object $userInstance = null;
-
-    public function user(): ?object
-    {
-        return $this->userInstance;
-    }
-}
-
 class AuthStubConsumer
 {
     public function __construct(#[Auth] public mixed $auth) {}
