@@ -60,6 +60,24 @@ class AfterResolvingAttributeTest extends TestCase
         $this->assertSame($this->container, $captured[2]);
     }
 
+    public function test_param_resolution_fires_after_resolving_attribute_callback(): void
+    {
+        $captured = [];
+        $this->container->afterResolvingAttribute(
+            TestContextualAttribute::class,
+            function ($attribute, $object, $container) use (&$captured) {
+                $captured[] = [$attribute->value, $object];
+            }
+        );
+
+        $instance = $this->container->make(StubConsumer::class);
+
+        $this->assertCount(1, $captured);
+        $this->assertSame('hello', $captured[0][0]);
+        $this->assertSame('hello', $captured[0][1]);
+        $this->assertSame('hello', $instance->value);
+    }
+
     public function test_fire_skips_non_contextual_attributes(): void
     {
         $invoked = false;
@@ -84,6 +102,13 @@ class StubWithTestAttribute {}
 
 #[\Attribute]
 class StubWithPlainAttribute {}
+
+class StubConsumer
+{
+    public function __construct(
+        #[TestContextualAttribute('hello')] public string $value
+    ) {}
+}
 
 #[\Attribute(\Attribute::TARGET_ALL)]
 final class TestContextualAttribute implements ContextualAttributeContract

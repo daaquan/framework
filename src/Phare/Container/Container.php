@@ -539,6 +539,8 @@ class Container extends Di implements ContractsContainer
                     $dependencies[] = $resolved;
                 }
 
+                $this->fireAfterResolvingAttributeCallbacks($param->getAttributes(), $resolved);
+
                 continue;
             }
 
