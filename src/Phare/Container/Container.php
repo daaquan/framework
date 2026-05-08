@@ -808,6 +808,32 @@ class Container extends Di implements ContractsContainer
     }
 
     /**
+     * Fire after-resolving callbacks registered against contextual attributes.
+     *
+     * @param array<int, \ReflectionAttribute> $reflectionAttributes
+     */
+    protected function fireAfterResolvingAttributeCallbacks(array $reflectionAttributes, mixed $object): void
+    {
+        foreach ($reflectionAttributes as $reflectionAttribute) {
+            $name = $reflectionAttribute->getName();
+
+            if (!is_a($name, ContextualAttributeContract::class, true)) {
+                continue;
+            }
+
+            $callbacks = $this->afterResolvingAttributeCallbacks[$name] ?? [];
+            if ($callbacks === []) {
+                continue;
+            }
+
+            $instance = $reflectionAttribute->newInstance();
+            foreach ($callbacks as $callback) {
+                $callback($instance, $object, $this);
+            }
+        }
+    }
+
+    /**
      * Resolve a contextual class dependency definition.
      *
      * @param mixed $contextualConcrete
