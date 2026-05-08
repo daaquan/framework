@@ -13,9 +13,7 @@ class ArrayAdapter implements CacheAdapterInterface
      */
     private array $storage = [];
 
-    public function __construct(private readonly string $prefix = '')
-    {
-    }
+    public function __construct(private readonly string $prefix = '') {}
 
     public function clear(): bool
     {
@@ -31,9 +29,48 @@ class ArrayAdapter implements CacheAdapterInterface
 
     public function delete(string $key): bool
     {
-        unset($this->storage[$this->itemKey($key)]);
+        $itemKey = $this->itemKey($key);
+        if (!array_key_exists($itemKey, $this->storage)) {
+            return false;
+        }
+
+        unset($this->storage[$itemKey]);
 
         return true;
+    }
+
+    public function deleteMultiple(array $keys): bool
+    {
+        $allDeleted = true;
+        foreach ($keys as $key) {
+            if (!$this->delete($key)) {
+                $allDeleted = false;
+            }
+        }
+
+        return $allDeleted;
+    }
+
+    public function getMultiple(array $keys, $defaultValue = null): array
+    {
+        $values = [];
+        foreach ($keys as $key) {
+            $values[$key] = $this->get($key, $defaultValue);
+        }
+
+        return $values;
+    }
+
+    public function setMultiple(array $values, $ttl = null): bool
+    {
+        $allSet = true;
+        foreach ($values as $key => $value) {
+            if (!$this->set((string)$key, $value, $ttl)) {
+                $allSet = false;
+            }
+        }
+
+        return $allSet;
     }
 
     public function get(string $key, $defaultValue = null): mixed
