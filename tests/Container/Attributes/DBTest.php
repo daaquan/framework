@@ -13,19 +13,21 @@ class DBTest extends TestCase
     public function test_resolves_default_connection_when_no_arg(): void
     {
         $container = new Container();
-        $manager = new FakeDatabaseManager();
-        $container->singleton('db', fn () => $manager);
+        $defaultConn = (object)['name' => 'default-conn'];
+        $container->singleton('db', fn () => $defaultConn);
 
         $consumer = $container->make(DBDefaultStubConsumer::class);
 
-        $this->assertSame('default-conn', $consumer->db);
+        $this->assertSame($defaultConn, $consumer->db);
     }
 
-    public function test_resolves_named_connection(): void
+    public function test_resolves_named_connection_via_db_manager(): void
     {
         $container = new Container();
         $manager = new FakeDatabaseManager();
-        $container->singleton('db', fn () => $manager);
+
+        $container->singleton('db.manager', fn () => $manager);
+        $container->singleton('db', fn () => (object)['name' => 'default-conn']);
 
         $consumer = $container->make(DBNamedStubConsumer::class);
 

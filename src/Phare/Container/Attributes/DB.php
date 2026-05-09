@@ -15,6 +15,10 @@ final class DB implements ContextualAttribute
 
     public static function resolve(self $attribute, Container $container): mixed
     {
-        return $container->make('db')->connection($attribute->connection);
+        if ($attribute->connection === null) {
+            return $container->make('db');
+        }
+
+        return $container->make('db.manager')->connection($attribute->connection);
     }
 }
