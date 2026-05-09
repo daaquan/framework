@@ -9,10 +9,10 @@ class MiddlewareApplicator
     /**
      * Apply middleware list in order with optional lifecycle callbacks.
      *
-     * @param array<int, string> $middlewares
-     * @param callable(string): void $apply
-     * @param null|callable(string): void $onStart
-     * @param null|callable(string): void $onEnd
+     * @param array<int, string|callable> $middlewares
+     * @param callable(string|callable): void $apply
+     * @param null|callable(string|callable): void $onStart
+     * @param null|callable(string|callable): void $onEnd
      */
     public function apply(
         array $middlewares,

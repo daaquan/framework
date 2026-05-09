@@ -13,10 +13,12 @@ use Tests\TestCase;
 |
 */
 
-uses(TestCase::class)
-    ->beforeEach(function () {
-        $this->setUpApplication();
-    })->in('Database', 'Eloquent');
+// TestCase::setUp() already calls setUpApplication(); no beforeEach needed here.
+// Adding a second setUpApplication() call via beforeEach would re-initialize the DI
+// container AFTER test-specific setUp() methods (e.g. FactoryTest::setUp) have already
+// prepared fixtures, causing those fixtures to be created on a connection that gets
+// discarded when the DI is reset.
+uses(TestCase::class)->in('Database', 'Eloquent');
 
 uses()
     ->beforeEach(function () {

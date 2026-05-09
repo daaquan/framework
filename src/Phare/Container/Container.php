@@ -118,6 +118,16 @@ class Container extends Di implements ContractsContainer
     protected array $resolved = [];
 
     /**
+     * Locally cached singleton instances. Populated by resolveInstance() so
+     * repeat make() calls return the same instance even when Phalcon's DI
+     * cache cannot represent the value (e.g. closure singletons returning
+     * arrays or scalars).
+     *
+     * @var array<string, mixed>
+     */
+    protected array $resolvedInstances = [];
+
+    /**
      * Current concrete build stack.
      *
      * @var array<int, string>
@@ -207,7 +217,7 @@ class Container extends Di implements ContractsContainer
 
         if ($isRebind) {
             $this->remove($abstract);
-            unset($this->resolved[$abstract]);
+            unset($this->resolved[$abstract], $this->resolvedInstances[$abstract]);
         }
 
         if ($shared) {
@@ -280,6 +290,15 @@ class Container extends Di implements ContractsContainer
 
         if ($this->resolved($abstract)) {
             $shared = $this->isShared($abstract);
+
+            // Locally cached singleton instances bypass Phalcon DI entirely. This
+            // matters for closure singletons that returned a non-object (array,
+            // scalar) — Phalcon's getShared() would treat the stored value as a
+            // service definition and fail with "Missing 'className' parameter".
+            if ($shared && array_key_exists($abstract, $this->resolvedInstances)) {
+                return $this->resolvedInstances[$abstract];
+            }
+
             $getter = $shared ? 'getShared' : 'get';
 
             $instance = $this->$getter($abstract, $parameters);
@@ -293,23 +312,35 @@ class Container extends Di implements ContractsContainer
             return $instance;
         }
 
-        // For shared services registered via Phalcon DI, use getShared to maintain singleton behavior
+        // For shared services registered via Phalcon DI, use getShared to maintain singleton behavior.
+        // However, if the registered concrete is a Closure we must use our own resolve() path which
+        // correctly passes $this (the container) as the first argument.  Phalcon's getShared() invokes
+        // closures with zero arguments, causing an ArgumentCountError for any closure that expects $app.
         if ($this->isShared($abstract) || $this->isReserved($abstract)) {
-            try {
-                $service = $this->getService($abstract);
-                if ($service->isShared()) {
-                    $instance = $this->getShared($abstract, $parameters);
-                    $this->resolved[$abstract] = true;
-                    if (is_object($instance)) {
-                        $this->aliases[get_class($instance)] = $abstract;
+            // Skip the Phalcon path when the concrete is a closure — resolve() handles it properly.
+            $registeredConcrete = $this->bindings['concrete'][$abstract] ?? null;
+            if ($registeredConcrete instanceof Closure) {
+                // Fall through to our own resolve() call below.
+            } else {
+                try {
+                    $service = $this->getService($abstract);
+                    if ($service->isShared()) {
+                        $instance = $this->getShared($abstract, $parameters);
+                        $this->resolved[$abstract] = true;
+                        if (is_object($instance)) {
+                            $instanceClass = get_class($instance);
+                            if ($instanceClass !== $abstract) {
+                                $this->aliases[$instanceClass] = $abstract;
+                            }
+                        }
+
+                        $this->fireAfterResolvingClassAttributes($instance);
+
+                        return $instance;
                     }
-
-                    $this->fireAfterResolvingClassAttributes($instance);
-
-                    return $instance;
+                } catch (Exception $e) {
+                    // Service not found in Phalcon DI, continue to resolve
                 }
-            } catch (Exception $e) {
-                // Service not found in Phalcon DI, continue to resolve
             }
         }
 
@@ -730,6 +761,7 @@ class Container extends Di implements ContractsContainer
 
         if ($shared) {
             $this->resolved[$abstract] = true;
+            $this->resolvedInstances[$abstract] = $instance;
         }
 
         return $instance;

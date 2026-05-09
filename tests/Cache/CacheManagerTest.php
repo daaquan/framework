@@ -40,7 +40,10 @@ beforeEach(function () {
 
 test('default file cache driver uses stream adapter', function () {
     // ensure storage directory exists
-    @mkdir(storage_path('framework/cache/data'), 0777, true);
+    $cacheDir = storage_path('framework/cache/data');
+    if (!is_dir($cacheDir)) {
+        mkdir($cacheDir, 0777, true);
+    }
     $manager = new CacheManager();
     expect($manager->adapter())->toBeInstanceOf(Stream::class);
 

@@ -83,7 +83,9 @@ abstract class Kernel implements HttpKernel
 
     protected function syncMiddleware(): void
     {
-        $this->applyMiddlewares($this->middlewares);
+        foreach ($this->middlewares as $middleware) {
+            $this->registerMiddleware($middleware);
+        }
     }
 
     protected function syncMiddlewareGroup(string $group): void
@@ -291,15 +293,15 @@ abstract class Kernel implements HttpKernel
     /**
      * Apply middlewares with consistent logging behavior.
      *
-     * @param array<int, string> $middlewares
+     * @param array<int, string|callable> $middlewares
      */
     protected function applyMiddlewares(array $middlewares): void
     {
         (new MiddlewareApplicator())->apply(
             $middlewares,
-            fn (string $middleware) => $this->app->middleware($middleware),
-            fn (string $middleware) => $this->debugLogger?->logMiddlewareStart($middleware),
-            fn (string $middleware) => $this->debugLogger?->logMiddlewareEnd($middleware),
+            fn (string|callable $middleware) => $this->app->middleware($middleware),
+            fn (string|callable $middleware) => is_string($middleware) ? $this->debugLogger?->logMiddlewareStart($middleware) : null,
+            fn (string|callable $middleware) => is_string($middleware) ? $this->debugLogger?->logMiddlewareEnd($middleware) : null,
         );
     }
 
