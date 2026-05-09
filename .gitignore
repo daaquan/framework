@@ -29,3 +29,9 @@ storage/*.key
 .env.backup
 .env.production
 auth.json
+
+# Upload artifacts
+uploads/
+
+# Local Sage Guardian artifacts
+/.sage/

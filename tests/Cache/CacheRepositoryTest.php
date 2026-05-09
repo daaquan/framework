@@ -27,7 +27,10 @@ beforeEach(function () {
     putenv('CACHE_DRIVER=file');
 
     refreshCacheRepositoryTestApplication();
-    @mkdir(storage_path('framework/cache/data'), 0777, true);
+    $cacheDir = storage_path('framework/cache/data');
+    if (!is_dir($cacheDir)) {
+        mkdir($cacheDir, 0777, true);
+    }
     (new CacheProvider())->register(app());
 });
 

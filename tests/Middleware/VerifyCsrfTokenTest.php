@@ -22,6 +22,11 @@ beforeEach(function () {
     $this->response = new Response();
 });
 
+/**
+ * Build a PHPUnit stub for RequestInterface to avoid the PHP 8.4 deprecation that
+ * Mockery triggers when proxying Phalcon\Http\RequestInterface::get() (implicitly
+ * nullable parameter).
+ */
 function fakeRequest(
     string $method = 'GET',
     string $uri = '/',
