@@ -12,9 +12,13 @@ use Phare\Contracts\Container\ContextualAttribute;
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class Authenticated implements ContextualAttribute
 {
+    public function __construct(public ?string $guard = null) {}
+
     public static function resolve(self $attribute, Container $container): mixed
     {
-        $user = $container->make('auth')->user();
+        $user = $attribute->guard === null
+            ? $container->make('auth')->user()
+            : $container->make('auth.manager')->guard($attribute->guard)->user();
 
         if ($user === null) {
             throw new AuthenticationException();

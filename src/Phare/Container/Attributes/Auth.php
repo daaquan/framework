@@ -11,8 +11,14 @@ use Phare\Contracts\Container\ContextualAttribute;
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class Auth implements ContextualAttribute
 {
+    public function __construct(public ?string $guard = null) {}
+
     public static function resolve(self $attribute, Container $container): mixed
     {
-        return $container->make('auth');
+        if ($attribute->guard === null) {
+            return $container->make('auth');
+        }
+
+        return $container->make('auth.manager')->guard($attribute->guard);
     }
 }
