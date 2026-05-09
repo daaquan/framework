@@ -1,47 +1,33 @@
 <?php
 
-use Phare\Container\Container;
 use Phare\Container\Attributes\Config as ConfigAttribute;
 use Phare\Container\Attributes\Tag as TagAttribute;
+use Phare\Container\Container;
 
 class ContainerCompatibilityFoo
 {
-    public function __construct(public string $value = 'foo')
-    {
-    }
+    public function __construct(public string $value = 'foo') {}
 }
 
-interface ContainerCompatibilityLoggerInterface
-{
-}
+interface ContainerCompatibilityLoggerInterface {}
 
-class ContainerCompatibilityNullLogger implements ContainerCompatibilityLoggerInterface
-{
-}
+class ContainerCompatibilityNullLogger implements ContainerCompatibilityLoggerInterface {}
 
-class ContainerCompatibilityFileLogger implements ContainerCompatibilityLoggerInterface
-{
-}
+class ContainerCompatibilityFileLogger implements ContainerCompatibilityLoggerInterface {}
 
 class ContainerCompatibilityServiceA
 {
-    public function __construct(public ContainerCompatibilityLoggerInterface $logger)
-    {
-    }
+    public function __construct(public ContainerCompatibilityLoggerInterface $logger) {}
 }
 
 class ContainerCompatibilityServiceB
 {
-    public function __construct(public ContainerCompatibilityLoggerInterface $logger)
-    {
-    }
+    public function __construct(public ContainerCompatibilityLoggerInterface $logger) {}
 }
 
 class ContainerCompatibilityPrimitiveService
 {
-    public function __construct(public string $region)
-    {
-    }
+    public function __construct(public string $region) {}
 }
 
 class ContainerCompatibilityVariadicService
@@ -57,9 +43,7 @@ class ContainerCompatibilityVariadicService
 
 class ContainerCompatibilityConfigPrimitiveService
 {
-    public function __construct(public string $timezone)
-    {
-    }
+    public function __construct(public string $timezone) {}
 }
 
 class ContainerCompatibilityAttributedConfigService
@@ -67,8 +51,7 @@ class ContainerCompatibilityAttributedConfigService
     public function __construct(
         #[ConfigAttribute('app.timezone', 'UTC')]
         public string $timezone
-    ) {
-    }
+    ) {}
 }
 
 class ContainerCompatibilityAttributedTagService
@@ -120,6 +103,10 @@ it('fires after resolving callback immediately if abstract already resolved', fu
 });
 
 it('fires rebinding callbacks when existing binding is replaced', function () {
+    // Laravel parity: rebinding() registers a callback that fires when the
+    // abstract is rebound. Registration itself does not fire the callback —
+    // it merely eagerly resolves the existing binding so dependents get a
+    // current snapshot on first access.
     $container = new Container();
     $container->singleton('foo', fn (array $parameters = []) => new ContainerCompatibilityFoo('first'));
     $container->make('foo');
@@ -131,8 +118,7 @@ it('fires rebinding callbacks when existing binding is replaced', function () {
 
     $container->bind('foo', fn (array $parameters = []) => new ContainerCompatibilityFoo('second'), true);
 
-    expect($values)->toContain('first');
-    expect($values)->toContain('second');
+    expect($values)->toBe(['second']);
 });
 
 it('resolves chained aliases to root abstract', function () {
