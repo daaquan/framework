@@ -2,21 +2,22 @@
 
 namespace Phare\Broadcasting;
 
-use Phare\Providers\ServiceProvider;
+use Phalcon\Di\DiInterface;
+use Phalcon\Di\ServiceProviderInterface;
+use Phare\Foundation\AbstractApplication as Application;
 
-class BroadcastServiceProvider extends ServiceProvider
+class BroadcastServiceProvider implements ServiceProviderInterface
 {
-    public function register(): void
+    public function register(Application|DiInterface $app): void
     {
-        $this->app->singleton('broadcast', function ($app) {
+        $app->singleton('broadcast.manager', function ($app) {
             return new BroadcastManager($app);
         });
 
-        $this->app->alias('broadcast', BroadcastManager::class);
-    }
-
-    public function boot(): void
-    {
-        //
+        // Backwards compat: callers continue to do `app('broadcast')->event(...)`.
+        // BroadcastManager forwards driver(?$name) for default and named drivers.
+        $app->singleton('broadcast', function ($app) {
+            return $app->make('broadcast.manager');
+        });
     }
 }

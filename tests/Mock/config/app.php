@@ -1,5 +1,6 @@
 <?php
 
+use Phare\Broadcasting\BroadcastServiceProvider;
 use Phare\Events\EventServiceProvider;
 use Phare\Providers\AuthServiceProvider;
 use Phare\Providers\ChronosProvider;
@@ -189,6 +190,7 @@ return [
         SessionProvider::class,
         AuthServiceProvider::class,
         HashServiceProvider::class,
+        BroadcastServiceProvider::class,
         ModelProvider::class,
         DatabaseProvider::class,
         ChronosProvider::class,
