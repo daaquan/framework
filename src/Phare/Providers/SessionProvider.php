@@ -10,12 +10,17 @@ use Phalcon\Storage\AdapterFactory;
 use Phalcon\Storage\SerializerFactory;
 use Phare\Foundation\AbstractApplication as Application;
 use Phare\Session\SessionManager;
+use Phare\Session\SessionStoreManager;
 use Phare\Storage\Adapter\RedisCluster;
 
 class SessionProvider implements ServiceProviderInterface
 {
     public function register(Application|DiInterface $app): void
     {
+        $app->singleton('session.manager', function ($app) {
+            return new SessionStoreManager($app);
+        });
+
         $app->singleton('session', function () {
             switch (config('session.driver')) {
                 case 'file':
