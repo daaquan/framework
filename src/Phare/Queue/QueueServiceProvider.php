@@ -21,6 +21,13 @@ class QueueServiceProvider extends ServiceProvider
             return new QueueManager($config);
         });
 
+        // 'queue.manager' is the canonical Laravel-style alias for the manager so
+        // contextual attributes (e.g. #[Queue('redis')]) and other consumers can
+        // ask for connection(name) directly.
+        $this->app->singleton('queue.manager', function ($app) {
+            return $app['queue'];
+        });
+
         $this->app->bind(QueueManager::class, function ($app) {
             return $app['queue'];
         });
