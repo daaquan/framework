@@ -279,10 +279,16 @@ class Container extends Di implements ContractsContainer
         $abstract = $this->getAlias($abstract);
 
         if ($this->resolved($abstract)) {
-            $getter = $this->isShared($abstract) ? 'getShared' : 'get';
+            $shared = $this->isShared($abstract);
+            $getter = $shared ? 'getShared' : 'get';
 
             $instance = $this->$getter($abstract, $parameters);
-            $this->fireResolvingCallbacks($abstract, $instance);
+
+            // Shared singletons return the cached instance — Laravel parity skips
+            // resolving callbacks here so they fire once on the initial build.
+            if (!$shared) {
+                $this->fireResolvingCallbacks($abstract, $instance);
+            }
 
             return $instance;
         }
@@ -395,13 +401,16 @@ class Container extends Di implements ContractsContainer
 
     /**
      * Register a rebinding callback.
+     *
+     * Mirrors Laravel: the callback fires on subsequent rebinds, not on registration.
+     * If the abstract is already bound, eagerly resolve it to surface side effects.
      */
     public function rebinding(string $abstract, Closure $callback): void
     {
         $this->reboundCallbacks[$abstract][] = $callback;
 
         if ($this->bound($abstract)) {
-            $this->fireReboundCallbacks($abstract);
+            $this->make($abstract);
         }
     }
 
@@ -741,8 +750,8 @@ class Container extends Di implements ContractsContainer
             $callback($instance, $this);
         }
 
-        if (is_object($instance)) {
-            foreach ($this->resolvingCallbacks[get_class($instance)] ?? [] as $callback) {
+        if (is_object($instance) && ($instanceClass = get_class($instance)) !== $abstract) {
+            foreach ($this->resolvingCallbacks[$instanceClass] ?? [] as $callback) {
                 $callback($instance, $this);
             }
         }
@@ -765,8 +774,8 @@ class Container extends Di implements ContractsContainer
             $callback($instance, $this);
         }
 
-        if (is_object($instance)) {
-            foreach ($this->afterResolvingCallbacks[get_class($instance)] ?? [] as $callback) {
+        if (is_object($instance) && ($instanceClass = get_class($instance)) !== $abstract) {
+            foreach ($this->afterResolvingCallbacks[$instanceClass] ?? [] as $callback) {
                 $callback($instance, $this);
             }
         }
@@ -800,7 +809,46 @@ class Container extends Di implements ContractsContainer
             return;
         }
 
-        return $this->contextual[$context][$abstract] ?? null;
+        // Direct match against the concrete class on the build stack.
+        if (isset($this->contextual[$context][$abstract])) {
+            return $this->contextual[$context][$abstract];
+        }
+
+        // Walk back from the concrete to any abstracts bound to it, then to any
+        // aliases pointing at those abstracts, looking for a contextual binding.
+        foreach ($this->collectContextKeysForBuildStack($context) as $key) {
+            if (isset($this->contextual[$key][$abstract])) {
+                return $this->contextual[$key][$abstract];
+            }
+        }
+
+    }
+
+    /**
+     * Yield every contextual-binding key that should resolve when the supplied
+     * concrete class is currently being built — abstracts that bind to it and
+     * any aliases that reach those abstracts.
+     *
+     * @return iterable<string>
+     */
+    protected function collectContextKeysForBuildStack(string $context): iterable
+    {
+        $candidates = [];
+        foreach ($this->bindings['concrete'] ?? [] as $abstract => $concrete) {
+            if ($concrete === $context && $abstract !== $context) {
+                $candidates[$abstract] = true;
+            }
+        }
+
+        foreach (array_keys($candidates) as $abstract) {
+            yield $abstract;
+        }
+
+        foreach ($this->aliases as $alias => $target) {
+            if ($target === $context || isset($candidates[$target])) {
+                yield $alias;
+            }
+        }
     }
 
     /**

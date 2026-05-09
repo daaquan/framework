@@ -208,14 +208,35 @@ Tests:
 - contextual giveConfig + default fallback
 - route registration orchestration extraction
 
+Phase 4 (continued — 2026-05-09):
+- Added `afterResolvingAttribute(string, Closure)` callback registration.
+- Added `fireAfterResolvingAttributeCallbacks()` helper, fires only for `ContextualAttribute` implementors.
+- Wired fire into parameter resolution (post `resolveFromAttribute`) and class-level resolution (post-build, first-resolve only for shared singletons).
+- Added contextual attributes: `Give`, `RouteParameter`, `Auth`, `CurrentUser`, `Authenticated`, `Cache`, `Log`, `Storage`, `DB`.
+- Added `Phare\Auth\AuthenticationException`.
+- Added contextual binding edge tests: variadic + giveTagged, primitive give + alias-mapped abstract, rebinding-after-resolve, singleton resolving fires once.
+- Container fixes uncovered while completing Phase 4:
+  - `make($abstract, $parameters)` honors caller-supplied named parameter overrides during autowiring.
+  - `rebinding()` no longer fires the registered callback on registration (eager `make()` only).
+  - Resolved-branch in `make()` skips resolving callbacks for shared singletons so they fire once total.
+  - Resolving / after-resolving fire helpers no longer double-invoke when `$abstract === get_class($instance)`.
+  - `getContextualConcrete()` now walks abstract → concrete and alias chains so `when('alias')->needs('$primitive')` resolves when the build stack holds the underlying concrete class.
+  - `bind()` wraps closure concretes so the container is auto-passed to `function ($app)` providers, while preserving `function (array $parameters)` semantics.
+  - `bind()` wraps class-string concretes into a closure routed through `resolve()` for autowiring; `resolve()` gains `$skipAliasReserved` to break the reserved-alias recursion that the wrap could otherwise trigger.
+  - Constructor autowiring resolves untyped optional/nullable parameters to their declared default or `null` instead of throwing.
+
+Tests:
+- `tests/Container/AfterResolvingAttributeTest.php`
+- `tests/Container/Attributes/{Give,RouteParameter,Auth,CurrentUser,Authenticated,Cache,Log,Storage,DB}Test.php`
+- `tests/Container/ContextualBindingEdgeTest.php`
+
 ## Current Risks
 
-1. Container behavior parity with Laravel is still incomplete:
-- contextual attribute-based injection and full Laravel-style edge behaviors are not yet covered.
+1. Phase 4 attribute injection currently resolves managers as single instances; per-driver selectors (e.g. `#[Auth('api')]`) are deferred to Phase 5.
+2. Manager bindings (`auth`, `log`, `db`, `cache`, `filesystem`) are looked up via container service keys — consumers without a registered binding receive whatever the test seam supplies.
 
 ## Next Implementation Slice
 
 Next implementation slice:
 1. finalize `Kernel::registerRoutes()` as wiring-only orchestration helper
-2. add contextual binding edge-case tests (variadic, primitive, alias-mapped abstractions)
-3. align container semantics with additional Laravel 13 edge behaviors in `Illuminate\Container\Container`
+2. align container semantics with additional Laravel 13 edge behaviors in `Illuminate\Container\Container`
