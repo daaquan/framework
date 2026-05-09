@@ -65,7 +65,7 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         $this->data = $this->get();
     }
 
-    public static function make($data, $rules = [])
+    public static function make(array $data, array $rules = [], array $messages = [], array $customAttributes = []): static
     {
         return (new static($rules))->validate($data);
     }
