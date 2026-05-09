@@ -1,12 +1,13 @@
 <?php
 
+use Phare\Events\EventServiceProvider;
 use Phare\Providers\AuthServiceProvider;
 use Phare\Providers\ChronosProvider;
 use Phare\Providers\DatabaseProvider;
-use Phare\Events\EventServiceProvider;
 use Phare\Providers\DispatcherProvider;
 use Phare\Providers\EncrypterProvider;
 use Phare\Providers\ErrorHandlerProvider;
+use Phare\Providers\HashServiceProvider;
 use Phare\Providers\LogServiceProvider;
 use Phare\Providers\ModelProvider;
 use Phare\Providers\RequestProvider;
@@ -187,6 +188,7 @@ return [
         EventServiceProvider::class,
         SessionProvider::class,
         AuthServiceProvider::class,
+        HashServiceProvider::class,
         ModelProvider::class,
         DatabaseProvider::class,
         ChronosProvider::class,
