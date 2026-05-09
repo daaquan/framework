@@ -2,6 +2,7 @@
 
 use Phare\Container\Container;
 use Phare\Mail\Mailer;
+use Phare\Mail\MailManager;
 use Phare\Mail\MailServiceProvider;
 
 beforeEach(function () {
@@ -18,25 +19,27 @@ beforeEach(function () {
         ],
     ]);
 
-    $this->provider = new MailServiceProvider($this->app);
+    $this->provider = new MailServiceProvider();
 });
 
-test('registers mailer service', function () {
-    $this->provider->register();
+test('registers mailer and mail.manager services', function () {
+    $this->provider->register($this->app);
 
     expect($this->app->has('mailer'))->toBeTrue();
+    expect($this->app->has('mail.manager'))->toBeTrue();
     expect($this->app->make('mailer'))->toBeInstanceOf(Mailer::class);
+    expect($this->app->make('mail.manager'))->toBeInstanceOf(MailManager::class);
 });
 
 test('binds Mailer class', function () {
-    $this->provider->register();
+    $this->provider->register($this->app);
 
     expect($this->app->make(Mailer::class))->toBeInstanceOf(Mailer::class);
     expect($this->app->make(Mailer::class))->toBe($this->app->make('mailer'));
 });
 
-test('configures mailer with app config', function () {
-    $this->provider->register();
+test('configures default mailer with top-level mail config', function () {
+    $this->provider->register($this->app);
     $mailer = $this->app->make('mailer');
 
     expect($mailer->getConfig()['driver'])->toBe('smtp');
@@ -44,9 +47,9 @@ test('configures mailer with app config', function () {
     expect($mailer->getConfig()['from']['address'])->toBe('noreply@test.com');
 });
 
-test('uses default config when mail config not set', function () {
+test('falls back to Mailer defaults when mail config not set', function () {
     $this->app->bind('config', fn () => [], true);
-    $this->provider->register();
+    $this->provider->register($this->app);
 
     $mailer = $this->app->make('mailer');
 
@@ -54,14 +57,22 @@ test('uses default config when mail config not set', function () {
     expect($mailer->getConfig()['host'])->toBe('localhost');
 });
 
-test('boots mail helper function', function () {
-    // Can't test actual helper function due to global function conflicts
-    // This validates the provider has a boot method
-    expect(method_exists($this->provider, 'boot'))->toBeTrue();
+test('mail.manager resolves named mailer from mail.mailers config', function () {
+    $this->app->bind('config', fn () => [
+        'mail' => [
+            'default' => 'primary',
+            'mailers' => [
+                'primary' => ['driver' => 'smtp', 'host' => 'primary.host'],
+                'log' => ['driver' => 'log', 'host' => 'logger'],
+            ],
+        ],
+    ], true);
 
-    $this->provider->register();
-    $this->provider->boot();
+    $this->provider->register($this->app);
 
-    // Verify mailer is accessible
-    expect($this->app->make('mailer'))->toBeInstanceOf(Mailer::class);
+    $log = $this->app->make('mail.manager')->mailer('log');
+
+    expect($log)->toBeInstanceOf(Mailer::class);
+    expect($log->getConfig()['driver'])->toBe('log');
+    expect($log->getConfig()['host'])->toBe('logger');
 });

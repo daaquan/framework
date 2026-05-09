@@ -2,6 +2,7 @@
 
 use Phare\Broadcasting\BroadcastServiceProvider;
 use Phare\Events\EventServiceProvider;
+use Phare\Mail\MailServiceProvider;
 use Phare\Providers\AuthServiceProvider;
 use Phare\Providers\ChronosProvider;
 use Phare\Providers\DatabaseProvider;
@@ -191,6 +192,7 @@ return [
         AuthServiceProvider::class,
         HashServiceProvider::class,
         BroadcastServiceProvider::class,
+        MailServiceProvider::class,
         ModelProvider::class,
         DatabaseProvider::class,
         ChronosProvider::class,
