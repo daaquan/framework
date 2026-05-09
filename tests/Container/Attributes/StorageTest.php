@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class StorageTest extends TestCase
 {
-    public function test_resolves_filesystem_manager(): void
+    public function test_resolves_default_filesystem(): void
     {
         $container = new Container();
         $fs = new \stdClass();
@@ -20,9 +20,43 @@ class StorageTest extends TestCase
 
         $this->assertSame($fs, $consumer->fs);
     }
+
+    public function test_resolves_named_disk_via_filesystem_manager(): void
+    {
+        $container = new Container();
+        $defaultDisk = new \stdClass();
+        $namedDisk = new \stdClass();
+
+        $managerSpy = new class($defaultDisk, $namedDisk)
+        {
+            public ?string $lastRequested = null;
+
+            public function __construct(private object $default, private object $public) {}
+
+            public function disk(?string $name = null): object
+            {
+                $this->lastRequested = $name;
+
+                return $name === 'public' ? $this->public : $this->default;
+            }
+        };
+
+        $container->singleton('filesystem.manager', fn () => $managerSpy);
+        $container->singleton('filesystem', fn () => $defaultDisk);
+
+        $consumer = $container->make(StorageNamedStubConsumer::class);
+
+        $this->assertSame($namedDisk, $consumer->fs);
+        $this->assertSame('public', $managerSpy->lastRequested);
+    }
 }
 
 class StorageStubConsumer
 {
     public function __construct(#[Storage] public mixed $fs) {}
+}
+
+class StorageNamedStubConsumer
+{
+    public function __construct(#[Storage('public')] public mixed $fs) {}
 }
