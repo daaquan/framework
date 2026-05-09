@@ -33,9 +33,59 @@ class AuthenticatedTest extends TestCase
 
         $container->make(AuthenticatedStubConsumer::class);
     }
+
+    public function test_resolves_user_via_named_guard(): void
+    {
+        $container = new Container();
+
+        $apiGuard = new FakeAuthManager();
+        $apiGuard->userInstance = (object)['id' => 99];
+
+        $managerSpy = new class($apiGuard)
+        {
+            public function __construct(private FakeAuthManager $api) {}
+
+            public function guard(?string $name = null): FakeAuthManager
+            {
+                return $this->api;
+            }
+        };
+
+        $container->singleton('auth.manager', fn () => $managerSpy);
+        $container->singleton('auth', fn () => new FakeAuthManager());
+
+        $consumer = $container->make(AuthenticatedApiStubConsumer::class);
+
+        $this->assertSame($apiGuard->userInstance, $consumer->user);
+    }
+
+    public function test_named_guard_throws_when_user_missing(): void
+    {
+        $container = new Container();
+
+        $managerSpy = new class()
+        {
+            public function guard(?string $name = null): FakeAuthManager
+            {
+                return new FakeAuthManager();
+            }
+        };
+
+        $container->singleton('auth.manager', fn () => $managerSpy);
+        $container->singleton('auth', fn () => new FakeAuthManager());
+
+        $this->expectException(AuthenticationException::class);
+
+        $container->make(AuthenticatedApiStubConsumer::class);
+    }
 }
 
 class AuthenticatedStubConsumer
 {
     public function __construct(#[Authenticated] public object $user) {}
+}
+
+class AuthenticatedApiStubConsumer
+{
+    public function __construct(#[Authenticated('api')] public object $user) {}
 }
