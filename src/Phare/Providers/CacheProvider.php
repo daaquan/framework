@@ -12,10 +12,12 @@ class CacheProvider implements ServiceProviderInterface
 {
     public function register(Application|DiInterface $app): void
     {
-        $app->singleton('cache', function () {
-            $manager = new CacheManager();
+        $app->singleton('cache.manager', function () {
+            return new CacheManager();
+        });
 
-            return new CacheRepository($manager->adapter());
+        $app->singleton('cache', function ($app) {
+            return new CacheRepository($app->make('cache.manager')->store());
         });
     }
 }

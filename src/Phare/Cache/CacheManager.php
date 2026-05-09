@@ -14,25 +14,50 @@ use Phare\Cache\Adapter\NullAdapter;
 
 class CacheManager
 {
-    protected CacheAdapterInterface $cache;
+    /**
+     * @var array<string, CacheAdapterInterface>
+     */
+    protected array $stores = [];
+
+    protected string $defaultStore;
 
     public function __construct()
     {
-        $store = config('cache.default', 'file');
-        $config = $this->normalizeConfig(config("cache.stores.{$store}"));
+        $this->defaultStore = (string)config('cache.default', 'file');
 
-        if ($config === [] || !isset($config['driver'])) {
-            throw new InvalidArgumentException("Cache config for '{$store}' is invalid or missing.");
+        // Eagerly build the default store so misconfiguration surfaces at
+        // construction time (matches existing behavior).
+        $this->store($this->defaultStore);
+    }
+
+    /**
+     * Resolve a configured cache store. Null returns the default store.
+     */
+    public function store(?string $name = null): CacheAdapterInterface
+    {
+        $name = $name ?? $this->defaultStore;
+
+        if (isset($this->stores[$name])) {
+            return $this->stores[$name];
         }
 
-        $config = $config instanceof Config ? $config->toArray() : (array)$config;
+        $config = $this->normalizeConfig(config("cache.stores.{$name}"));
 
-        $this->cache = $this->makeAdapter($config['driver'], $config);
+        if ($config === [] || !isset($config['driver'])) {
+            throw new InvalidArgumentException("Cache config for '{$name}' is invalid or missing.");
+        }
+
+        return $this->stores[$name] = $this->makeAdapter($config['driver'], $config);
     }
 
     public function adapter(): CacheAdapterInterface
     {
-        return $this->cache;
+        return $this->store();
+    }
+
+    public function getDefaultStore(): string
+    {
+        return $this->defaultStore;
     }
 
     protected function makeAdapter(string $driver, array $config): CacheAdapterInterface
@@ -76,8 +101,6 @@ class CacheManager
             throw new InvalidArgumentException('Redis cache: connection config is missing.');
         }
 
-        $conn = $conn instanceof Config ? $conn->toArray() : (array)$conn;
-
         return new Redis($factory, [
             'host' => $conn['host'] ?? '127.0.0.1',
             'port' => $conn['port'] ?? 6379,
@@ -104,24 +127,24 @@ class CacheManager
 
     public function get(string $key, mixed $default = null): mixed
     {
-        $value = $this->cache->get($key);
+        $value = $this->store()->get($key);
 
         return $value !== null ? $value : $default;
     }
 
     public function set(string $key, mixed $value, int|string|null $ttl = null): bool
     {
-        return $this->cache->set($key, $value, $ttl);
+        return $this->store()->set($key, $value, $ttl);
     }
 
     public function delete(string $key): bool
     {
-        return $this->cache->delete($key);
+        return $this->store()->delete($key);
     }
 
     public function clear(): bool
     {
-        return $this->cache->clear();
+        return $this->store()->clear();
     }
 
     protected function normalizeConfig(mixed $value): array
