@@ -1,10 +1,17 @@
 <?php
 
 use InvalidArgumentException;
-use Phalcon\Di\Di;
+use Phalcon\Cache\Adapter\Apcu;
 use Phalcon\Cache\Adapter\Redis;
 use Phalcon\Cache\Adapter\Stream;
+use Phalcon\Di\Di;
+use Phare\Cache\Adapter\ArrayAdapter;
 use Phare\Cache\CacheManager;
+use Phare\Foundation\Bootstrap\HandleExceptions;
+use Phare\Foundation\Bootstrap\LoadConfiguration;
+use Phare\Foundation\Bootstrap\LoadEnvironmentVariables;
+use Phare\Foundation\Bootstrap\RegisterFacades;
+use Phare\Foundation\Bootstrap\RegisterProviders;
 
 function refreshApplication(): void
 {
@@ -13,11 +20,11 @@ function refreshApplication(): void
     $_ENV['APP_BASE_PATH'] = 'tests/Mock';
     $app = require $_ENV['APP_BASE_PATH'] . '/bootstrap/app.php';
     $app->bootstrapWith([
-        \Phare\Foundation\Bootstrap\LoadEnvironmentVariables::class,
-        \Phare\Foundation\Bootstrap\LoadConfiguration::class,
-        \Phare\Foundation\Bootstrap\HandleExceptions::class,
-        \Phare\Foundation\Bootstrap\RegisterProviders::class,
-        \Phare\Foundation\Bootstrap\RegisterFacades::class,
+        LoadEnvironmentVariables::class,
+        LoadConfiguration::class,
+        HandleExceptions::class,
+        RegisterProviders::class,
+        RegisterFacades::class,
     ]);
 
     Di::setDefault($app);
@@ -98,5 +105,39 @@ test('apcu cache driver uses apcu adapter', function () {
     refreshApplication();
 
     $manager = new CacheManager();
-    expect($manager->adapter())->toBeInstanceOf(\Phalcon\Cache\Adapter\Apcu::class);
+    expect($manager->adapter())->toBeInstanceOf(Apcu::class);
+});
+
+test('store(name) resolves a non-default store and caches it', function () {
+    putenv('CACHE_DRIVER=apc');
+    refreshApplication();
+    config(['cache.stores.array' => ['driver' => 'array', 'prefix' => 'mystore_']]);
+
+    $manager = new CacheManager();
+    $storeA = $manager->store('array');
+    $storeB = $manager->store('array');
+
+    expect($storeA)->toBeInstanceOf(ArrayAdapter::class);
+    expect($storeA)->toBe($storeB); // cached, same instance
+    expect($manager->adapter())->toBeInstanceOf(Apcu::class);
+});
+
+test('store(null) returns the default store', function () {
+    putenv('CACHE_DRIVER=apc');
+    refreshApplication();
+
+    $manager = new CacheManager();
+
+    expect($manager->store())->toBe($manager->adapter());
+    expect($manager->store(null))->toBe($manager->adapter());
+});
+
+test('store(unknown) throws when configuration is missing', function () {
+    putenv('CACHE_DRIVER=apc');
+    refreshApplication();
+
+    $manager = new CacheManager();
+
+    expect(fn () => $manager->store('nope'))
+        ->toThrow(InvalidArgumentException::class);
 });
