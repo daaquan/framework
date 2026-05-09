@@ -22,6 +22,13 @@ class DatabaseProvider implements ServiceProviderInterface
                 ->setupDatabases();
         });
 
+        // 'db.manager' is the canonical Laravel-style alias for the manager so
+        // contextual attributes (e.g. #[DB('reports')]) and other consumers can
+        // ask for connection(name) directly.
+        $app->singleton('db.manager', function () use ($app) {
+            return $app->make('dbManager');
+        });
+
         $app->singleton('db', function () use ($app) {
             $manager = $app->make('dbManager');
 
