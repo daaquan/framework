@@ -207,6 +207,32 @@ class Container extends Di implements ContractsContainer
     }
 
     /**
+     * Register an already-built instance as a shared binding.
+     *
+     * Mirrors Laravel's `instance()`: the value bypasses container build
+     * machinery and is returned directly from {@see make()}. When an
+     * existing binding is replaced, rebinding callbacks fire so refresh
+     * targets receive the new instance.
+     */
+    public function instance(string $abstract, mixed $instance): mixed
+    {
+        $abstract = $this->getAlias($abstract);
+
+        $isRebind = $this->bound($abstract) || $this->resolved($abstract);
+
+        $this->bindings['concrete'][$abstract] = $instance;
+        $this->bindings['shared'][$abstract] = true;
+        $this->resolved[$abstract] = true;
+        $this->resolvedInstances[$abstract] = $instance;
+
+        if ($isRebind) {
+            $this->fireReboundCallbacks($abstract);
+        }
+
+        return $instance;
+    }
+
+    /**
      * Register a binding with the container.
      *
      * @throws TypeError
