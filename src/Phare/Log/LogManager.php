@@ -80,6 +80,17 @@ class LogManager implements LoggerInterface
     }
 
     /**
+     * Get a log channel instance (Laravel parity alias for driver()).
+     *
+     * @param string|null $channel
+     * @return LoggerInterface
+     */
+    public function channel($channel = null)
+    {
+        return $this->driver($channel);
+    }
+
+    /**
      * Attempt to get the log from the local cache.
      *
      * @param string $name
