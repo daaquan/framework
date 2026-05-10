@@ -90,21 +90,32 @@ class Model extends PhModel implements \ArrayAccess
         /** @var DatabaseManager $dbManager */
         $dbManager = $this->getDI()->getShared('dbManager');
 
-        if ($this->connection === null) {
-            $fragments = explode('\\', get_class($this));
-            $serviceName = count($fragments) >= 2
-                ? strtolower($fragments[count($fragments) - 2])
-                : null;
-
-            if ($serviceName !== null && $dbManager->hasConnectionService($serviceName)) {
-                $this->connection = $serviceName;
-            } elseif ($dbManager->hasConnectionService('db')) {
-                $this->connection = 'db';
-            }
-        }
+        $this->connection = self::resolveConnectionName($dbManager, $this->connection, get_class($this));
 
         $name = $dbManager->getConnectionService($this->connection);
         $this->setConnectionService($name);
+    }
+
+    public static function resolveConnectionName(DatabaseManager $dbManager, ?string $current, string $className): string
+    {
+        if ($current !== null) {
+            return $current;
+        }
+
+        $fragments = explode('\\', $className);
+        $serviceName = count($fragments) >= 2
+            ? strtolower($fragments[count($fragments) - 2])
+            : null;
+
+        if ($serviceName !== null && $dbManager->hasConnectionService($serviceName)) {
+            return $serviceName;
+        }
+
+        if ($dbManager->hasConnectionService('db')) {
+            return 'db';
+        }
+
+        return $dbManager->getDefaultConnection();
     }
 
     public function create(?array $attributes = null): bool
