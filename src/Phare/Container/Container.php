@@ -324,6 +324,53 @@ class Container extends Di implements ContractsContainer
     }
 
     /**
+     * Method bindings keyed by `Class@method` for {@see call()}.
+     *
+     * @var array<string, Closure>
+     */
+    protected array $methodBindings = [];
+
+    public function bindMethod(string $method, Closure $callback): void
+    {
+        $this->methodBindings[$method] = $callback;
+    }
+
+    public function hasMethodBinding(string $method): bool
+    {
+        return isset($this->methodBindings[$method]);
+    }
+
+    public function callMethodBinding(string $method, mixed $instance, array $parameters = []): mixed
+    {
+        return ($this->methodBindings[$method])($instance, $parameters);
+    }
+
+    /**
+     * Invoke a callable with autowired dependencies and named overrides.
+     * Accepts Closure, `[$obj, 'method']`, or `'Class@method'` strings.
+     */
+    public function call($callback, array $parameters = [], ?string $defaultMethod = null): mixed
+    {
+        return BoundMethod::call($this, $callback, $parameters, $defaultMethod);
+    }
+
+    /**
+     * Return a Closure that defers {@see call()} on the given callback.
+     */
+    public function wrap(Closure $callback, array $parameters = []): Closure
+    {
+        return fn () => $this->call($callback, $parameters);
+    }
+
+    /**
+     * Return a Closure that resolves the abstract on each invocation.
+     */
+    public function factory(string $abstract): Closure
+    {
+        return fn () => $this->make($abstract);
+    }
+
+    /**
      * Register a scoped (per-request) singleton.  Behaves like singleton()
      * except {@see forgetScopedInstances()} can sweep these on request end.
      */
