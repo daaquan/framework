@@ -169,6 +169,15 @@ class LogManager implements LoggerInterface
             throw new \InvalidArgumentException("Log [{$name}] is not defined.");
         }
 
+        if (($config['driver'] ?? null) === 'stack') {
+            $channels = $config['channels'] ?? [];
+            if ($channels instanceof Config) {
+                $channels = $channels->toArray();
+            }
+
+            return $this->createStackDriver(array_values((array)$channels), $name);
+        }
+
         if (isset($this->customCreators[$config['driver']])) {
             return $this->callCustomCreator($config);
         }
