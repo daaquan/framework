@@ -118,6 +118,10 @@ Implemented:
 - Extracted route registration orchestrator:
   - `src/Phare/Routing/RouteRegistrationOrchestrator.php`
   - Centralizes `registerRoutes()` flow as wiring-oriented orchestration.
+- Extracted route handlers (2026-05-11):
+  - `src/Phare/Routing/WebRouteHandler.php` — owns Phalcon Router registration, controller singleton binding, web middleware application, and forward-listener wiring for typed/url-param routes.
+  - `src/Phare/Routing/MicroRouteHandler.php` — owns Phalcon Micro `Collection` mounting and api middleware application.
+- `Kernel::registerRoutes()` reduced to wiring-only: `handleWebRoutes`, `handleMicroRoutes`, and `matchParameterizedRoute` deleted from `Foundation\Http\Kernel`. Test seams `webRouteHandler` / `microRouteHandler` exposed for swap-in.
 
 Tests:
 - `tests/Unit/Routing/RoutePatternMatcherTest.php`
@@ -259,5 +263,5 @@ Remaining Phase 5 candidates:
 ## Next Implementation Slice
 
 Next implementation slice:
-1. finalize `Kernel::registerRoutes()` as wiring-only orchestration helper
-2. align container semantics with additional Laravel 13 edge behaviors in `Illuminate\Container\Container`
+1. ~~finalize `Kernel::registerRoutes()` as wiring-only orchestration helper~~ — landed 2026-05-11 via `WebRouteHandler` / `MicroRouteHandler` extraction.
+2. align container semantics with additional Laravel 13 edge behaviors in `Illuminate\Container\Container` — scoped as Phase 6 (see `docs/superpowers/specs/2026-05-11-phase6-container-edges-design.md`).
