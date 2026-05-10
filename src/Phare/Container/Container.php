@@ -184,6 +184,14 @@ class Container extends Di implements ContractsContainer
     protected array $afterResolvingAttributeCallbacks = [];
 
     /**
+     * Decorators registered via extend() keyed by abstract.  Applied in
+     * registration order whenever the abstract is freshly resolved.
+     *
+     * @var array<string, array<int, Closure>>
+     */
+    protected array $extenders = [];
+
+    /**
      * Alias a type to a shortened name.
      */
     public function alias(string $abstract, string $alias): void
@@ -227,6 +235,41 @@ class Container extends Di implements ContractsContainer
 
         if ($isRebind) {
             $this->fireReboundCallbacks($abstract);
+        }
+
+        return $instance;
+    }
+
+    /**
+     * Register a decorator that wraps the resolved binding.
+     *
+     * Mirrors Laravel's `extend()`: decorators fire in registration
+     * order on each fresh resolution. When the binding is already
+     * resolved, the new extender is applied immediately and the
+     * cached singleton instance is replaced (rebinding callbacks
+     * fire so consumers update).
+     */
+    public function extend(string $abstract, Closure $closure): void
+    {
+        $abstract = $this->getAlias($abstract);
+        $this->extenders[$abstract][] = $closure;
+
+        if ($this->resolved($abstract)) {
+            $existing = $this->resolvedInstances[$abstract] ?? $this->make($abstract);
+            $decorated = $closure($existing, $this);
+            $this->resolvedInstances[$abstract] = $decorated;
+            $this->fireReboundCallbacks($abstract);
+        }
+    }
+
+    /**
+     * Apply every registered extender for an abstract to the given instance.
+     */
+    protected function applyExtenders(string $abstract, mixed $instance): mixed
+    {
+        $abstract = $this->getAlias($abstract);
+        foreach ($this->extenders[$abstract] ?? [] as $extender) {
+            $instance = $extender($instance, $this);
         }
 
         return $instance;
@@ -352,7 +395,9 @@ class Container extends Di implements ContractsContainer
                     $service = $this->getService($abstract);
                     if ($service->isShared()) {
                         $instance = $this->getShared($abstract, $parameters);
+                        $instance = $this->applyExtenders($abstract, $instance);
                         $this->resolved[$abstract] = true;
+                        $this->resolvedInstances[$abstract] = $instance;
                         if (is_object($instance)) {
                             $instanceClass = get_class($instance);
                             if ($instanceClass !== $abstract) {
@@ -371,6 +416,11 @@ class Container extends Di implements ContractsContainer
         }
 
         $instance = $this->resolve($abstract, $parameters);
+        $instance = $this->applyExtenders($abstract, $instance);
+
+        if ($this->isShared($abstract)) {
+            $this->resolvedInstances[$abstract] = $instance;
+        }
 
         if (is_object($instance)) {
             $instanceClass = get_class($instance);
