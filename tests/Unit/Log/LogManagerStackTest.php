@@ -2,8 +2,8 @@
 
 use Phalcon\Config\Config;
 use Phalcon\Di\Di;
-use Phare\Log\Logger;
 use Phare\Log\LogManager;
+use Psr\Log\LoggerInterface;
 
 /**
  * Build a Phalcon Di container with a `config` service that exposes the given
@@ -14,7 +14,8 @@ function makeLogManagerStubApp(array $logging): Di
 {
     $config = new Config(['logging' => $logging]);
 
-    $di = new class extends Di {
+    $di = new class() extends Di
+    {
         public function runningUnitTests(): bool
         {
             return true;
@@ -62,7 +63,7 @@ it('stack() aggregates multiple channels into one logger', function () {
 
     $stack = $manager->stack(['single', 'noop']);
 
-    expect($stack)->toBeInstanceOf(\Psr\Log\LoggerInterface::class);
+    expect($stack)->toBeInstanceOf(LoggerInterface::class);
 
     $adapters = $stack->getAdapters();
     expect(count($adapters))->toBeGreaterThanOrEqual(2);
@@ -105,5 +106,5 @@ it('resolves stack channels via #[Log] config when driver is stack', function ()
 
     $logger = $manager->driver('audit');
 
-    expect($logger)->toBeInstanceOf(\Psr\Log\LoggerInterface::class);
+    expect($logger)->toBeInstanceOf(LoggerInterface::class);
 });

@@ -132,7 +132,7 @@ class LogManager implements LoggerInterface
         if ($adapters === []) {
             // Fall back to a noop adapter so the resulting Logger remains
             // functional even when its child channels have no adapters yet.
-            $adapters['noop'] = new \Phalcon\Logger\Adapter\Noop();
+            $adapters['noop'] = new Noop();
         }
 
         return new Logger(new BaseLogger($name ?? 'stack', $adapters));
