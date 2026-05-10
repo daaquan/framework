@@ -170,7 +170,7 @@ Tests:
   - web orchestration flow
   - micro orchestration flow
 
-### Phase 4 (in progress): Container compatibility gaps
+### Phase 4 (done): Container compatibility gaps
 
 Implemented:
 - Added resolving callbacks:
@@ -230,10 +230,30 @@ Tests:
 - `tests/Container/Attributes/{Give,RouteParameter,Auth,CurrentUser,Authenticated,Cache,Log,Storage,DB}Test.php`
 - `tests/Container/ContextualBindingEdgeTest.php`
 
+### Phase 5 (in progress): Multi-driver attribute selectors + manager bindings
+
+Each manager now exposes a Laravel-parity `driver/connection/store/disk/mailer/guard` selector, the corresponding container binding is registered (`<service>.manager`), and the contextual attribute accepts an optional name argument:
+
+- `feat(cache)` (`a809da1`) — multi-store `CacheManager` + `#[Cache(?store)]`.
+- `feat(filesystem)` (`11596a3`) — multi-disk `FilesystemManager` + `#[Storage(?disk)]`.
+- `feat(auth)` (`b568b9a`) — multi-guard `AuthManager` + `#[Auth/CurrentUser/Authenticated(?guard)]`.
+- `feat(database)` (`2cdb9b4`) — bind `db.manager` + `#[DB(?connection)]` selector.
+- `feat(queue)` (`242b3ff`) — bind `queue.manager` + `#[Queue(?connection)]` selector.
+- `feat(hashing)` (`1d27cd3`) — bind `hash.manager` + `#[Hash(?driver)]` selector.
+- `feat(broadcasting)` (`ab14942`) — bind `broadcast.manager` + `#[Broadcast(?driver)]` selector.
+- `feat(session)` (`a4844c1`) — bind `session.manager` + `#[Session(?store)]` selector.
+- `feat(mail)` (`04b04fe`) — bind `mail.manager` + `#[Mail(?mailer)]` selector.
+
+Tests (added alongside each commit):
+- `tests/Container/Attributes/{Cache,Storage,Auth,CurrentUser,Authenticated,DB,Queue,Hash,Broadcast,Session,Mail}Test.php` cover both default-driver and named-selector resolution paths.
+
+Remaining Phase 5 candidates:
+- `Log` selector (`#[Log(?channel)]`) is wired to `LogManager::driver()` since Phase 4 — confirm whether Laravel's channel-stack semantics need a deeper alignment pass.
+- Manager interface contracts — extract shared `Manager` base if duplication across the nine managers becomes painful.
+
 ## Current Risks
 
-1. Phase 4 attribute injection currently resolves managers as single instances; per-driver selectors (e.g. `#[Auth('api')]`) are deferred to Phase 5.
-2. Manager bindings (`auth`, `log`, `db`, `cache`, `filesystem`) are looked up via container service keys — consumers without a registered binding receive whatever the test seam supplies.
+1. Manager bindings (`auth`, `log`, `db`, `cache`, `filesystem`, `queue`, `hash`, `broadcast`, `session`, `mail`) are looked up via container service keys — consumers without a registered binding receive whatever the test seam supplies.
 
 ## Next Implementation Slice
 
