@@ -192,6 +192,14 @@ class Container extends Di implements ContractsContainer
     protected array $extenders = [];
 
     /**
+     * Abstracts registered as scoped (per-request) singletons. Cleared by
+     * {@see forgetScopedInstances()}.
+     *
+     * @var array<int, string>
+     */
+    protected array $scopedInstances = [];
+
+    /**
      * Alias a type to a shortened name.
      */
     public function alias(string $abstract, string $alias): void
@@ -313,6 +321,33 @@ class Container extends Di implements ContractsContainer
     public function forgetExtenders(string $abstract): void
     {
         unset($this->extenders[$this->getAlias($abstract)]);
+    }
+
+    /**
+     * Register a scoped (per-request) singleton.  Behaves like singleton()
+     * except {@see forgetScopedInstances()} can sweep these on request end.
+     */
+    public function scoped(string $abstract, $concrete = null): void
+    {
+        $this->scopedInstances[] = $this->getAlias($abstract);
+        $this->singleton($abstract, $concrete);
+    }
+
+    public function scopedIf(string $abstract, $concrete = null): void
+    {
+        if (!$this->bound($abstract)) {
+            $this->scoped($abstract, $concrete);
+        }
+    }
+
+    /**
+     * Forget every scoped resolution; non-scoped singletons survive.
+     */
+    public function forgetScopedInstances(): void
+    {
+        foreach ($this->scopedInstances as $abstract) {
+            $this->forgetInstance($abstract);
+        }
     }
 
     /**
