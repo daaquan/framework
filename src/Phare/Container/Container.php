@@ -276,6 +276,73 @@ class Container extends Di implements ContractsContainer
     }
 
     /**
+     * Forget a single shared resolution so the next make() rebuilds.
+     */
+    public function forgetInstance(string $abstract): void
+    {
+        $abstract = $this->getAlias($abstract);
+        unset($this->resolved[$abstract], $this->resolvedInstances[$abstract]);
+
+        try {
+            // Phalcon Di stores shared instances internally; clearing the
+            // service entry forces re-resolution. Use remove() guarded by
+            // has() because Phalcon throws when the service is unknown.
+            if ($this->has($abstract)) {
+                $this->remove($abstract);
+            }
+        } catch (\Throwable) {
+            // best-effort cleanup
+        }
+    }
+
+    /**
+     * Forget every cached shared resolution.
+     */
+    public function forgetInstances(): void
+    {
+        foreach (array_keys($this->resolvedInstances) as $abstract) {
+            $this->forgetInstance($abstract);
+        }
+        $this->resolvedInstances = [];
+        $this->resolved = [];
+    }
+
+    /**
+     * Forget extenders registered for the given abstract.
+     */
+    public function forgetExtenders(string $abstract): void
+    {
+        unset($this->extenders[$this->getAlias($abstract)]);
+    }
+
+    /**
+     * Reset every internal map so the container behaves like a fresh instance.
+     * Mirrors Laravel's `Container::flush()`.
+     */
+    public function flush(): void
+    {
+        $this->aliases = [];
+        $this->resolved = [];
+        $this->resolvedInstances = [];
+        $this->bindings = ['concrete' => [], 'shared' => []];
+        $this->extenders = [];
+        $this->buildStack = [];
+        $this->contextual = [];
+        $this->tags = [];
+        $this->globalResolvingCallbacks = [];
+        $this->resolvingCallbacks = [];
+        $this->afterResolvingCallbacks = [];
+        $this->reboundCallbacks = [];
+        $this->afterResolvingAttributeCallbacks = [];
+
+        try {
+            $this->reset();
+        } catch (\Throwable) {
+            // Phalcon Di::reset may not exist on every version; best-effort.
+        }
+    }
+
+    /**
      * Register a binding with the container.
      *
      * @throws TypeError
