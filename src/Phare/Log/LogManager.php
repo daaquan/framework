@@ -91,6 +91,54 @@ class LogManager implements LoggerInterface
     }
 
     /**
+     * Create an aggregate (stack) log driver over the given channels.
+     *
+     * When $channel is given, the resulting stack is cached under that name
+     * inside the channels map (so repeated calls return the same instance).
+     * When $channel is null, a fresh stack is built each call.
+     *
+     * @param array<int, string> $channels
+     */
+    public function stack(array $channels, ?string $channel = null): LoggerInterface
+    {
+        if ($channel !== null) {
+            return $this->channels[$channel] ??= $this->createStackDriver($channels, $channel);
+        }
+
+        return $this->createStackDriver($channels, null);
+    }
+
+    /**
+     * Build a Phare Logger that fans writes out to every adapter declared by
+     * the named child channels.  Adapter keys are namespaced by channel name
+     * to avoid collisions when multiple children expose the same adapter key.
+     *
+     * @param array<int, string> $channels
+     */
+    protected function createStackDriver(array $channels, ?string $name): LoggerInterface
+    {
+        $adapters = [];
+        foreach ($channels as $channelName) {
+            $childLogger = $this->channel($channelName);
+            $childAdapters = method_exists($childLogger, 'getAdapters')
+                ? $childLogger->getAdapters()
+                : [];
+
+            foreach ($childAdapters as $adapterName => $adapter) {
+                $adapters["{$channelName}.{$adapterName}"] = $adapter;
+            }
+        }
+
+        if ($adapters === []) {
+            // Fall back to a noop adapter so the resulting Logger remains
+            // functional even when its child channels have no adapters yet.
+            $adapters['noop'] = new \Phalcon\Logger\Adapter\Noop();
+        }
+
+        return new Logger(new BaseLogger($name ?? 'stack', $adapters));
+    }
+
+    /**
      * Attempt to get the log from the local cache.
      *
      * @param string $name
