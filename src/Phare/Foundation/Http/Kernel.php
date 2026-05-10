@@ -4,9 +4,6 @@ namespace Phare\Foundation\Http;
 
 use Phalcon\Http\RequestInterface;
 use Phalcon\Http\ResponseInterface;
-use Phalcon\Mvc\ControllerInterface;
-use Phalcon\Mvc\Micro\Collection;
-use Phalcon\Mvc\Router\Route;
 use Phare\Contracts\Foundation\Application;
 use Phare\Contracts\Http\Kernel as HttpKernel;
 use Phare\Debug\DebugLogger;
@@ -15,13 +12,15 @@ use Phare\Pipeline\Pipeline;
 use Phare\Routing\ApplicationModeResolver;
 use Phare\Routing\ControllerActionParameterResolver;
 use Phare\Routing\DispatchForwardPayloadBuilder;
+use Phare\Routing\MicroRouteHandler;
 use Phare\Routing\MiddlewareApplicator;
 use Phare\Routing\RouteDataSourceResolver;
 use Phare\Routing\RouteLoader;
 use Phare\Routing\RouteParamsBinder;
-use Phare\Routing\RouteRegistrationOrchestrator;
 use Phare\Routing\RoutePatternMatcher;
+use Phare\Routing\RouteRegistrationOrchestrator;
 use Phare\Routing\WebDispatchForwardRegistrar;
+use Phare\Routing\WebRouteHandler;
 
 abstract class Kernel implements HttpKernel
 {
@@ -55,6 +54,16 @@ abstract class Kernel implements HttpKernel
      * Cached value of app.http.use_pipeline_middleware.
      */
     protected ?bool $usePipelineMiddleware = null;
+
+    /**
+     * Injection seam used by tests to swap the web route handler.
+     */
+    protected ?WebRouteHandler $webRouteHandler = null;
+
+    /**
+     * Injection seam used by tests to swap the micro route handler.
+     */
+    protected ?MicroRouteHandler $microRouteHandler = null;
 
     /**
      * Middleware stack used when pipeline middleware execution is enabled.
@@ -209,85 +218,55 @@ abstract class Kernel implements HttpKernel
         );
         $mode = (new ApplicationModeResolver())->resolve($this->app);
 
+        $applyMiddlewares = fn (array $middlewares) => $this->applyMiddlewares($middlewares);
+
+        $webHandler = $this->webRouteHandler ?? new WebRouteHandler(
+            applyMiddlewares: $applyMiddlewares,
+            registerForward: fn (object $app, array $routeData, array $urlParams) => (new WebDispatchForwardRegistrar())->register(
+                $app['eventsManager'],
+                $routeData,
+                $urlParams,
+                fn (array $resolvedRouteData, array $resolvedUrlParams) => (new DispatchForwardPayloadBuilder())->build(
+                    $resolvedRouteData,
+                    $resolvedUrlParams,
+                    fn (array $paramTypes, array $params) => (new ControllerActionParameterResolver())->resolve(
+                        $paramTypes,
+                        $params,
+                        fn (string $type) => $app->make($type),
+                        fn (RequestInterface $instance) => $app->singleton('request', $instance)
+                    )
+                )
+            ),
+        );
+
+        $microHandler = $this->microRouteHandler ?? new MicroRouteHandler(
+            applyMiddlewares: $applyMiddlewares,
+        );
+
         (new RouteRegistrationOrchestrator())->register(
             $allRoutes,
             $mode,
             $this->app['router'],
             $this->app['request'],
             $this->routeMiddleware,
-            fn (array $routes, string $targetUri, string $targetMethod) => $this->matchParameterizedRoute($routes, $targetUri, $targetMethod),
+            fn (array $routes, string $targetUri, string $targetMethod) => (new RoutePatternMatcher())->match($routes, $targetUri, $targetMethod),
             fn (array $routeParams) => (new RouteParamsBinder())->bind(
                 $routeParams,
                 fn (string $name, callable $factory) => $this->app->singleton($name, $factory)
             ),
-            fn (array $routeData, array $routeParams) => $this->handleWebRoutes($routeData, $routeParams),
-            fn (array $routeData) => $this->handleMicroRoutes($routeData),
-            fn (array $middlewares) => $this->applyMiddlewares($middlewares),
+            fn (array $routeData, array $routeParams) => $webHandler->handle(
+                $this->app,
+                $routeData,
+                $routeParams,
+                $this->middlewareGroups['web'] ?? []
+            ),
+            fn (array $routeData) => $microHandler->handle(
+                $this->app,
+                $routeData,
+                $this->middlewareGroups['api'] ?? []
+            ),
+            $applyMiddlewares,
         );
-    }
-
-    protected function handleMicroRoutes(array $routeData)
-    {
-        $route = new Collection();
-        $route->setHandler("{$routeData['namespace']}\\{$routeData['controller']}Controller", true);
-
-        if (isset($routeData['prefix'])) {
-            $route->setPrefix($routeData['prefix']);
-        }
-
-        $method = $routeData['method'];
-        $route->$method($routeData['path'], $routeData['action'], $routeData['name'] ?? '');
-
-        $this->applyMiddlewares($this->middlewareGroups['api'] ?? []);
-
-        $this->app->mount($route);
-    }
-
-    protected function handleWebRoutes(array $routeData, array $urlParams = [])
-    {
-        $class = "{$routeData['namespace']}\\{$routeData['controller']}Controller";
-        $this->app->singleton(ControllerInterface::class, $this->app->make($class));
-
-        /** @var Route $route */
-        $route = $this->app['router']->add($routeData['path'], [
-            'namespace' => $routeData['namespace'],
-            'controller' => $routeData['controller'],
-            'action' => $routeData['action'],
-        ]);
-        $route->via($routeData['method'])
-            ->setName($routeData['name'] ?? '');
-
-        $this->applyMiddlewares($this->middlewareGroups['web'] ?? []);
-
-        // If there are URL params from pattern matching, or typed params to inject, set up dispatch forwarding
-        if (empty($routeData['params']) && empty($urlParams)) {
-            return;
-        }
-
-        (new WebDispatchForwardRegistrar())->register(
-            $this->app['eventsManager'],
-            $routeData,
-            $urlParams,
-            fn (array $resolvedRouteData, array $resolvedUrlParams) => (new DispatchForwardPayloadBuilder())->build(
-                $resolvedRouteData,
-                $resolvedUrlParams,
-                fn (array $paramTypes, array $params) => (new ControllerActionParameterResolver())->resolve(
-                    $paramTypes,
-                    $params,
-                    fn (string $type) => $this->app->make($type),
-                    fn (RequestInterface $instance) => $this->app->singleton('request', $instance)
-                )
-            )
-        );
-    }
-
-    /**
-     * Match a URI against parameterized route patterns.
-     * Returns [routeData, params] or null.
-     */
-    protected function matchParameterizedRoute(array $allRoutes, string $uri, string $method): ?array
-    {
-        return (new RoutePatternMatcher())->match($allRoutes, $uri, $method);
     }
 
     /**

@@ -1,5 +1,6 @@
 <?php
 
+use Phalcon\Mvc\ControllerInterface;
 use Phare\Routing\WebRouteHandler;
 
 beforeEach(function () {
@@ -11,14 +12,16 @@ it('registers a route on the Phalcon router and binds the controller singleton',
     $bindings = [];
     $middlewareApplied = null;
 
-    $router = new class($routerCalls) {
+    $router = new class($routerCalls)
+    {
         public function __construct(public array &$calls) {}
 
         public function add(string $path, array $params)
         {
             $this->calls[] = ['add', $path, $params];
 
-            return new class {
+            return new class()
+            {
                 public function via($method)
                 {
                     return $this;
@@ -32,7 +35,8 @@ it('registers a route on the Phalcon router and binds the controller singleton',
         }
     };
 
-    $app = new class($bindings, $router) implements ArrayAccess {
+    $app = new class($bindings, $router) implements ArrayAccess
+    {
         public $eventsManager;
 
         public function __construct(public array &$bindings, public $router) {}
@@ -83,17 +87,19 @@ it('registers a route on the Phalcon router and binds the controller singleton',
 
     expect($routerCalls)->toHaveCount(1)
         ->and($routerCalls[0][1])->toBe('/')
-        ->and($bindings)->toHaveKey(\Phalcon\Mvc\ControllerInterface::class)
+        ->and($bindings)->toHaveKey(ControllerInterface::class)
         ->and($middlewareApplied)->toBe(['SomeMiddleware']);
 });
 
 it('registers a dispatch-forward listener when the route has typed params', function () {
     $forwardArgs = null;
 
-    $router = new class {
+    $router = new class()
+    {
         public function add($p, $params)
         {
-            return new class {
+            return new class()
+            {
                 public function via($m)
                 {
                     return $this;
@@ -107,7 +113,8 @@ it('registers a dispatch-forward listener when the route has typed params', func
         }
     };
 
-    $app = new class($router) implements ArrayAccess {
+    $app = new class($router) implements ArrayAccess
+    {
         public $eventsManager;
 
         public function __construct(public $router) {}
@@ -160,10 +167,12 @@ it('registers a dispatch-forward listener when the route has typed params', func
 it('skips forward listener registration when no params are present', function () {
     $forwardCalled = false;
 
-    $router = new class {
+    $router = new class()
+    {
         public function add($p, $params)
         {
-            return new class {
+            return new class()
+            {
                 public function via($m)
                 {
                     return $this;
@@ -177,7 +186,8 @@ it('skips forward listener registration when no params are present', function ()
         }
     };
 
-    $app = new class($router) implements ArrayAccess {
+    $app = new class($router) implements ArrayAccess
+    {
         public $eventsManager;
 
         public function __construct(public $router) {}
