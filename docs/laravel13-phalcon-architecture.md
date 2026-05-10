@@ -248,7 +248,7 @@ Tests (added alongside each commit):
 - `tests/Container/Attributes/{Cache,Storage,Auth,CurrentUser,Authenticated,DB,Queue,Hash,Broadcast,Session,Mail}Test.php` cover both default-driver and named-selector resolution paths.
 
 Remaining Phase 5 candidates:
-- `Log` selector (`#[Log(?channel)]`) is wired to `LogManager::driver()` since Phase 4 — confirm whether Laravel's channel-stack semantics need a deeper alignment pass.
+- `Log` selector (`#[Log(?channel)]`) aligned with Laravel channel-stack semantics — `channel()` alias, aggregate `stack()` driver, and `driver: stack` config routing landed 2026-05-11 (`tests/Unit/Log/LogManagerStackTest.php`).
 - Manager interface contracts — extract shared `Manager` base if duplication across the nine managers becomes painful.
 
 ## Current Risks
