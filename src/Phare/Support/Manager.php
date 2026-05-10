@@ -30,8 +30,6 @@ abstract class Manager
      * Resolved configuration values, hydrated from the container's
      * `config` binding when available.  Falls back to an empty array
      * when the container has no config service.
-     *
-     * @var mixed
      */
     protected mixed $config = [];
 
