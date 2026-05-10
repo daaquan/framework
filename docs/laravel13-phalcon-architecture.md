@@ -249,7 +249,8 @@ Tests (added alongside each commit):
 
 Remaining Phase 5 candidates:
 - `Log` selector (`#[Log(?channel)]`) aligned with Laravel channel-stack semantics — `channel()` alias, aggregate `stack()` driver, and `driver: stack` config routing landed 2026-05-11 (`tests/Unit/Log/LogManagerStackTest.php`).
-- Manager interface contracts — extract shared `Manager` base if duplication across the nine managers becomes painful.
+- `Phare\Support\Manager` abstract base landed 2026-05-11 (`tests/Unit/Support/ManagerTest.php`) — Laravel-parity `driver()`, `extend()`, `createXxxDriver()` convention, custom-creator-overrides, driver cache, default-driver enforcement.
+- Existing nine managers still own their constructors and selector method names (`store/disk/guard/connection/mailer/channel`). Migrating them onto `Phare\Support\Manager` is breaking for individual managers (e.g. `HashManager::extend(string, HasherInterface)` vs base `extend(string, Closure)`). Tracked as a follow-up plan; base class is ready when needed.
 
 ## Current Risks
 
