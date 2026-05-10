@@ -1,12 +1,14 @@
 <?php
 
+use Phalcon\Mvc\Micro\Collection;
 use Phare\Routing\MicroRouteHandler;
 
 it('mounts a Phalcon micro Collection with controller, prefix, and method', function () {
     $mounted = null;
     $appliedMiddlewares = null;
 
-    $app = new class($mounted) {
+    $app = new class($mounted)
+    {
         public function __construct(public &$mounted) {}
 
         public function mount($collection)
@@ -33,13 +35,14 @@ it('mounts a Phalcon micro Collection with controller, prefix, and method', func
 
     $handler->handle($app, $routeData, ['ApiAuthMiddleware']);
 
-    expect($mounted)->toBeInstanceOf(\Phalcon\Mvc\Micro\Collection::class)
+    expect($mounted)->toBeInstanceOf(Collection::class)
         ->and($appliedMiddlewares)->toBe(['ApiAuthMiddleware']);
 });
 
 it('mounts without a prefix when routeData omits it', function () {
     $mounted = null;
-    $app = new class($mounted) {
+    $app = new class($mounted)
+    {
         public function __construct(public &$mounted) {}
 
         public function mount($c)
@@ -58,5 +61,5 @@ it('mounts without a prefix when routeData omits it', function () {
         'method' => 'get',
     ], []);
 
-    expect($mounted)->toBeInstanceOf(\Phalcon\Mvc\Micro\Collection::class);
+    expect($mounted)->toBeInstanceOf(Collection::class);
 });
