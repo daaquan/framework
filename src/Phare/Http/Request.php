@@ -2,7 +2,6 @@
 
 namespace Phare\Http;
 
-use Phalcon\Filter\Validation as BaseValidation;
 use Phalcon\Filter\Validation\Validator\Alnum;
 use Phalcon\Filter\Validation\Validator\Alpha;
 use Phalcon\Filter\Validation\Validator\Between;
@@ -24,6 +23,7 @@ use Phalcon\Filter\Validation\Validator\StringLength;
 use Phalcon\Filter\Validation\Validator\Uniqueness;
 use Phalcon\Filter\Validation\Validator\Url;
 use Phare\Foundation\Http\Validation\ValidationException;
+use Phare\Validation\Validator;
 
 class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request
 {
@@ -85,26 +85,42 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
 
     public function validate($data): bool
     {
-        $validator = new BaseValidation();
-        foreach ($this->rules() as $name => $rules) {
-            foreach (explode('|', $rules) as $term) {
-                $rule = explode(':', $term);
-                $type = array_shift($rule);
-                $option = implode('', $rule);
+        $this->messages = [];
 
-                $validator->add($name, self::getValidator($type, compact('type', 'option')));
-            }
+        $validator = new Validator($data, $this->rules());
+
+        if ($validator->passes()) {
+            return true;
         }
 
-        foreach ($validator->validate($data) as $message) {
+        foreach ($validator->errors()->toArray() as $field => $messages) {
             $this->messages = [
-                'field' => $message->getField(),
-                'type' => $this->types[$message->getType()],
-                'message' => $message->getMessage(),
+                'field' => $field,
+                'type' => $this->firstRuleName($field),
+                'message' => $this->formatValidationMessage($field, (string)end($messages)),
             ];
+
+            break;
         }
 
-        return count($this->messages) === 0;
+        return false;
+    }
+
+    protected function firstRuleName(string $field): string
+    {
+        $rules = (string)($this->rules()[$field] ?? '');
+        $rule = explode('|', $rules)[0] ?? 'validation';
+
+        return explode(':', $rule)[0] ?: 'validation';
+    }
+
+    protected function formatValidationMessage(string $field, string $message): string
+    {
+        if (str_contains($message, "The {$field} field is required.")) {
+            return "Field {$field} is required";
+        }
+
+        return $message;
     }
 
     public function getMessages()
