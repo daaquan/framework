@@ -260,8 +260,25 @@ Remaining Phase 5 candidates:
 
 1. Manager bindings (`auth`, `log`, `db`, `cache`, `filesystem`, `queue`, `hash`, `broadcast`, `session`, `mail`) are looked up via container service keys — consumers without a registered binding receive whatever the test seam supplies.
 
+### Phase 6 (in progress): Container edge behaviors
+
+Spec: `docs/superpowers/specs/2026-05-11-phase6-container-edges-design.md`.
+Plan: `docs/superpowers/plans/2026-05-11-phase6-container-edges.md`.
+
+Landed 2026-05-11:
+- Group A (lifecycle): `instance()`, `extend()` + `applyExtenders()`, `forgetInstance()`, `forgetInstances()`, `forgetExtenders()`, `flush()`, `scoped()`, `scopedIf()`, `forgetScopedInstances()`. Tests under `tests/Container/Lifecycle/`.
+- Group B (method binding & call autowiring): `Phare\Container\BoundMethod`, `Container::call()`, `wrap()`, `factory()`, `bindMethod()`, `hasMethodBinding()`, `callMethodBinding()`. Tests under `tests/Container/MethodBinding/`.
+- Group C (resolution hooks): `beforeResolving()` (global + abstract-specific), `currentlyResolving()`, `refresh()`. Tests under `tests/Container/Hooks/`.
+- Group D (attribute extension): `whenHasAttribute()` registers per-attribute resolvers, picked up by `resolveFromAttribute()` and by parameter discovery when the attribute is not a `ContextualAttribute` contract implementor. Tests at `tests/Container/Attributes/WhenHasAttributeTest.php`.
+- Group E (PSR-11): `Container implements Psr\Container\ContainerInterface`. `get()`/`has()` are inherited from Phalcon\Di\Di (overriding them caused infinite recursion via Phalcon's internal `getShared() → get()` path). Added `psrGet()` opt-in helper that throws `Phare\Container\Exceptions\ServiceNotFoundException implements NotFoundExceptionInterface` for unknown ids. Tests at `tests/Container/PSR11AndArrayAccessTest.php`.
+
+Group F (environment helpers `resolveEnvironmentUsing`, `currentEnvironmentIs`) deferred — wire only when a concrete use case emerges.
+
+Suite: 983 tests passing after Phase 6 lands (baseline 946 before Phase 5).
+
 ## Next Implementation Slice
 
 Next implementation slice:
 1. ~~finalize `Kernel::registerRoutes()` as wiring-only orchestration helper~~ — landed 2026-05-11 via `WebRouteHandler` / `MicroRouteHandler` extraction.
-2. align container semantics with additional Laravel 13 edge behaviors in `Illuminate\Container\Container` — scoped as Phase 6 (see `docs/superpowers/specs/2026-05-11-phase6-container-edges-design.md`).
+2. ~~align container semantics with additional Laravel 13 edge behaviors in `Illuminate\Container\Container`~~ — Phase 6 Groups A–E landed 2026-05-11; Group F (env helpers) intentionally deferred.
+3. Manager migrations onto `Phare\Support\Manager` base (Phase 5 follow-up). Each existing manager has unique constructor + `extend()` signature; migrate one-by-one with backward-compat shims.
