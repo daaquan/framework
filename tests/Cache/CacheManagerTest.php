@@ -135,6 +135,42 @@ test('store(null) returns the default store', function () {
     expect($manager->store(null))->toBe($manager->adapter());
 });
 
+test('driver() aliases store() through support manager base', function () {
+    putenv('CACHE_DRIVER=apc');
+    refreshApplication();
+    config(['cache.stores.array' => ['driver' => 'array', 'prefix' => 'driver_']]);
+
+    $manager = new CacheManager();
+
+    expect($manager->driver('array'))->toBe($manager->store('array'))
+        ->and($manager->getDrivers())->toHaveKey('array');
+});
+
+test('extend() registers a custom cache store creator', function () {
+    putenv('CACHE_DRIVER=apc');
+    refreshApplication();
+
+    $manager = new CacheManager();
+    $adapter = new ArrayAdapter('custom_');
+
+    $manager->extend('custom', fn () => $adapter);
+
+    expect($manager->store('custom'))->toBe($adapter);
+});
+
+test('forgetDrivers() clears cached cache stores', function () {
+    putenv('CACHE_DRIVER=apc');
+    refreshApplication();
+    config(['cache.stores.array' => ['driver' => 'array', 'prefix' => 'reset_']]);
+
+    $manager = new CacheManager();
+    $first = $manager->store('array');
+
+    $manager->forgetDrivers();
+
+    expect($manager->store('array'))->not->toBe($first);
+});
+
 test('store(unknown) throws when configuration is missing', function () {
     putenv('CACHE_DRIVER=apc');
     refreshApplication();
