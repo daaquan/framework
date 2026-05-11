@@ -76,6 +76,10 @@ class Validator
         }
 
         foreach ($rules as $rule) {
+            if (!str_starts_with($rule, 'required') && ($value === null || $value === '')) {
+                continue;
+            }
+
             $this->validateRule($attribute, $value, $rule);
         }
     }

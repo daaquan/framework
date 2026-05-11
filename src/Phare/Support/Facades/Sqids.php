@@ -12,10 +12,6 @@ class Sqids extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        if (!extension_loaded('sqids')) {
-            throw new \RuntimeException('Sqids extension is not loaded.');
-        }
-
         return 'sqids';
     }
 }
