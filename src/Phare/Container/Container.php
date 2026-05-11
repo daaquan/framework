@@ -29,11 +29,13 @@ use Phalcon\Session\BagInterface;
 use Phalcon\Session\ManagerInterface;
 use Phalcon\Translate\Adapter\AbstractAdapter;
 use Phare\Container\Exceptions\ContainerException;
+use Phare\Container\Exceptions\ServiceNotFoundException;
 use Phare\Contracts\Container\ContextualAttribute as ContextualAttributeContract;
 use Phare\Contracts\Foundation\Container as ContractsContainer;
+use Psr\Container\ContainerInterface as PsrContainerInterface;
 use TypeError;
 
-class Container extends Di implements ContractsContainer
+class Container extends Di implements ContractsContainer, PsrContainerInterface
 {
     /**
      * Phalcon standard services
@@ -583,20 +585,11 @@ class Container extends Di implements ContractsContainer
 
         $this->fireBeforeResolvingCallbacks($abstract, $parameters);
 
-        // Track the abstract on the build stack so currentlyResolving() can
-        // observe it from resolving/afterResolving callbacks. We pop on every
-        // return path below.
-        $this->buildStack[] = $abstract;
-        try {
-            return $this->doMake($abstract, $parameters);
-        } finally {
-            array_pop($this->buildStack);
-        }
+        return $this->doMake($abstract, $parameters);
     }
 
     /**
-     * Internal make() body. Extracted so the public make() can wrap it in
-     * a buildStack push/pop without duplicating each return path.
+     * Internal make() body retained as a seam for beforeResolving hooks.
      */
     protected function doMake(string $abstract, array $parameters)
     {
@@ -1093,21 +1086,29 @@ class Container extends Di implements ContractsContainer
      */
     protected function fireResolvingCallbacks(string $abstract, $instance): void
     {
-        foreach ($this->globalResolvingCallbacks as $callback) {
-            $callback($instance, $this);
-        }
-
-        foreach ($this->resolvingCallbacks[$abstract] ?? [] as $callback) {
-            $callback($instance, $this);
-        }
-
-        if (is_object($instance) && ($instanceClass = get_class($instance)) !== $abstract) {
-            foreach ($this->resolvingCallbacks[$instanceClass] ?? [] as $callback) {
+        // Keep $abstract observable to currentlyResolving() while callbacks
+        // run. The container's resolve() has already popped its own push by
+        // the time we reach here.
+        $this->buildStack[] = $abstract;
+        try {
+            foreach ($this->globalResolvingCallbacks as $callback) {
                 $callback($instance, $this);
             }
-        }
 
-        $this->fireAfterResolvingCallbacks($abstract, $instance);
+            foreach ($this->resolvingCallbacks[$abstract] ?? [] as $callback) {
+                $callback($instance, $this);
+            }
+
+            if (is_object($instance) && ($instanceClass = get_class($instance)) !== $abstract) {
+                foreach ($this->resolvingCallbacks[$instanceClass] ?? [] as $callback) {
+                    $callback($instance, $this);
+                }
+            }
+
+            $this->fireAfterResolvingCallbacks($abstract, $instance);
+        } finally {
+            array_pop($this->buildStack);
+        }
     }
 
     /**
@@ -1257,6 +1258,37 @@ class Container extends Di implements ContractsContainer
     public function whenHasAttribute(string $attribute, Closure $handler): void
     {
         $this->attributeHandlers[$attribute] = $handler;
+    }
+
+    // Phalcon\Di\Di already implements get(string, $parameters): mixed,
+    // which satisfies PSR-11 ContainerInterface::get(). We declare
+    // `implements PsrContainerInterface` on the class header but do NOT
+    // override get() here, because Phalcon's getShared() internally calls
+    // $this->get() and an override would re-enter make() recursively.
+    //
+    // ArrayAccess offsetSet / offsetUnset / __set are also inherited from
+    // Phalcon — overriding them broke existing internal service registration.
+
+    /**
+     * Convert a bare unknown-id make() error into a PSR-11 compliant
+     * NotFoundException. Public sugar; callers preferring strict PSR-11
+     * semantics should use this rather than the bare get() inherited
+     * from Phalcon.
+     */
+    public function psrGet(string $id): mixed
+    {
+        $alias = $this->getAlias($id);
+        if (!$this->bound($alias) && !class_exists($alias) && !interface_exists($alias)) {
+            try {
+                $hasService = parent::has($alias);
+            } catch (\Throwable) {
+                $hasService = false;
+            }
+            if (!$hasService) {
+                throw new ServiceNotFoundException("Service [{$id}] not found in container.");
+            }
+        }
+        return $this->make($id);
     }
 
     /**
