@@ -192,6 +192,20 @@ class Container extends Di implements ContractsContainer
     protected array $extenders = [];
 
     /**
+     * Callbacks fired before any abstract is resolved.
+     *
+     * @var array<int, Closure>
+     */
+    protected array $globalBeforeResolvingCallbacks = [];
+
+    /**
+     * Callbacks fired before a specific abstract is resolved.
+     *
+     * @var array<string, array<int, Closure>>
+     */
+    protected array $beforeResolvingCallbacks = [];
+
+    /**
      * Abstracts registered as scoped (per-request) singletons. Cleared by
      * {@see forgetScopedInstances()}.
      *
@@ -371,6 +385,60 @@ class Container extends Di implements ContractsContainer
     }
 
     /**
+     * Register a beforeResolving callback. When $abstract is a Closure
+     * (and $callback null), the callback is registered globally.
+     */
+    public function beforeResolving($abstract, ?Closure $callback = null): void
+    {
+        if ($abstract instanceof Closure) {
+            $this->globalBeforeResolvingCallbacks[] = $abstract;
+
+            return;
+        }
+
+        $this->beforeResolvingCallbacks[$this->getAlias($abstract)][] = $callback;
+    }
+
+    /**
+     * Fire all beforeResolving callbacks (global + abstract-specific).
+     */
+    protected function fireBeforeResolvingCallbacks(string $abstract, array $parameters = []): void
+    {
+        foreach ($this->globalBeforeResolvingCallbacks as $cb) {
+            $cb($abstract, $parameters, $this);
+        }
+
+        foreach ($this->beforeResolvingCallbacks[$abstract] ?? [] as $cb) {
+            $cb($abstract, $parameters, $this);
+        }
+    }
+
+    /**
+     * Return the current build stack (abstracts being actively resolved).
+     *
+     * @return array<int, string>
+     */
+    public function currentlyResolving(): array
+    {
+        return $this->buildStack;
+    }
+
+    /**
+     * Refresh a binding on a target: every time $abstract rebinds, call
+     * $target->{$method}($newInstance). Returns the current resolved instance.
+     */
+    public function refresh(string $abstract, mixed $target, string $method): mixed
+    {
+        $instance = $this->make($abstract);
+
+        $this->rebinding($abstract, function ($app, $new) use ($target, $method) {
+            $target->$method($new);
+        });
+
+        return $instance;
+    }
+
+    /**
      * Register a scoped (per-request) singleton.  Behaves like singleton()
      * except {@see forgetScopedInstances()} can sweep these on request end.
      */
@@ -506,6 +574,25 @@ class Container extends Di implements ContractsContainer
     {
         $abstract = $this->getAlias($abstract);
 
+        $this->fireBeforeResolvingCallbacks($abstract, $parameters);
+
+        // Track the abstract on the build stack so currentlyResolving() can
+        // observe it from resolving/afterResolving callbacks. We pop on every
+        // return path below.
+        $this->buildStack[] = $abstract;
+        try {
+            return $this->doMake($abstract, $parameters);
+        } finally {
+            array_pop($this->buildStack);
+        }
+    }
+
+    /**
+     * Internal make() body. Extracted so the public make() can wrap it in
+     * a buildStack push/pop without duplicating each return path.
+     */
+    protected function doMake(string $abstract, array $parameters)
+    {
         if ($this->resolved($abstract)) {
             $shared = $this->isShared($abstract);
 
