@@ -74,7 +74,7 @@ class AuthManager
         $config = $this->normalizeConfig(config("auth.guards.{$name}"));
 
         if ($config === [] || !isset($config['driver'])) {
-            throw new InvalidArgumentException("Auth guard [{$name}] is not defined.");
+            $config = $this->legacyDefaultGuardConfig($name);
         }
 
         $driver = (string)$config['driver'];
@@ -147,5 +147,19 @@ class AuthManager
         }
 
         return is_array($value) ? $value : [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function legacyDefaultGuardConfig(string $name): array
+    {
+        $authRoot = $this->normalizeConfig(config('auth'));
+
+        if ($name === $this->getDefaultDriver() && isset($authRoot['model'])) {
+            return ['driver' => 'session'];
+        }
+
+        throw new InvalidArgumentException("Auth guard [{$name}] is not defined.");
     }
 }

@@ -149,3 +149,18 @@ test('falls back to top-level auth.model when no provider mapping is set', funct
 
     expect($manager->guard())->toBeInstanceOf(SessionGuard::class);
 });
+
+test('legacy top-level auth config defines the default session guard', function () {
+    config([
+        'auth.defaults.guard' => 'web',
+        'auth.guards' => [],
+        'auth.model' => 'App\\Models\\Game\\User',
+        'auth.session_id' => 'auth',
+    ]);
+
+    $manager = new AuthManager($this->app);
+
+    expect($manager->guard())->toBeInstanceOf(SessionGuard::class);
+    expect(fn () => $manager->guard('missing'))
+        ->toThrow(InvalidArgumentException::class);
+});
