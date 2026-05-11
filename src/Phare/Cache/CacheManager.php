@@ -11,18 +11,18 @@ use Phalcon\Config\Config;
 use Phalcon\Storage\SerializerFactory;
 use Phare\Cache\Adapter\ArrayAdapter;
 use Phare\Cache\Adapter\NullAdapter;
+use Phare\Container\Container;
+use Phare\Contracts\Foundation\Container as ContainerContract;
+use Phare\Support\Manager;
 
-class CacheManager
+class CacheManager extends Manager
 {
-    /**
-     * @var array<string, CacheAdapterInterface>
-     */
-    protected array $stores = [];
-
     protected string $defaultStore;
 
-    public function __construct()
+    public function __construct(?ContainerContract $container = null)
     {
+        parent::__construct($container ?? $this->resolveContainer());
+
         $this->defaultStore = (string)config('cache.default', 'file');
 
         // Eagerly build the default store so misconfiguration surfaces at
@@ -35,19 +35,7 @@ class CacheManager
      */
     public function store(?string $name = null): CacheAdapterInterface
     {
-        $name = $name ?? $this->defaultStore;
-
-        if (isset($this->stores[$name])) {
-            return $this->stores[$name];
-        }
-
-        $config = $this->normalizeConfig(config("cache.stores.{$name}"));
-
-        if ($config === [] || !isset($config['driver'])) {
-            throw new InvalidArgumentException("Cache config for '{$name}' is invalid or missing.");
-        }
-
-        return $this->stores[$name] = $this->makeAdapter($config['driver'], $config);
+        return $this->driver($name);
     }
 
     public function adapter(): CacheAdapterInterface
@@ -55,9 +43,29 @@ class CacheManager
         return $this->store();
     }
 
+    public function getDefaultDriver(): ?string
+    {
+        return $this->defaultStore;
+    }
+
     public function getDefaultStore(): string
     {
         return $this->defaultStore;
+    }
+
+    protected function createDriver(string $driver): mixed
+    {
+        if (isset($this->customCreators[$driver])) {
+            return $this->callCustomCreator($driver);
+        }
+
+        $config = $this->normalizeConfig(config("cache.stores.{$driver}"));
+
+        if ($config === [] || !isset($config['driver'])) {
+            throw new InvalidArgumentException("Cache config for '{$driver}' is invalid or missing.");
+        }
+
+        return $this->makeAdapter($config['driver'], $config);
     }
 
     protected function makeAdapter(string $driver, array $config): CacheAdapterInterface
@@ -145,6 +153,17 @@ class CacheManager
     public function clear(): bool
     {
         return $this->store()->clear();
+    }
+
+    protected function resolveContainer(): ContainerContract
+    {
+        $app = app();
+
+        if ($app instanceof ContainerContract) {
+            return $app;
+        }
+
+        return new Container();
     }
 
     protected function normalizeConfig(mixed $value): array
