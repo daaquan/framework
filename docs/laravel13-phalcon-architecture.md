@@ -254,9 +254,10 @@ Tests (added alongside each commit):
 Remaining Phase 5 candidates:
 - `Log` selector (`#[Log(?channel)]`) aligned with Laravel channel-stack semantics — `channel()` alias, aggregate `stack()` driver, and `driver: stack` config routing landed 2026-05-11 (`tests/Unit/Log/LogManagerStackTest.php`).
 - `Phare\Support\Manager` abstract base landed 2026-05-11 (`tests/Unit/Support/ManagerTest.php`) — Laravel-parity `driver()`, `extend()`, `createXxxDriver()` convention, custom-creator-overrides, driver cache, default-driver enforcement.
-- Existing nine managers still own their constructors and selector method names (`store/disk/guard/connection/mailer/channel`). Migrating them onto `Phare\Support\Manager` is breaking for individual managers (e.g. `HashManager::extend(string, HasherInterface)` vs base `extend(string, Closure)`). Tracked as a follow-up plan; base class is ready when needed.
+- Existing managers still own their constructors and selector method names (`connection/mailer/channel`, etc.). Migrating them onto `Phare\Support\Manager` is breaking for individual managers (e.g. `HashManager::extend(string, HasherInterface)` vs base `extend(string, Closure)`). Tracked as a follow-up plan; base class is ready when needed.
 - `CacheManager` migration onto `Phare\Support\Manager` landed 2026-05-12 — `store()` remains the public selector, `driver()` is now the Laravel-parity alias, and `extend()` / `forgetDrivers()` are inherited from the base manager while preserving eager default-store validation.
 - `FilesystemManager` migration onto `Phare\Support\Manager` landed 2026-05-12 — `disk()` remains the public selector, `driver()` is now the Laravel-parity alias, and `extend()` / `forgetDrivers()` are inherited from the base manager.
+- `AuthManager` migration onto `Phare\Support\Manager` landed 2026-05-12 — `guard()` remains the public selector, `driver()` is now the Laravel-parity alias, and resolved guards are exposed through the inherited driver cache / `forgetDrivers()` API while preserving custom guard factories.
 
 ## Current Risks
 
@@ -276,11 +277,11 @@ Landed 2026-05-11:
 
 Group F (environment helpers `resolveEnvironmentUsing`, `currentEnvironmentIs`) deferred — wire only when a concrete use case emerges.
 
-Suite: 983 tests passing after Phase 6 lands (baseline 946 before Phase 5).
+Suite: 998 tests passing after the 2026-05-12 AuthManager migration (baseline 946 before Phase 5).
 
 ## Next Implementation Slice
 
 Next implementation slice:
 1. ~~finalize `Kernel::registerRoutes()` as wiring-only orchestration helper~~ — landed 2026-05-11 via `WebRouteHandler` / `MicroRouteHandler` extraction.
 2. ~~align container semantics with additional Laravel 13 edge behaviors in `Illuminate\Container\Container`~~ — Phase 6 Groups A–E landed 2026-05-11; Group F (env helpers) intentionally deferred.
-3. Manager migrations onto `Phare\Support\Manager` base (Phase 5 follow-up). `CacheManager` and `FilesystemManager` have landed; continue one-by-one for auth, database, queue, hash, broadcasting, session, and mail with backward-compat shims.
+3. Manager migrations onto `Phare\Support\Manager` base (Phase 5 follow-up). `CacheManager`, `FilesystemManager`, and `AuthManager` have landed; continue one-by-one for database, queue, hash, broadcasting, session, and mail with backward-compat shims.
