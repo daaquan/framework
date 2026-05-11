@@ -206,6 +206,13 @@ class Container extends Di implements ContractsContainer
     protected array $beforeResolvingCallbacks = [];
 
     /**
+     * Attribute resolution handlers registered via whenHasAttribute().
+     *
+     * @var array<class-string, Closure>
+     */
+    protected array $attributeHandlers = [];
+
+    /**
      * Abstracts registered as scoped (per-request) singletons. Cleared by
      * {@see forgetScopedInstances()}.
      *
@@ -1200,10 +1207,25 @@ class Container extends Di implements ContractsContainer
      */
     protected function getContextualAttributeFromDependency(\ReflectionParameter $dependency): ?\ReflectionAttribute
     {
-        return $dependency->getAttributes(
+        $contract = $dependency->getAttributes(
             ContextualAttributeContract::class,
             \ReflectionAttribute::IS_INSTANCEOF
         )[0] ?? null;
+
+        if ($contract !== null) {
+            return $contract;
+        }
+
+        // Fall back to attributes registered via whenHasAttribute().
+        if ($this->attributeHandlers !== []) {
+            foreach ($dependency->getAttributes() as $attribute) {
+                if (isset($this->attributeHandlers[$attribute->getName()])) {
+                    return $attribute;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -1214,6 +1236,10 @@ class Container extends Di implements ContractsContainer
         $attributeClass = $attribute->getName();
         $instance = $attribute->newInstance();
 
+        if (isset($this->attributeHandlers[$attributeClass])) {
+            return ($this->attributeHandlers[$attributeClass])($instance, $this);
+        }
+
         if (method_exists($attributeClass, 'resolve')) {
             return $attributeClass::resolve($instance, $this);
         }
@@ -1222,6 +1248,15 @@ class Container extends Di implements ContractsContainer
             'Contextual attribute [%s] must define static resolve().',
             $attributeClass
         ));
+    }
+
+    /**
+     * Register a custom resolver for the given attribute class.
+     * Mirrors Laravel's `whenHasAttribute()`.
+     */
+    public function whenHasAttribute(string $attribute, Closure $handler): void
+    {
+        $this->attributeHandlers[$attribute] = $handler;
     }
 
     /**
