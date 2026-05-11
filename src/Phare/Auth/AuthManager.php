@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phare\Auth;
 
-use Closure;
 use InvalidArgumentException;
 use Phalcon\Config\Config;
 use Phalcon\Config\ConfigInterface;
 use Phare\Contracts\Foundation\Container as ContainerContract;
+use Phare\Support\Manager as BaseManager;
 
 /**
  * Owns the configured auth guards and resolves them on demand.
@@ -21,29 +21,16 @@ use Phare\Contracts\Foundation\Container as ContainerContract;
  * default guard so existing call sites — `app('auth')->user()`, attempt(),
  * login(), check(), etc. — keep working unchanged.
  */
-class AuthManager
+class AuthManager extends BaseManager
 {
-    /**
-     * @var array<string, object>
-     */
-    protected array $guards = [];
-
-    /**
-     * @var array<string, Closure>
-     */
-    protected array $customDrivers = [];
-
-    public function __construct(private ContainerContract $app) {}
+    public function __construct(ContainerContract $app)
+    {
+        parent::__construct($app);
+    }
 
     public function guard(?string $name = null): object
     {
-        $name = $name ?? $this->getDefaultDriver();
-
-        if (isset($this->guards[$name])) {
-            return $this->guards[$name];
-        }
-
-        return $this->guards[$name] = $this->resolve($name);
+        return $this->driver($name);
     }
 
     public function getDefaultDriver(): string
@@ -52,24 +39,9 @@ class AuthManager
     }
 
     /**
-     * Register a custom guard driver factory.
-     */
-    public function extend(string $driver, Closure $callback): static
-    {
-        $this->customDrivers[$driver] = $callback;
-
-        return $this;
-    }
-
-    public function __call(string $method, array $arguments): mixed
-    {
-        return $this->guard()->{$method}(...$arguments);
-    }
-
-    /**
      * @param array<string, mixed> $config
      */
-    protected function resolve(string $name): object
+    protected function createDriver(string $name): object
     {
         $config = $this->normalizeConfig(config("auth.guards.{$name}"));
 
@@ -79,8 +51,8 @@ class AuthManager
 
         $driver = (string)$config['driver'];
 
-        if (isset($this->customDrivers[$driver])) {
-            return ($this->customDrivers[$driver])($this->app, $name, $config);
+        if (isset($this->customCreators[$driver])) {
+            return ($this->customCreators[$driver])($this->container, $name, $config);
         }
 
         return match ($driver) {
@@ -97,9 +69,9 @@ class AuthManager
         $guardConfig = $this->buildSessionGuardConfig($name, $config);
 
         return new Manager(
-            $this->app['session'],
+            $this->container['session'],
             $guardConfig,
-            $this->app['events'] ?? null,
+            $this->container['events'] ?? null,
         );
     }
 
