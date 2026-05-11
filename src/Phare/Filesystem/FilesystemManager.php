@@ -6,18 +6,18 @@ namespace Phare\Filesystem;
 
 use InvalidArgumentException;
 use Phalcon\Config\Config;
+use Phare\Container\Container;
+use Phare\Contracts\Foundation\Container as ContainerContract;
+use Phare\Support\Manager;
 
-class FilesystemManager
+class FilesystemManager extends Manager
 {
-    /**
-     * @var array<string, Filesystem>
-     */
-    protected array $disks = [];
-
     protected string $defaultDisk;
 
-    public function __construct()
+    public function __construct(?ContainerContract $container = null)
     {
+        parent::__construct($container ?? $this->resolveContainer());
+
         $this->defaultDisk = (string)config('filesystems.default', 'local');
     }
 
@@ -26,24 +26,35 @@ class FilesystemManager
      */
     public function disk(?string $name = null): Filesystem
     {
-        $name = $name ?? $this->defaultDisk;
+        return $this->driver($name);
+    }
 
-        if (isset($this->disks[$name])) {
-            return $this->disks[$name];
-        }
-
-        $config = $this->normalizeConfig(config("filesystems.disks.{$name}"));
-
-        if ($config === [] || !isset($config['driver'])) {
-            throw new InvalidArgumentException("Filesystem disk '{$name}' is not configured.");
-        }
-
-        return $this->disks[$name] = $this->resolveDriver($config['driver'], $config);
+    public function getDefaultDriver(): ?string
+    {
+        return $this->defaultDisk;
     }
 
     public function getDefaultDisk(): string
     {
         return $this->defaultDisk;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    protected function createDriver(string $driver): Filesystem
+    {
+        if (isset($this->customCreators[$driver])) {
+            return $this->callCustomCreator($driver);
+        }
+
+        $config = $this->normalizeConfig(config("filesystems.disks.{$driver}"));
+
+        if ($config === [] || !isset($config['driver'])) {
+            throw new InvalidArgumentException("Filesystem disk '{$driver}' is not configured.");
+        }
+
+        return $this->resolveDriver($config['driver'], $config);
     }
 
     /**
@@ -68,6 +79,17 @@ class FilesystemManager
         }
 
         return new LocalFilesystem($config['root']);
+    }
+
+    protected function resolveContainer(): ContainerContract
+    {
+        $app = app();
+
+        if ($app instanceof ContainerContract) {
+            return $app;
+        }
+
+        return new Container();
     }
 
     protected function normalizeConfig(mixed $value): array

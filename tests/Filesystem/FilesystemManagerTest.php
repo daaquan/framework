@@ -74,6 +74,54 @@ test('disk(name) returns named disk and caches it', function () {
     @rmdir($tmp);
 });
 
+test('driver() aliases disk() through support manager base', function () {
+    config([
+        'filesystems.default' => 'local',
+        'filesystems.disks' => [
+            'local' => ['driver' => 'local', 'root' => sys_get_temp_dir()],
+            'fake' => ['driver' => 'null'],
+        ],
+    ]);
+
+    $manager = new FilesystemManager();
+
+    expect($manager->driver('fake'))->toBe($manager->disk('fake'))
+        ->and($manager->getDrivers())->toHaveKey('fake');
+});
+
+test('extend() registers a custom filesystem disk creator', function () {
+    config([
+        'filesystems.default' => 'local',
+        'filesystems.disks' => [
+            'local' => ['driver' => 'local', 'root' => sys_get_temp_dir()],
+        ],
+    ]);
+
+    $manager = new FilesystemManager();
+    $disk = new NullFilesystem();
+
+    $manager->extend('custom', fn () => $disk);
+
+    expect($manager->disk('custom'))->toBe($disk);
+});
+
+test('forgetDrivers() clears cached filesystem disks', function () {
+    config([
+        'filesystems.default' => 'local',
+        'filesystems.disks' => [
+            'local' => ['driver' => 'local', 'root' => sys_get_temp_dir()],
+            'fake' => ['driver' => 'null'],
+        ],
+    ]);
+
+    $manager = new FilesystemManager();
+    $first = $manager->disk('fake');
+
+    $manager->forgetDrivers();
+
+    expect($manager->disk('fake'))->not->toBe($first);
+});
+
 test('local disk prefixes paths with root', function () {
     $tmp = sys_get_temp_dir() . '/phare-fs-' . uniqid();
     @mkdir($tmp, 0777, true);
