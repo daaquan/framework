@@ -72,6 +72,44 @@ test('guard(name) returns named guard', function () {
     expect($web)->not->toBe($admin);
 });
 
+test('driver(name) is a Laravel-parity alias for guard(name)', function () {
+    config([
+        'auth.defaults.guard' => 'web',
+        'auth.guards' => [
+            'web' => ['driver' => 'session', 'provider' => 'users'],
+        ],
+        'auth.providers' => [
+            'users' => ['driver' => 'eloquent', 'model' => 'App\\Models\\Game\\User'],
+        ],
+    ]);
+
+    $manager = new AuthManager($this->app);
+
+    expect($manager->driver('web'))->toBe($manager->guard('web'));
+});
+
+test('resolved guards are exposed through base manager driver cache', function () {
+    config([
+        'auth.defaults.guard' => 'web',
+        'auth.guards' => [
+            'web' => ['driver' => 'session', 'provider' => 'users'],
+        ],
+        'auth.providers' => [
+            'users' => ['driver' => 'eloquent', 'model' => 'App\\Models\\Game\\User'],
+        ],
+    ]);
+
+    $manager = new AuthManager($this->app);
+    $first = $manager->guard('web');
+
+    expect($manager->getDrivers())->toHaveKey('web');
+
+    $manager->forgetDrivers();
+
+    expect($manager->getDrivers())->toBe([])
+        ->and($manager->guard('web'))->not->toBe($first);
+});
+
 test('undefined guard throws', function () {
     config(['auth.guards' => []]);
 
@@ -115,6 +153,23 @@ test('extend(driver) registers a custom guard factory', function () {
     expect($manager->guard())->toBeInstanceOf(stdClass::class);
     expect($captured[0])->toBe('token');
     expect($captured[1])->toMatchArray(['driver' => 'token-stub']);
+});
+
+test('custom guard factory is bound to the auth manager', function () {
+    config([
+        'auth.defaults.guard' => 'token',
+        'auth.guards' => [
+            'token' => ['driver' => 'token-stub'],
+        ],
+    ]);
+
+    $manager = new AuthManager($this->app);
+
+    $manager->extend('token-stub', function () {
+        return (object)['boundToManager' => $this instanceof AuthManager];
+    });
+
+    expect($manager->guard()->boundToManager)->toBeTrue();
 });
 
 test('__call proxies to default guard', function () {
