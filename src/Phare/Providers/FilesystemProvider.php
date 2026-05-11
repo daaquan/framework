@@ -13,8 +13,8 @@ class FilesystemProvider implements ServiceProviderInterface
 {
     public function register(Application|DiInterface $app): void
     {
-        $app->singleton('filesystem.manager', function () {
-            return new FilesystemManager();
+        $app->singleton('filesystem.manager', function ($app) {
+            return new FilesystemManager($app);
         });
 
         $app->singleton('filesystem', function ($app) {
