@@ -132,3 +132,39 @@ it('handles empty passwords gracefully', function () {
 it('rejects check on empty hashes', function () {
     expect($this->hashManager->check('password', ''))->toBeFalse();
 });
+
+it('supports Laravel-parity closure-based extend()', function () {
+    $this->hashManager->extend('md5closure', function () {
+        return new class() implements HasherInterface
+        {
+            public function make(string $value, array $options = []): string
+            {
+                return md5($value);
+            }
+
+            public function check(string $value, string $hashedValue, array $options = []): bool
+            {
+                return md5($value) === $hashedValue;
+            }
+
+            public function needsRehash(string $hashedValue, array $options = []): bool
+            {
+                return false;
+            }
+
+            public function info(string $hashedValue): array
+            {
+                return ['algo' => 'md5'];
+            }
+        };
+    });
+
+    expect($this->hashManager->driver('md5closure')->make('password'))->toBe(md5('password'));
+});
+
+it('forgetDrivers() rebuilds hasher instances lazily', function () {
+    $first = $this->hashManager->driver('bcrypt');
+    $this->hashManager->forgetDrivers();
+
+    expect($this->hashManager->driver('bcrypt'))->not->toBe($first);
+});
