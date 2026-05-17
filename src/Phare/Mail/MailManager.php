@@ -3,28 +3,66 @@
 namespace Phare\Mail;
 
 use Phare\Container\Container;
+use Phare\Support\Manager;
 
-class MailManager
+class MailManager extends Manager
 {
-    protected array $mailers = [];
+    /**
+     * Sentinel driver name for the top-level `mail` config block, used when
+     * no `mail.default` key is configured.
+     */
+    protected const DEFAULT_MAILER = '__default';
 
-    public function __construct(protected Container $app) {}
-
-    public function mailer(?string $name = null): Mailer
+    public function __construct(Container $app)
     {
-        $name = $name ?: $this->getDefaultMailer();
-
-        if ($name === null) {
-            return $this->mailers['__default'] ??= new Mailer($this->topLevelConfig());
-        }
-
-        if (isset($this->mailers[$name])) {
-            return $this->mailers[$name];
-        }
-
-        return $this->mailers[$name] = new Mailer($this->configFor($name));
+        parent::__construct($app);
     }
 
+    /**
+     * Resolve a configured mailer (Laravel-parity alias for driver()).
+     */
+    public function mailer(?string $name = null): Mailer
+    {
+        return $this->driver($name);
+    }
+
+    /**
+     * Default driver name. Falls back to the {@see DEFAULT_MAILER} sentinel so
+     * the top-level `mail` config still resolves when `mail.default` is unset.
+     */
+    public function getDefaultDriver(): string
+    {
+        $value = $this->resolveConfigKey('mail.default');
+
+        return is_string($value) ? $value : self::DEFAULT_MAILER;
+    }
+
+    /**
+     * Default mailer name, or null when no `mail.default` is configured.
+     */
+    public function getDefaultMailer(): ?string
+    {
+        $value = $this->resolveConfigKey('mail.default');
+
+        return is_string($value) ? $value : null;
+    }
+
+    protected function createDriver(string $name): Mailer
+    {
+        if (isset($this->customCreators[$name])) {
+            return $this->callCustomCreator($name);
+        }
+
+        if ($name === self::DEFAULT_MAILER) {
+            return new Mailer($this->topLevelConfig());
+        }
+
+        return new Mailer($this->configFor($name));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     protected function configFor(string $name): array
     {
         $config = $this->resolveConfigKey("mail.mailers.{$name}");
@@ -36,25 +74,21 @@ class MailManager
         return $this->normalize($config);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function topLevelConfig(): array
     {
         return $this->normalize($this->resolveConfigKey('mail') ?? []);
     }
 
-    public function getDefaultMailer(): ?string
-    {
-        $value = $this->resolveConfigKey('mail.default');
-
-        return is_string($value) ? $value : null;
-    }
-
     protected function resolveConfigKey(string $key): mixed
     {
-        if (!$this->app->has('config')) {
+        if (!$this->container->bound('config')) {
             return null;
         }
 
-        $config = $this->app->make('config');
+        $config = $this->container->make('config');
 
         if (is_array($config)) {
             return self::dig($config, $key);
@@ -67,6 +101,9 @@ class MailManager
         return null;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function normalize(mixed $config): array
     {
         if (is_array($config)) {
@@ -80,6 +117,9 @@ class MailManager
         return (array)$config;
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     protected static function dig(array $config, string $key): mixed
     {
         $segments = explode('.', $key);
@@ -92,10 +132,5 @@ class MailManager
         }
 
         return $value;
-    }
-
-    public function __call(string $method, array $parameters): mixed
-    {
-        return $this->mailer()->$method(...$parameters);
     }
 }
