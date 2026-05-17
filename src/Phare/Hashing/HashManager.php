@@ -2,35 +2,58 @@
 
 namespace Phare\Hashing;
 
-class HashManager
-{
-    protected array $drivers = [];
+use Closure;
+use Phare\Container\Container;
+use Phare\Contracts\Foundation\Container as ContainerContract;
+use Phare\Support\Manager;
 
+class HashManager extends Manager
+{
     protected string $defaultDriver = 'bcrypt';
 
-    public function __construct(string $defaultDriver = 'bcrypt')
+    /**
+     * @param string|ContainerContract|null $defaultDriver Default driver name,
+     *                                                     or the application container.
+     */
+    public function __construct(string|ContainerContract|null $defaultDriver = null)
     {
-        $this->defaultDriver = $defaultDriver;
-        $this->registerDefaultDrivers();
-    }
-
-    protected function registerDefaultDrivers(): void
-    {
-        $this->drivers['bcrypt'] = new BcryptHasher();
-        $this->drivers['argon'] = new ArgonHasher();
-        $this->drivers['argon2i'] = new Argon2iHasher();
-        $this->drivers['argon2id'] = new Argon2idHasher();
-    }
-
-    public function driver(?string $driver = null): HasherInterface
-    {
-        $driver = $driver ?: $this->defaultDriver;
-
-        if (!isset($this->drivers[$driver])) {
-            throw new \InvalidArgumentException("Hash driver [{$driver}] not found.");
+        if ($defaultDriver instanceof ContainerContract) {
+            parent::__construct($defaultDriver);
+            $this->defaultDriver = (string)config('hashing.driver', 'bcrypt');
+        } else {
+            parent::__construct($this->resolveContainer());
+            $this->defaultDriver = $defaultDriver ?? 'bcrypt';
         }
+    }
 
-        return $this->drivers[$driver];
+    public function getDefaultDriver(): string
+    {
+        return $this->defaultDriver;
+    }
+
+    public function setDefaultDriver(string $driver): void
+    {
+        $this->defaultDriver = $driver;
+    }
+
+    protected function createBcryptDriver(): HasherInterface
+    {
+        return new BcryptHasher();
+    }
+
+    protected function createArgonDriver(): HasherInterface
+    {
+        return new ArgonHasher();
+    }
+
+    protected function createArgon2iDriver(): HasherInterface
+    {
+        return new Argon2iHasher();
+    }
+
+    protected function createArgon2idDriver(): HasherInterface
+    {
+        return new Argon2idHasher();
     }
 
     public function make(string $value, array $options = []): string
@@ -53,23 +76,29 @@ class HashManager
         return $this->driver()->info($hashedValue);
     }
 
-    public function extend(string $driver, HasherInterface $hasher): void
+    /**
+     * Register a custom hasher. Accepts a ready hasher instance (legacy API)
+     * or a Closure factory (Laravel parity).
+     */
+    public function extend(string $driver, Closure|HasherInterface $hasher): static
     {
-        $this->drivers[$driver] = $hasher;
+        if ($hasher instanceof HasherInterface) {
+            $this->customCreators[$driver] = static fn (): HasherInterface => $hasher;
+        } else {
+            $this->customCreators[$driver] = Closure::bind($hasher, $this, static::class);
+        }
+
+        return $this;
     }
 
-    public function getDefaultDriver(): string
+    protected function resolveContainer(): ContainerContract
     {
-        return $this->defaultDriver;
-    }
+        $app = app();
 
-    public function setDefaultDriver(string $driver): void
-    {
-        $this->defaultDriver = $driver;
-    }
+        if ($app instanceof ContainerContract) {
+            return $app;
+        }
 
-    public function __call(string $method, array $parameters)
-    {
-        return $this->driver()->$method(...$parameters);
+        return new Container();
     }
 }
