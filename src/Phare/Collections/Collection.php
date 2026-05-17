@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phare\Collections;
 
 use Closure;
+use Phare\Collections\Exceptions\ItemNotFoundException;
+use Phare\Collections\Exceptions\MultipleItemsFoundException;
 
 class Collection extends \Phalcon\Support\Collection
 {
@@ -510,6 +512,43 @@ class Collection extends \Phalcon\Support\Collection
     public function firstWhere(string $key, $operator = null, $value = null)
     {
         return $this->first($this->wherePredicate($key, $operator, $value, func_num_args()));
+    }
+
+    /**
+     * Return the sole item, optionally narrowed by a predicate or an
+     * attribute comparison (Laravel parity).
+     *
+     * @param callable|string|null $key
+     * @param mixed $operator
+     * @param mixed $value
+     * @return mixed
+     *
+     * @throws ItemNotFoundException when no item matches
+     * @throws MultipleItemsFoundException when more than one item matches
+     */
+    public function sole($key = null, $operator = null, $value = null)
+    {
+        $argCount = func_num_args();
+
+        if ($argCount === 0) {
+            $items = $this;
+        } elseif ($argCount === 1 && !is_string($key) && is_callable($key)) {
+            $items = $this->filter($key);
+        } else {
+            $items = $this->filter($this->wherePredicate((string)$key, $operator, $value, $argCount));
+        }
+
+        $count = $items->count();
+
+        if ($count === 0) {
+            throw new ItemNotFoundException();
+        }
+
+        if ($count > 1) {
+            throw new MultipleItemsFoundException($count);
+        }
+
+        return $items->first();
     }
 
     /**
