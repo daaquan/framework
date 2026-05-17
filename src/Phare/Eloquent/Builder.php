@@ -781,6 +781,36 @@ class Builder extends Criteria implements BuilderInterface
     }
 
     /**
+     * Order results by the given column descending (Laravel parity).
+     */
+    public function orderByDesc(string $column): BuilderInterface
+    {
+        return $this->orderBy($column, 'desc');
+    }
+
+    /**
+     * Drop the current ordering, optionally replacing it (Laravel parity).
+     */
+    public function reorder(?string $column = null, string $direction = 'asc'): BuilderInterface
+    {
+        unset($this->params['order']);
+
+        if ($column !== null) {
+            $this->orderBy($column, $direction);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Constrain the query to a single page of results (Laravel parity).
+     */
+    public function forPage(int $page, int $perPage = 15): BuilderInterface
+    {
+        return $this->limit($perPage, ($page - 1) * $perPage);
+    }
+
+    /**
      * Specify the maximum number of results and offset.
      * Usage: $builder->limit(10, 30) // fetch 10 items starting at offset 30
      *

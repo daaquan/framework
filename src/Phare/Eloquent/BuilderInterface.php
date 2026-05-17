@@ -67,6 +67,12 @@ interface BuilderInterface extends CriteriaInterface
 
     public function tap(callable $callback): BuilderInterface;
 
+    public function orderByDesc(string $column): BuilderInterface;
+
+    public function reorder(?string $column = null, string $direction = 'asc'): BuilderInterface;
+
+    public function forPage(int $page, int $perPage = 15): BuilderInterface;
+
     public function groupBy($field): BuilderInterface;
 
     public function paginate($page, $limit): BuilderInterface;
