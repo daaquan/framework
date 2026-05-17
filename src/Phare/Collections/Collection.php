@@ -8,6 +8,75 @@ use Closure;
 
 class Collection extends \Phalcon\Support\Collection
 {
+    /**
+     * Create a new collection (Laravel parity).
+     *
+     * @param iterable<mixed>|self $items
+     */
+    public static function make($items = []): static
+    {
+        $items = $items instanceof self ? $items->toArray() : (array)$items;
+
+        return new static($items);
+    }
+
+    /**
+     * Create a collection by invoking the callback a given number of times.
+     * Without a callback, yields the integers 1..$number (Laravel parity).
+     */
+    public static function times(int $number, ?callable $callback = null): static
+    {
+        if ($number < 1) {
+            return new static([]);
+        }
+
+        $items = range(1, $number);
+
+        if ($callback !== null) {
+            $items = array_map($callback, $items);
+        }
+
+        return new static($items);
+    }
+
+    /**
+     * Create a collection over a numeric range (Laravel parity).
+     *
+     * @param int|float|string $from
+     * @param int|float|string $to
+     */
+    public static function range($from, $to, int|float $step = 1): static
+    {
+        return new static(range($from, $to, $step));
+    }
+
+    /**
+     * Wrap the given value in a collection if it is not one already
+     * (Laravel parity).
+     *
+     * @param mixed $value
+     */
+    public static function wrap($value): static
+    {
+        if ($value instanceof self) {
+            return new static($value->toArray());
+        }
+
+        return new static(is_array($value) ? $value : [$value]);
+    }
+
+    /**
+     * Get the underlying items of a collection, or return the value as-is
+     * when it is not a collection (Laravel parity).
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public static function unwrap($value)
+    {
+        return $value instanceof self ? $value->toArray() : $value;
+    }
+
     public function first(?callable $callable = null, $default = null)
     {
         return Arr::first($this->data, $callable) ?: $default;

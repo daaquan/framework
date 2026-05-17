@@ -447,3 +447,55 @@ it('after() accepts a predicate callback', function () {
 
     expect($collection->after(fn ($value) => $value === 'b'))->toBe('c');
 });
+
+it('make() creates a collection from an array', function () {
+    expect(Collection::make([1, 2, 3])->toArray())->toBe([1, 2, 3]);
+});
+
+it('make() defaults to an empty collection', function () {
+    expect(Collection::make()->toArray())->toBe([]);
+});
+
+it('make() unwraps an existing collection', function () {
+    expect(Collection::make(new Collection([1, 2]))->toArray())->toBe([1, 2]);
+});
+
+it('times() builds a collection of sequential numbers', function () {
+    expect(Collection::times(3)->toArray())->toBe([1, 2, 3]);
+});
+
+it('times() maps each number through the callback', function () {
+    expect(Collection::times(3, fn ($n) => $n * 2)->toArray())->toBe([2, 4, 6]);
+});
+
+it('times() returns an empty collection for a non-positive count', function () {
+    expect(Collection::times(0)->toArray())->toBe([]);
+});
+
+it('range() builds a collection over a numeric range', function () {
+    expect(Collection::range(1, 5)->toArray())->toBe([1, 2, 3, 4, 5]);
+});
+
+it('range() honors the step', function () {
+    expect(Collection::range(0, 10, 5)->toArray())->toBe([0, 5, 10]);
+});
+
+it('wrap() wraps a scalar into a collection', function () {
+    expect(Collection::wrap('a')->toArray())->toBe(['a']);
+});
+
+it('wrap() leaves an array as-is', function () {
+    expect(Collection::wrap([1, 2])->toArray())->toBe([1, 2]);
+});
+
+it('wrap() rewraps an existing collection', function () {
+    expect(Collection::wrap(new Collection([1, 2]))->toArray())->toBe([1, 2]);
+});
+
+it('unwrap() extracts items from a collection', function () {
+    expect(Collection::unwrap(new Collection([1, 2])))->toBe([1, 2]);
+});
+
+it('unwrap() returns a non-collection value unchanged', function () {
+    expect(Collection::unwrap([1, 2]))->toBe([1, 2]);
+});
