@@ -162,6 +162,54 @@ class Collection extends \Phalcon\Support\Collection
         return new static(array_filter($this->data, $callback, ARRAY_FILTER_USE_BOTH));
     }
 
+    /**
+     * Inverse of {@see filter()} — keep only items the callback rejects.
+     */
+    public function reject(callable $callback): static
+    {
+        return new static(array_filter($this->data, static fn ($value) => !$callback($value)));
+    }
+
+    /**
+     * Reduce the collection to a single value (Laravel parity).
+     *
+     * @param mixed $initial
+     * @return mixed
+     */
+    public function reduce(callable $callback, $initial = null)
+    {
+        return array_reduce($this->data, $callback, $initial);
+    }
+
+    /**
+     * Run a callback over every item. Returning false from the callback
+     * stops iteration early (Laravel parity).
+     */
+    public function each(callable $callback): static
+    {
+        foreach ($this->data as $key => $value) {
+            if ($callback($value, $key) === false) {
+                break;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Determine whether every item satisfies the given predicate.
+     */
+    public function every(callable $callback): bool
+    {
+        foreach ($this->data as $key => $value) {
+            if (!$callback($value, $key)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function fill($val): static
     {
         return new static(array_fill_keys(array_keys($this->data), $val));
