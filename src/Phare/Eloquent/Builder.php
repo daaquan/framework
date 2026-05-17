@@ -655,7 +655,12 @@ class Builder extends Criteria implements BuilderInterface
      */
     public function orWhereRaw($conditions, array $bind = []): BuilderInterface
     {
-        $this->params['conditions'] = "({$this->params['conditions']}) OR ($conditions)";
+        if (empty($this->params['conditions'])) {
+            $this->params['conditions'] = $conditions;
+        } else {
+            $this->params['conditions'] = "({$this->params['conditions']}) OR ($conditions)";
+        }
+
         $this->params['bind'] = array_merge($this->params['bind'] ?? [], $bind);
 
         return $this;
@@ -808,6 +813,54 @@ class Builder extends Criteria implements BuilderInterface
     public function forPage(int $page, int $perPage = 15): BuilderInterface
     {
         return $this->limit($perPage, ($page - 1) * $perPage);
+    }
+
+    /**
+     * Add a condition comparing two columns (Laravel parity).
+     *
+     * Two-argument form defaults the operator to `=`. Column names are
+     * emitted verbatim — no bind parameter is registered.
+     */
+    public function whereColumn(string $first, ?string $operator = null, ?string $second = null): BuilderInterface
+    {
+        [$operator, $second] = $this->normalizeColumnComparison($operator, $second);
+
+        return $this->whereRaw("{$first} {$operator} {$second}");
+    }
+
+    /**
+     * OR variant of {@see whereColumn()}.
+     */
+    public function orWhereColumn(string $first, ?string $operator = null, ?string $second = null): BuilderInterface
+    {
+        [$operator, $second] = $this->normalizeColumnComparison($operator, $second);
+
+        return $this->orWhereRaw("{$first} {$operator} {$second}");
+    }
+
+    /**
+     * Resolve the (operator, second) pair for a column comparison, defaulting
+     * the operator to `=` when only a second column is supplied.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function normalizeColumnComparison(?string $operator, ?string $second): array
+    {
+        if ($second === null) {
+            return ['=', (string)$operator];
+        }
+
+        return [(string)$operator, $second];
+    }
+
+    /**
+     * Set a raw ordering expression (Laravel parity).
+     */
+    public function orderByRaw(string $sql): BuilderInterface
+    {
+        $this->params['order'] = $sql;
+
+        return $this;
     }
 
     /**
