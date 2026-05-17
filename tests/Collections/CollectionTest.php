@@ -65,3 +65,51 @@ it('every() returns false when any item fails the predicate', function () {
 
     expect($collection->every(fn ($value) => $value % 2 === 0))->toBeFalse();
 });
+
+it('reverse() reverses the items', function () {
+    $collection = new Collection([1, 2, 3]);
+    $result = $collection->reverse();
+
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and(array_values($result->toArray()))->toBe([3, 2, 1]);
+});
+
+it('reverse() does not mutate the original collection', function () {
+    $collection = new Collection([1, 2, 3]);
+    $collection->reverse();
+
+    expect($collection->toArray())->toBe([1, 2, 3]);
+});
+
+it('concat() appends items from an array', function () {
+    $collection = new Collection([1, 2]);
+    $result = $collection->concat([3, 4]);
+
+    expect(array_values($result->toArray()))->toBe([1, 2, 3, 4]);
+});
+
+it('concat() appends items from another collection', function () {
+    $collection = new Collection([1, 2]);
+    $result = $collection->concat(new Collection([3, 4]));
+
+    expect(array_values($result->toArray()))->toBe([1, 2, 3, 4]);
+});
+
+it('collapse() flattens a collection of arrays one level deep', function () {
+    $collection = new Collection([[1, 2], [3, 4], [5]]);
+    $result = $collection->collapse();
+
+    expect(array_values($result->toArray()))->toBe([1, 2, 3, 4, 5]);
+});
+
+it('nth() returns every nth element', function () {
+    $collection = new Collection(['a', 'b', 'c', 'd', 'e', 'f']);
+
+    expect(array_values($collection->nth(2)->toArray()))->toBe(['a', 'c', 'e']);
+});
+
+it('nth() honors the offset', function () {
+    $collection = new Collection(['a', 'b', 'c', 'd', 'e', 'f']);
+
+    expect(array_values($collection->nth(2, 1)->toArray()))->toBe(['b', 'd', 'f']);
+});

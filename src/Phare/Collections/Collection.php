@@ -210,6 +210,71 @@ class Collection extends \Phalcon\Support\Collection
         return true;
     }
 
+    /**
+     * Reverse the order of the items, preserving keys (Laravel parity).
+     */
+    public function reverse(): static
+    {
+        return new static(array_reverse($this->data, true));
+    }
+
+    /**
+     * Append the given items onto the end of the collection (Laravel parity).
+     *
+     * @param iterable<mixed>|self $source
+     */
+    public function concat($source): static
+    {
+        $items = $source instanceof self ? $source->toArray() : (array)$source;
+        $result = $this->data;
+
+        foreach ($items as $value) {
+            $result[] = $value;
+        }
+
+        return new static($result);
+    }
+
+    /**
+     * Collapse a collection of arrays into a single, flat collection
+     * (one level deep — Laravel parity).
+     */
+    public function collapse(): static
+    {
+        $results = [];
+
+        foreach ($this->data as $values) {
+            if ($values instanceof self) {
+                $values = $values->toArray();
+            }
+
+            if (is_array($values)) {
+                $results = array_merge($results, $values);
+            }
+        }
+
+        return new static($results);
+    }
+
+    /**
+     * Create a new collection of every nth element (Laravel parity).
+     */
+    public function nth(int $step, int $offset = 0): static
+    {
+        $result = [];
+        $position = 0;
+
+        foreach (array_slice(array_values($this->data), $offset) as $item) {
+            if ($position % $step === 0) {
+                $result[] = $item;
+            }
+
+            $position++;
+        }
+
+        return new static($result);
+    }
+
     public function fill($val): static
     {
         return new static(array_fill_keys(array_keys($this->data), $val));
