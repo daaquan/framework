@@ -61,6 +61,12 @@ interface BuilderInterface extends CriteriaInterface
 
     public function oldest(string $column = 'created_at'): BuilderInterface;
 
+    public function when($value, ?callable $callback = null, ?callable $default = null): BuilderInterface;
+
+    public function unless($value, ?callable $callback = null, ?callable $default = null): BuilderInterface;
+
+    public function tap(callable $callback): BuilderInterface;
+
     public function groupBy($field): BuilderInterface;
 
     public function paginate($page, $limit): BuilderInterface;
