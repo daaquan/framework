@@ -73,6 +73,12 @@ interface BuilderInterface extends CriteriaInterface
 
     public function forPage(int $page, int $perPage = 15): BuilderInterface;
 
+    public function whereColumn(string $first, ?string $operator = null, ?string $second = null): BuilderInterface;
+
+    public function orWhereColumn(string $first, ?string $operator = null, ?string $second = null): BuilderInterface;
+
+    public function orderByRaw(string $sql): BuilderInterface;
+
     public function groupBy($field): BuilderInterface;
 
     public function paginate($page, $limit): BuilderInterface;
