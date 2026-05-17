@@ -1,6 +1,8 @@
 <?php
 
 use Phare\Collections\Collection;
+use Phare\Collections\Exceptions\ItemNotFoundException;
+use Phare\Collections\Exceptions\MultipleItemsFoundException;
 
 it('reject() keeps only items the callback returns false for', function () {
     $collection = new Collection([1, 2, 3, 4]);
@@ -559,3 +561,33 @@ it('mode() can read an attribute from item arrays', function () {
 
     expect($collection->mode('v'))->toBe([5]);
 });
+
+it('sole() returns the only item in a single-item collection', function () {
+    $collection = new Collection([42]);
+
+    expect($collection->sole())->toBe(42);
+});
+
+it('sole() returns the only item matching a predicate', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->sole(fn ($value) => $value === 2))->toBe(2);
+});
+
+it('sole() returns the only item matching a key/value pair', function () {
+    $collection = new Collection([['id' => 1], ['id' => 2], ['id' => 3]]);
+
+    expect($collection->sole('id', 2))->toBe(['id' => 2]);
+});
+
+it('sole() throws ItemNotFoundException when nothing matches', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    $collection->sole(fn ($value) => $value === 99);
+})->throws(ItemNotFoundException::class);
+
+it('sole() throws MultipleItemsFoundException when several match', function () {
+    $collection = new Collection([1, 2, 2, 3]);
+
+    $collection->sole(fn ($value) => $value === 2);
+})->throws(MultipleItemsFoundException::class);
