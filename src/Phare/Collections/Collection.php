@@ -444,6 +444,82 @@ class Collection extends \Phalcon\Support\Collection
     }
 
     /**
+     * Keep items whose attribute (or the item itself when $key is null) is
+     * null (Laravel parity).
+     */
+    public function whereNull(?string $key = null): static
+    {
+        return $this->filter(
+            fn ($item) => ($key === null ? $item : $this->itemValue($item, $key)) === null
+        );
+    }
+
+    /**
+     * Keep items whose attribute (or the item itself when $key is null) is
+     * not null (Laravel parity).
+     */
+    public function whereNotNull(?string $key = null): static
+    {
+        return $this->filter(
+            fn ($item) => ($key === null ? $item : $this->itemValue($item, $key)) !== null
+        );
+    }
+
+    /**
+     * Return the item immediately before the given value (or the first item
+     * satisfying a predicate), or null (Laravel parity).
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function before($value, bool $strict = false)
+    {
+        return $this->adjacentItem($value, $strict, -1);
+    }
+
+    /**
+     * Return the item immediately after the given value (or the first item
+     * satisfying a predicate), or null (Laravel parity).
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function after($value, bool $strict = false)
+    {
+        return $this->adjacentItem($value, $strict, 1);
+    }
+
+    /**
+     * Resolve the item at a relative offset from the first match of $value.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private function adjacentItem($value, bool $strict, int $direction)
+    {
+        $key = $this->search($value, $strict);
+
+        if ($key === false) {
+            return;
+        }
+
+        $keys = array_keys($this->data);
+        $position = array_search($key, $keys, true);
+
+        if ($position === false) {
+            return;
+        }
+
+        $target = $position + $direction;
+
+        if ($target < 0 || $target > count($keys) - 1) {
+            return;
+        }
+
+        return $this->data[$keys[$target]];
+    }
+
+    /**
      * Build the predicate closure shared by where()/firstWhere().
      */
     private function wherePredicate(string $key, $operator, $value, int $argCount): callable

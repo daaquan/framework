@@ -378,3 +378,72 @@ it('unlessNotEmpty() runs the callback on an empty collection', function () {
 
     expect($ran)->toBeTrue();
 });
+
+it('whereNull() keeps items whose attribute is null', function () {
+    $users = new Collection([
+        ['name' => 'Alice', 'deleted_at' => null],
+        ['name' => 'Bob', 'deleted_at' => '2020'],
+        ['name' => 'Carol', 'deleted_at' => null],
+    ]);
+
+    $result = $users->whereNull('deleted_at');
+
+    expect(array_column($result->toArray(), 'name'))->toBe(['Alice', 'Carol']);
+});
+
+it('whereNotNull() keeps items whose attribute is not null', function () {
+    $users = new Collection([
+        ['name' => 'Alice', 'deleted_at' => null],
+        ['name' => 'Bob', 'deleted_at' => '2020'],
+    ]);
+
+    expect(array_column($users->whereNotNull('deleted_at')->toArray(), 'name'))->toBe(['Bob']);
+});
+
+it('whereNull() without a key tests the items themselves', function () {
+    $collection = new Collection([1, null, 2, null]);
+
+    expect($collection->whereNull()->count())->toBe(2);
+});
+
+it('whereNotNull() without a key tests the items themselves', function () {
+    $collection = new Collection([1, null, 2]);
+
+    expect(array_values($collection->whereNotNull()->toArray()))->toBe([1, 2]);
+});
+
+it('before() returns the item preceding the given value', function () {
+    $collection = new Collection(['a', 'b', 'c', 'd']);
+
+    expect($collection->before('c'))->toBe('b');
+});
+
+it('before() returns null for the first item', function () {
+    $collection = new Collection(['a', 'b', 'c']);
+
+    expect($collection->before('a'))->toBeNull();
+});
+
+it('before() returns null when the value is absent', function () {
+    $collection = new Collection(['a', 'b', 'c']);
+
+    expect($collection->before('z'))->toBeNull();
+});
+
+it('after() returns the item following the given value', function () {
+    $collection = new Collection(['a', 'b', 'c', 'd']);
+
+    expect($collection->after('c'))->toBe('d');
+});
+
+it('after() returns null for the last item', function () {
+    $collection = new Collection(['a', 'b', 'c']);
+
+    expect($collection->after('c'))->toBeNull();
+});
+
+it('after() accepts a predicate callback', function () {
+    $collection = new Collection(['a', 'b', 'c', 'd']);
+
+    expect($collection->after(fn ($value) => $value === 'b'))->toBe('c');
+});
