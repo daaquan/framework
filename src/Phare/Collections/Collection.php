@@ -806,6 +806,95 @@ class Collection extends \Phalcon\Support\Collection
         return new static(Arr::chunk($this->data, $size, $preserveKeys));
     }
 
+    /**
+     * Create a collection of sliding windows over consecutive items
+     * (Laravel parity).
+     */
+    public function sliding(int $size = 2, int $step = 1): static
+    {
+        $values = array_values($this->data);
+        $count = count($values);
+        $windows = [];
+
+        for ($i = 0; $i + $size <= $count; $i += $step) {
+            $windows[] = array_slice($values, $i, $size);
+        }
+
+        return new static($windows);
+    }
+
+    /**
+     * Cross-join the collection with the given iterables, producing the
+     * cartesian product of all combinations (Laravel parity).
+     *
+     * @param iterable<mixed>|self ...$arrays
+     */
+    public function crossJoin(...$arrays): static
+    {
+        $sources = [array_values($this->data)];
+
+        foreach ($arrays as $array) {
+            $sources[] = $array instanceof self
+                ? array_values($array->toArray())
+                : array_values((array)$array);
+        }
+
+        $results = [[]];
+
+        foreach ($sources as $source) {
+            $appended = [];
+
+            foreach ($results as $product) {
+                foreach ($source as $item) {
+                    $appended[] = [...$product, $item];
+                }
+            }
+
+            $results = $appended;
+        }
+
+        return new static($results);
+    }
+
+    /**
+     * Return the most frequently occurring value(s), sorted ascending, or
+     * null when the collection is empty (Laravel parity).
+     *
+     * @return array<int, mixed>|null
+     */
+    public function mode(?string $key = null): ?array
+    {
+        if ($this->isEmpty()) {
+            return null;
+        }
+
+        $values = $key === null
+            ? array_values($this->data)
+            : array_map(fn ($item) => $this->itemValue($item, $key), array_values($this->data));
+
+        $counts = [];
+        $representatives = [];
+
+        foreach ($values as $value) {
+            $hash = is_scalar($value) ? (string)$value : serialize($value);
+            $counts[$hash] = ($counts[$hash] ?? 0) + 1;
+            $representatives[$hash] = $value;
+        }
+
+        $highest = max($counts);
+        $modes = [];
+
+        foreach ($counts as $hash => $count) {
+            if ($count === $highest) {
+                $modes[] = $representatives[$hash];
+            }
+        }
+
+        sort($modes);
+
+        return $modes;
+    }
+
     public function contains($attribute)
     {
         return in_array($attribute, $this->data, true);

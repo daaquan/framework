@@ -499,3 +499,63 @@ it('unwrap() extracts items from a collection', function () {
 it('unwrap() returns a non-collection value unchanged', function () {
     expect(Collection::unwrap([1, 2]))->toBe([1, 2]);
 });
+
+it('sliding() yields a window over consecutive items', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+
+    expect($collection->sliding(2)->toArray())->toBe([[1, 2], [2, 3], [3, 4]]);
+});
+
+it('sliding() honors a custom window size', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+
+    expect($collection->sliding(3)->toArray())->toBe([[1, 2, 3], [2, 3, 4]]);
+});
+
+it('sliding() honors a custom step', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+
+    expect($collection->sliding(2, 2)->toArray())->toBe([[1, 2], [3, 4]]);
+});
+
+it('crossJoin() produces the cartesian product', function () {
+    $collection = new Collection([1, 2]);
+
+    expect($collection->crossJoin(['a', 'b'])->toArray())
+        ->toBe([[1, 'a'], [1, 'b'], [2, 'a'], [2, 'b']]);
+});
+
+it('crossJoin() accepts another collection', function () {
+    $collection = new Collection([1, 2]);
+
+    expect($collection->crossJoin(new Collection(['a']))->toArray())
+        ->toBe([[1, 'a'], [2, 'a']]);
+});
+
+it('mode() returns the most frequent value', function () {
+    $collection = new Collection([1, 1, 2, 3]);
+
+    expect($collection->mode())->toBe([1]);
+});
+
+it('mode() returns every value tied for most frequent', function () {
+    $collection = new Collection([1, 1, 2, 2, 3]);
+
+    expect($collection->mode())->toBe([1, 2]);
+});
+
+it('mode() returns null for an empty collection', function () {
+    $collection = new Collection([]);
+
+    expect($collection->mode())->toBeNull();
+});
+
+it('mode() can read an attribute from item arrays', function () {
+    $collection = new Collection([
+        ['v' => 5],
+        ['v' => 5],
+        ['v' => 9],
+    ]);
+
+    expect($collection->mode('v'))->toBe([5]);
+});
