@@ -475,7 +475,6 @@ class Collection extends \Phalcon\Support\Collection
         if (is_object($item)) {
             return $item->$key ?? null;
         }
-
     }
 
     /**
@@ -870,6 +869,52 @@ class Collection extends \Phalcon\Support\Collection
     public function unless($condition, callable $callable)
     {
         return $this->when(!$condition, $callable);
+    }
+
+    /**
+     * Run the callback when the collection is empty, otherwise run the
+     * optional default callback (Laravel parity).
+     */
+    public function whenEmpty(callable $callback, ?callable $default = null): static
+    {
+        if ($this->isEmpty()) {
+            $callback($this);
+        } elseif ($default !== null) {
+            $default($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Run the callback when the collection is not empty, otherwise run the
+     * optional default callback (Laravel parity).
+     */
+    public function whenNotEmpty(callable $callback, ?callable $default = null): static
+    {
+        if ($this->isNotEmpty()) {
+            $callback($this);
+        } elseif ($default !== null) {
+            $default($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Alias of {@see whenNotEmpty()} (Laravel parity).
+     */
+    public function unlessEmpty(callable $callback, ?callable $default = null): static
+    {
+        return $this->whenNotEmpty($callback, $default);
+    }
+
+    /**
+     * Alias of {@see whenEmpty()} (Laravel parity).
+     */
+    public function unlessNotEmpty(callable $callback, ?callable $default = null): static
+    {
+        return $this->whenEmpty($callback, $default);
     }
 
     public function diff(array $items): static

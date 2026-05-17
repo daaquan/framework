@@ -295,3 +295,86 @@ it('firstWhere() returns null when nothing matches', function () {
 
     expect($users->firstWhere('name', 'Zed'))->toBeNull();
 });
+
+it('whenEmpty() runs the callback on an empty collection', function () {
+    $collection = new Collection([]);
+    $passed = null;
+
+    $result = $collection->whenEmpty(function ($collection) use (&$passed) {
+        $passed = $collection;
+    });
+
+    expect($passed)->toBe($collection)
+        ->and($result)->toBe($collection);
+});
+
+it('whenEmpty() skips the callback on a non-empty collection', function () {
+    $collection = new Collection([1]);
+    $ran = false;
+
+    $collection->whenEmpty(function () use (&$ran) {
+        $ran = true;
+    });
+
+    expect($ran)->toBeFalse();
+});
+
+it('whenEmpty() runs the default callback on a non-empty collection', function () {
+    $collection = new Collection([1]);
+    $which = null;
+
+    $collection->whenEmpty(
+        function () use (&$which) {
+            $which = 'callback';
+        },
+        function () use (&$which) {
+            $which = 'default';
+        },
+    );
+
+    expect($which)->toBe('default');
+});
+
+it('whenNotEmpty() runs the callback on a non-empty collection', function () {
+    $collection = new Collection([1]);
+    $ran = false;
+
+    $collection->whenNotEmpty(function () use (&$ran) {
+        $ran = true;
+    });
+
+    expect($ran)->toBeTrue();
+});
+
+it('whenNotEmpty() skips the callback on an empty collection', function () {
+    $collection = new Collection([]);
+    $ran = false;
+
+    $collection->whenNotEmpty(function () use (&$ran) {
+        $ran = true;
+    });
+
+    expect($ran)->toBeFalse();
+});
+
+it('unlessEmpty() runs the callback on a non-empty collection', function () {
+    $collection = new Collection([1]);
+    $ran = false;
+
+    $collection->unlessEmpty(function () use (&$ran) {
+        $ran = true;
+    });
+
+    expect($ran)->toBeTrue();
+});
+
+it('unlessNotEmpty() runs the callback on an empty collection', function () {
+    $collection = new Collection([]);
+    $ran = false;
+
+    $collection->unlessNotEmpty(function () use (&$ran) {
+        $ran = true;
+    });
+
+    expect($ran)->toBeTrue();
+});
