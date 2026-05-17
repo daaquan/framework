@@ -218,3 +218,80 @@ it('pad() is a no-op when the size is within the current count', function () {
 
     expect($collection->pad(2, 0)->toArray())->toBe([1, 2, 3]);
 });
+
+it('where() filters array items by an attribute (equality)', function () {
+    $users = new Collection([
+        ['name' => 'Alice', 'age' => 30],
+        ['name' => 'Bob', 'age' => 25],
+        ['name' => 'Carol', 'age' => 30],
+    ]);
+
+    $result = $users->where('age', 30);
+
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and(array_column($result->toArray(), 'name'))->toBe(['Alice', 'Carol']);
+});
+
+it('where() supports an explicit comparison operator', function () {
+    $users = new Collection([
+        ['name' => 'Alice', 'age' => 30],
+        ['name' => 'Bob', 'age' => 25],
+        ['name' => 'Carol', 'age' => 40],
+    ]);
+
+    $result = $users->where('age', '>', 26);
+
+    expect(array_column($result->toArray(), 'name'))->toBe(['Alice', 'Carol']);
+});
+
+it('where() reads attributes from object items', function () {
+    $items = new Collection([(object)['x' => 1], (object)['x' => 2], (object)['x' => 2]]);
+
+    expect($items->where('x', 2)->count())->toBe(2);
+});
+
+it('where() does not mutate the original collection', function () {
+    $users = new Collection([['age' => 1], ['age' => 2]]);
+    $users->where('age', 1);
+
+    expect($users->count())->toBe(2);
+});
+
+it('whereIn() keeps items whose attribute is in the set', function () {
+    $users = new Collection([
+        ['name' => 'Alice'],
+        ['name' => 'Bob'],
+        ['name' => 'Carol'],
+    ]);
+
+    $result = $users->whereIn('name', ['Bob', 'Carol']);
+
+    expect(array_column($result->toArray(), 'name'))->toBe(['Bob', 'Carol']);
+});
+
+it('whereNotIn() removes items whose attribute is in the set', function () {
+    $users = new Collection([
+        ['name' => 'Alice'],
+        ['name' => 'Bob'],
+        ['name' => 'Carol'],
+    ]);
+
+    $result = $users->whereNotIn('name', ['Bob']);
+
+    expect(array_column($result->toArray(), 'name'))->toBe(['Alice', 'Carol']);
+});
+
+it('firstWhere() returns the first matching item', function () {
+    $users = new Collection([
+        ['name' => 'Alice', 'age' => 30],
+        ['name' => 'Bob', 'age' => 25],
+    ]);
+
+    expect($users->firstWhere('age', 25)['name'])->toBe('Bob');
+});
+
+it('firstWhere() returns null when nothing matches', function () {
+    $users = new Collection([['name' => 'Alice']]);
+
+    expect($users->firstWhere('name', 'Zed'))->toBeNull();
+});
