@@ -340,6 +340,59 @@ class Collection extends \Phalcon\Support\Collection
         return array_search($value, $this->data, $strict);
     }
 
+    /**
+     * Keep only the items whose keys are in the given set (Laravel parity).
+     * Inverse of {@see except()}.
+     *
+     * @param int|string|array<int, int|string> ...$keys
+     */
+    public function only(...$keys): static
+    {
+        if (count($keys) === 1 && is_array($keys[0])) {
+            $keys = $keys[0];
+        }
+
+        return new static(array_intersect_key($this->data, array_flip($keys)));
+    }
+
+    /**
+     * Join the items with a glue string, optionally using a distinct glue
+     * before the final item (Laravel parity).
+     */
+    public function join(string $glue, string $finalGlue = ''): string
+    {
+        $values = array_values($this->data);
+
+        if ($finalGlue === '') {
+            return implode($glue, $values);
+        }
+
+        $count = count($values);
+
+        if ($count === 0) {
+            return '';
+        }
+
+        if ($count === 1) {
+            return (string)$values[0];
+        }
+
+        $finalItem = array_pop($values);
+
+        return implode($glue, $values) . $finalGlue . $finalItem;
+    }
+
+    /**
+     * Pad the collection to the given size with a value (Laravel parity).
+     * A negative size pads to the left.
+     *
+     * @param mixed $value
+     */
+    public function pad(int $size, $value): static
+    {
+        return new static(array_pad($this->data, $size, $value));
+    }
+
     public function fill($val): static
     {
         return new static(array_fill_keys(array_keys($this->data), $val));
