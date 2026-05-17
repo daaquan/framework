@@ -79,6 +79,10 @@ interface BuilderInterface extends CriteriaInterface
 
     public function orderByRaw(string $sql): BuilderInterface;
 
+    public function select($columns = ['*']): BuilderInterface;
+
+    public function addSelect($column): BuilderInterface;
+
     public function groupBy($field): BuilderInterface;
 
     public function paginate($page, $limit): BuilderInterface;
