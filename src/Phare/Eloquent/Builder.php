@@ -697,6 +697,35 @@ class Builder extends Criteria implements BuilderInterface
     }
 
     /**
+     * Set the columns to retrieve (Laravel parity alias for columns()).
+     *
+     * Accepts an array or a variadic list of column names; defaults to `*`.
+     *
+     * @param array<int, string>|string $columns
+     */
+    public function select($columns = ['*']): BuilderInterface
+    {
+        $columns = is_array($columns) ? $columns : func_get_args();
+
+        return $this->columns($columns);
+    }
+
+    /**
+     * Append columns to an existing select (Laravel parity).
+     *
+     * @param array<int, string>|string $column
+     */
+    public function addSelect($column): BuilderInterface
+    {
+        $columns = is_array($column) ? $column : func_get_args();
+
+        $existing = $this->params['columns'] ?? '';
+        $existing = is_string($existing) && $existing !== '' ? explode(',', $existing) : [];
+
+        return $this->columns(array_merge($existing, $columns));
+    }
+
+    /**
      * Order results by a column.
      * Usage: $builder->orderBy('created_at', 'desc')
      *
