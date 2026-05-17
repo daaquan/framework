@@ -77,7 +77,7 @@ Tests:
   - does not regenerate when unchanged
   - regenerates when source config changes
 
-### Phase 3 (in progress): HTTP Kernel decomposition
+### Phase 3 (done): HTTP Kernel decomposition
 
 Implemented:
 - Extracted parameterized route pattern matching into dedicated component:
@@ -234,7 +234,7 @@ Tests:
 - `tests/Container/Attributes/{Give,RouteParameter,Auth,CurrentUser,Authenticated,Cache,Log,Storage,DB}Test.php`
 - `tests/Container/ContextualBindingEdgeTest.php`
 
-### Phase 5 (in progress): Multi-driver attribute selectors + manager bindings
+### Phase 5 (done): Multi-driver attribute selectors + manager bindings
 
 Each manager now exposes a Laravel-parity `driver/connection/store/disk/mailer/guard` selector, the corresponding container binding is registered (`<service>.manager`), and the contextual attribute accepts an optional name argument:
 
@@ -268,7 +268,7 @@ Remaining Phase 5 candidates:
 
 1. Manager bindings (`auth`, `log`, `db`, `cache`, `filesystem`, `queue`, `hash`, `broadcast`, `session`, `mail`) are looked up via container service keys — consumers without a registered binding receive whatever the test seam supplies.
 
-### Phase 6 (in progress): Container edge behaviors
+### Phase 6 (done): Container edge behaviors
 
 Spec: `docs/superpowers/specs/2026-05-11-phase6-container-edges-design.md`.
 Plan: `docs/superpowers/plans/2026-05-11-phase6-container-edges.md`.
@@ -281,6 +281,8 @@ Landed 2026-05-11:
 - Group E (PSR-11): `Container implements Psr\Container\ContainerInterface`. `get()`/`has()` are inherited from Phalcon\Di\Di (overriding them caused infinite recursion via Phalcon's internal `getShared() → get()` path). Added `psrGet()` opt-in helper that throws `Phare\Container\Exceptions\ServiceNotFoundException implements NotFoundExceptionInterface` for unknown ids. Tests at `tests/Container/PSR11AndArrayAccessTest.php`.
 
 Group F (environment helpers `resolveEnvironmentUsing`, `currentEnvironmentIs`) deferred — wire only when a concrete use case emerges.
+
+> **2026-05-18 finding:** Group F was attempted and reverted. Adding even a single bare instance property (`protected $environmentResolver = null;`) to `Phare\Container\Container` (which extends Phalcon's C-extension `Phalcon\Di\Di`) makes every `tests/Foundation/*` suite — anything that boots a full `Phare` Application — crash hard (exit 255, zero output, opaque to PHP-level debugging; subdir suites like `tests/Container` stay green). The original "defer" recommendation is therefore upheld with a concrete reason: extending the `Di` property table is a C-extension landmine. Revisit only if Phalcon internals are better understood or a real use case forces it.
 
 Suite: 998 tests passing after the 2026-05-12 AuthManager migration (baseline 946 before Phase 5).
 
