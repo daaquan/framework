@@ -2,17 +2,17 @@
 
 namespace Phare\Queue;
 
+use Phalcon\Config\Config;
+use Phare\Container\Container;
+use Phare\Contracts\Foundation\Container as ContainerContract;
 use Phare\Queue\Connectors\ConnectorInterface;
+use Phare\Support\Manager;
 
-class QueueManager
+class QueueManager extends Manager
 {
     protected array $connectors = [];
 
-    protected array $connections = [];
-
     protected string $defaultConnection = 'sync';
-
-    protected array $config;
 
     protected array $beforeCallbacks = [];
 
@@ -22,11 +22,30 @@ class QueueManager
 
     protected array $failingCallbacks = [];
 
-    public function __construct(array $config = [])
+    /**
+     * @param array<string, mixed>|ContainerContract $config Queue config block,
+     *                                                       or the application container.
+     */
+    public function __construct(array|ContainerContract $config = [])
     {
-        $this->config = $config;
-        $this->defaultConnection = $config['default'] ?? 'sync';
+        if ($config instanceof ContainerContract) {
+            parent::__construct($config);
+            $this->config = $config->bound('config') ? $this->normalizeConfig(config('queue')) : [];
+        } else {
+            parent::__construct($this->resolveContainer());
+            $this->config = $config;
+        }
+
+        $this->defaultConnection = $this->config['default'] ?? 'sync';
         $this->registerDefaultConnectors();
+    }
+
+    /**
+     * Get the default driver name (Laravel parity — the default connection).
+     */
+    public function getDefaultDriver(): ?string
+    {
+        return $this->defaultConnection;
     }
 
     /**
@@ -48,23 +67,18 @@ class QueueManager
     }
 
     /**
-     * Get a queue connection instance.
+     * Get a queue connection instance (Laravel-parity alias for driver()).
      */
     public function connection(?string $name = null): QueueInterface
     {
-        $name = $name ?: $this->getDefaultConnection();
-
-        if (!isset($this->connections[$name])) {
-            $this->connections[$name] = $this->makeConnection($name);
-        }
-
-        return $this->connections[$name];
+        return $this->driver($name);
     }
 
     /**
-     * Make a new queue connection.
+     * Build a queue connection. Connection instances are cached by the
+     * Manager base keyed on connection name.
      */
-    protected function makeConnection(string $name): QueueInterface
+    protected function createDriver(string $name): QueueInterface
     {
         $config = $this->getConnectionConfig($name);
         $driver = $config['driver'] ?? null;
@@ -103,11 +117,13 @@ class QueueManager
     }
 
     /**
-     * Add a new queue connector.
+     * Add a new queue connector keyed by driver name.
      */
-    public function extend(string $driver, \Closure $resolver): void
+    public function extend(string $driver, \Closure $resolver): static
     {
         $this->connectors[$driver] = $resolver;
+
+        return $this;
     }
 
     /**
@@ -236,11 +252,11 @@ class QueueManager
     }
 
     /**
-     * Get all connections.
+     * Get all resolved connections.
      */
     public function getConnections(): array
     {
-        return $this->connections;
+        return $this->getDrivers();
     }
 
     /**
@@ -258,7 +274,7 @@ class QueueManager
     {
         $name = $name ?: $this->getDefaultConnection();
 
-        return isset($this->connections[$name]);
+        return array_key_exists($name, $this->getDrivers());
     }
 
     /**
@@ -319,5 +335,28 @@ class QueueManager
         foreach ($this->failingCallbacks as $callback) {
             $callback($job, $exception);
         }
+    }
+
+    protected function resolveContainer(): ContainerContract
+    {
+        $app = app();
+
+        if ($app instanceof ContainerContract) {
+            return $app;
+        }
+
+        return new Container();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function normalizeConfig(mixed $value): array
+    {
+        if ($value instanceof Config) {
+            return $value->toArray();
+        }
+
+        return is_array($value) ? $value : [];
     }
 }
