@@ -57,6 +57,10 @@ interface BuilderInterface extends CriteriaInterface
 
     public function orderBy($field, ?string $direction = null): BuilderInterface;
 
+    public function latest(string $column = 'created_at'): BuilderInterface;
+
+    public function oldest(string $column = 'created_at'): BuilderInterface;
+
     public function groupBy($field): BuilderInterface;
 
     public function paginate($page, $limit): BuilderInterface;
