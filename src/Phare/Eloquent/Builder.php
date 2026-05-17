@@ -7,6 +7,7 @@ use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
 use Phare\Collections\Collection;
+use Phare\Eloquent\Relations\Relation;
 
 /**
  * Eloquent Builder for Phalcon
@@ -19,7 +20,7 @@ class Builder extends Criteria implements BuilderInterface
     private int $bindIndex = 0;
 
     /**
-     * @var array<string, \Closure|null>
+     * @var array<string, Closure|null>
      */
     private array $eagerLoad = [];
 
@@ -138,6 +139,7 @@ class Builder extends Criteria implements BuilderInterface
 
             if ($scope instanceof Closure) {
                 $scope($this);
+
                 continue;
             }
 
@@ -197,7 +199,7 @@ class Builder extends Criteria implements BuilderInterface
      */
     private function phalconCondition($field, $operator = null, $value = null)
     {
-        if ($field instanceof \Closure) {
+        if ($field instanceof Closure) {
             $builder = new self();
             $field($builder);
 
@@ -306,13 +308,13 @@ class Builder extends Criteria implements BuilderInterface
         return new Collection($models);
     }
 
-    private function eagerLoadRelation(array $models, string $name, ?\Closure $constraints): void
+    private function eagerLoadRelation(array $models, string $name, ?Closure $constraints): void
     {
-        $relation = \Phare\Eloquent\Relations\Relation::noConstraints(
+        $relation = Relation::noConstraints(
             fn () => $models[0]->$name()
         );
 
-        if (!$relation instanceof \Phare\Eloquent\Relations\Relation) {
+        if (!$relation instanceof Relation) {
             throw new \RuntimeException(sprintf(
                 'Relationship [%s] on model [%s] must return a relation instance.',
                 $name,
@@ -706,6 +708,22 @@ class Builder extends Criteria implements BuilderInterface
         $this->params['order'] = implode(',', $column);
 
         return $this;
+    }
+
+    /**
+     * Order results by the given column, newest first (Laravel parity).
+     */
+    public function latest(string $column = 'created_at'): BuilderInterface
+    {
+        return $this->orderBy($column, 'desc');
+    }
+
+    /**
+     * Order results by the given column, oldest first (Laravel parity).
+     */
+    public function oldest(string $column = 'created_at'): BuilderInterface
+    {
+        return $this->orderBy($column, 'asc');
     }
 
     /**
