@@ -727,6 +727,60 @@ class Builder extends Criteria implements BuilderInterface
     }
 
     /**
+     * Conditionally apply query modifications (Laravel parity).
+     *
+     * When $value is truthy, $callback receives the builder and the resolved
+     * value. Otherwise $default (if given) is applied. A Closure $value is
+     * resolved against the builder first.
+     *
+     * @param mixed $value
+     */
+    public function when($value, ?callable $callback = null, ?callable $default = null): BuilderInterface
+    {
+        $value = $value instanceof Closure ? $value($this) : $value;
+
+        if ($value) {
+            if ($callback !== null) {
+                $callback($this, $value);
+            }
+        } elseif ($default !== null) {
+            $default($this, $value);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Inverse of {@see when()} — apply $callback when $value is falsy.
+     *
+     * @param mixed $value
+     */
+    public function unless($value, ?callable $callback = null, ?callable $default = null): BuilderInterface
+    {
+        $value = $value instanceof Closure ? $value($this) : $value;
+
+        if (!$value) {
+            if ($callback !== null) {
+                $callback($this, $value);
+            }
+        } elseif ($default !== null) {
+            $default($this, $value);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Pass the builder to the given callback and return it (Laravel parity).
+     */
+    public function tap(callable $callback): BuilderInterface
+    {
+        $callback($this);
+
+        return $this;
+    }
+
+    /**
      * Specify the maximum number of results and offset.
      * Usage: $builder->limit(10, 30) // fetch 10 items starting at offset 30
      *
