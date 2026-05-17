@@ -156,3 +156,22 @@ test('broadcast manager delegates calls to driver', function () {
 
     expect($result)->toBeNull();
 });
+
+test('broadcast manager forgetDrivers() clears resolved broadcasters', function () {
+    $container = new Container();
+    $config = new Config([
+        'broadcasting' => [
+            'default' => 'null',
+            'connections' => [
+                'null' => ['driver' => 'null'],
+            ],
+        ],
+    ]);
+    $container['config'] = $config;
+
+    $manager = new BroadcastManager($container);
+    $first = $manager->driver('null');
+    $manager->forgetDrivers();
+
+    expect($manager->driver('null'))->not->toBe($first);
+});

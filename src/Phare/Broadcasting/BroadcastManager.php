@@ -2,6 +2,7 @@
 
 namespace Phare\Broadcasting;
 
+use Closure;
 use InvalidArgumentException;
 use Phare\Broadcasting\Broadcasters\Broadcaster;
 use Phare\Broadcasting\Broadcasters\LogBroadcaster;
@@ -9,31 +10,15 @@ use Phare\Broadcasting\Broadcasters\NullBroadcaster;
 use Phare\Broadcasting\Broadcasters\PusherBroadcaster;
 use Phare\Broadcasting\Broadcasters\RedisBroadcaster;
 use Phare\Container\Container;
+use Phare\Support\Manager;
 
-class BroadcastManager
+class BroadcastManager extends Manager
 {
-    protected Container $container;
-
-    protected array $broadcasters = [];
-
-    protected array $customCreators = [];
-
     protected ?string $defaultDriver = null;
 
     public function __construct(Container $container)
     {
-        $this->container = $container;
-    }
-
-    public function driver(?string $name = null): Broadcaster
-    {
-        $name = $name ?: $this->getDefaultDriver();
-
-        if (isset($this->broadcasters[$name])) {
-            return $this->broadcasters[$name];
-        }
-
-        return $this->broadcasters[$name] = $this->resolve($name);
+        parent::__construct($container);
     }
 
     public function connection(?string $name = null): Broadcaster
@@ -41,12 +26,16 @@ class BroadcastManager
         return $this->driver($name);
     }
 
-    protected function resolve(string $name): Broadcaster
+    /**
+     * Build a broadcaster for the given connection name. Instances are
+     * cached by the Manager base keyed on connection name.
+     */
+    protected function createDriver(string $name): Broadcaster
     {
         $config = $this->getConfig($name);
 
         if (isset($this->customCreators[$config['driver']])) {
-            return $this->callCustomCreator($config);
+            return $this->invokeCustomCreator($config);
         }
 
         $driverMethod = 'create' . ucfirst($config['driver']) . 'Driver';
@@ -58,7 +47,10 @@ class BroadcastManager
         throw new InvalidArgumentException("Driver [{$config['driver']}] is not supported.");
     }
 
-    protected function callCustomCreator(array $config): Broadcaster
+    /**
+     * @param array<string, mixed> $config
+     */
+    protected function invokeCustomCreator(array $config): Broadcaster
     {
         return $this->customCreators[$config['driver']]($this->container, $config);
     }
@@ -104,7 +96,7 @@ class BroadcastManager
         return new NullBroadcaster();
     }
 
-    public function extend(string $driver, callable $callback): self
+    public function extend(string $driver, Closure $callback): static
     {
         $this->customCreators[$driver] = $callback;
 
@@ -146,7 +138,7 @@ class BroadcastManager
     public function purge(?string $name = null): void
     {
         $name = $name ?: $this->getDefaultDriver();
-        unset($this->broadcasters[$name]);
+        unset($this->drivers[$name]);
     }
 
     public function queue(mixed $event): void
@@ -164,10 +156,5 @@ class BroadcastManager
                 method_exists($event, 'broadcastWith') ? $event->broadcastWith() : []
             );
         }
-    }
-
-    public function __call(string $method, array $parameters)
-    {
-        return $this->driver()->$method(...$parameters);
     }
 }
