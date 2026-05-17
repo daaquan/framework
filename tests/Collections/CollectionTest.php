@@ -113,3 +113,54 @@ it('nth() honors the offset', function () {
 
     expect(array_values($collection->nth(2, 1)->toArray()))->toBe(['b', 'd', 'f']);
 });
+
+it('tap() passes the collection to the callback and returns it', function () {
+    $collection = new Collection([1, 2, 3]);
+    $tapped = null;
+
+    $result = $collection->tap(function ($collection) use (&$tapped) {
+        $tapped = $collection;
+    });
+
+    expect($result)->toBe($collection)
+        ->and($tapped)->toBe($collection);
+});
+
+it('pipe() returns the result of the callback', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->pipe(fn ($collection) => $collection->sum()))->toBe(6);
+});
+
+it('partition() splits the collection by a predicate', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+    [$even, $odd] = $collection->partition(fn ($value) => $value % 2 === 0);
+
+    expect(array_values($even->toArray()))->toBe([2, 4])
+        ->and(array_values($odd->toArray()))->toBe([1, 3]);
+});
+
+it('partition() does not mutate the original collection', function () {
+    $collection = new Collection([1, 2, 3]);
+    $collection->partition(fn ($value) => $value > 1);
+
+    expect($collection->toArray())->toBe([1, 2, 3]);
+});
+
+it('search() returns the key of a matching value', function () {
+    $collection = new Collection(['a', 'b', 'c']);
+
+    expect($collection->search('b'))->toBe(1);
+});
+
+it('search() returns false when the value is absent', function () {
+    $collection = new Collection(['a', 'b', 'c']);
+
+    expect($collection->search('z'))->toBeFalse();
+});
+
+it('search() accepts a predicate callback', function () {
+    $collection = new Collection(['a', 'b', 'c']);
+
+    expect($collection->search(fn ($value) => $value === 'c'))->toBe(2);
+});

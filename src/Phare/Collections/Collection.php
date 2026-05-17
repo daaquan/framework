@@ -275,6 +275,71 @@ class Collection extends \Phalcon\Support\Collection
         return new static($result);
     }
 
+    /**
+     * Pass the collection to the callback and return the collection
+     * (Laravel parity — useful for side effects mid-chain).
+     */
+    public function tap(callable $callback): static
+    {
+        $callback($this);
+
+        return $this;
+    }
+
+    /**
+     * Pass the collection to the callback and return the callback's result.
+     *
+     * @return mixed
+     */
+    public function pipe(callable $callback)
+    {
+        return $callback($this);
+    }
+
+    /**
+     * Split the collection into two — items that pass the predicate and
+     * items that fail it (Laravel parity).
+     *
+     * @return array{0: static, 1: static}
+     */
+    public function partition(callable $callback): array
+    {
+        $passed = [];
+        $failed = [];
+
+        foreach ($this->data as $key => $value) {
+            if ($callback($value, $key)) {
+                $passed[$key] = $value;
+            } else {
+                $failed[$key] = $value;
+            }
+        }
+
+        return [new static($passed), new static($failed)];
+    }
+
+    /**
+     * Search the collection for a value (or the first item satisfying a
+     * predicate) and return its key, or false when absent (Laravel parity).
+     *
+     * @param mixed $value
+     * @return int|string|false
+     */
+    public function search($value, bool $strict = false)
+    {
+        if (!is_string($value) && is_callable($value)) {
+            foreach ($this->data as $key => $item) {
+                if ($value($item, $key)) {
+                    return $key;
+                }
+            }
+
+            return false;
+        }
+
+        return array_search($value, $this->data, $strict);
+    }
+
     public function fill($val): static
     {
         return new static(array_fill_keys(array_keys($this->data), $val));
