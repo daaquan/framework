@@ -164,3 +164,57 @@ it('search() accepts a predicate callback', function () {
 
     expect($collection->search(fn ($value) => $value === 'c'))->toBe(2);
 });
+
+it('only() keeps just the given keys', function () {
+    $collection = new Collection(['a' => 1, 'b' => 2, 'c' => 3]);
+
+    expect($collection->only('a', 'c')->toArray())->toBe(['a' => 1, 'c' => 3]);
+});
+
+it('only() accepts an array of keys', function () {
+    $collection = new Collection(['a' => 1, 'b' => 2, 'c' => 3]);
+
+    expect($collection->only(['b'])->toArray())->toBe(['b' => 2]);
+});
+
+it('join() concatenates the items with a glue string', function () {
+    $collection = new Collection(['a', 'b', 'c']);
+
+    expect($collection->join(', '))->toBe('a, b, c');
+});
+
+it('join() uses a distinct final glue when given', function () {
+    $collection = new Collection(['a', 'b', 'c']);
+
+    expect($collection->join(', ', ' and '))->toBe('a, b and c');
+});
+
+it('join() returns a single item without any glue', function () {
+    $collection = new Collection(['a']);
+
+    expect($collection->join(', ', ' and '))->toBe('a');
+});
+
+it('join() returns an empty string for an empty collection', function () {
+    $collection = new Collection([]);
+
+    expect($collection->join(', '))->toBe('');
+});
+
+it('pad() pads the collection up to the given size', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->pad(5, 0)->toArray())->toBe([1, 2, 3, 0, 0]);
+});
+
+it('pad() pads to the left when the size is negative', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->pad(-5, 0)->toArray())->toBe([0, 0, 1, 2, 3]);
+});
+
+it('pad() is a no-op when the size is within the current count', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->pad(2, 0)->toArray())->toBe([1, 2, 3]);
+});
