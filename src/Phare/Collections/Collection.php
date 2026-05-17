@@ -393,6 +393,126 @@ class Collection extends \Phalcon\Support\Collection
         return new static(array_pad($this->data, $size, $value));
     }
 
+    /**
+     * Filter items by an attribute comparison (Laravel parity).
+     *
+     * Two-argument form (`where('age', 30)`) tests equality; the
+     * three-argument form takes an explicit operator.
+     *
+     * @param mixed $operator
+     * @param mixed $value
+     */
+    public function where(string $key, $operator = null, $value = null): static
+    {
+        return $this->filter($this->wherePredicate($key, $operator, $value, func_num_args()));
+    }
+
+    /**
+     * Keep items whose attribute value is in the given set (Laravel parity).
+     *
+     * @param iterable<mixed>|self $values
+     */
+    public function whereIn(string $key, $values): static
+    {
+        $values = $this->extractItems($values);
+
+        return $this->filter(fn ($item) => in_array($this->itemValue($item, $key), $values, false));
+    }
+
+    /**
+     * Remove items whose attribute value is in the given set (Laravel parity).
+     *
+     * @param iterable<mixed>|self $values
+     */
+    public function whereNotIn(string $key, $values): static
+    {
+        $values = $this->extractItems($values);
+
+        return $this->filter(fn ($item) => !in_array($this->itemValue($item, $key), $values, false));
+    }
+
+    /**
+     * Return the first item matching an attribute comparison (Laravel parity).
+     *
+     * @param mixed $operator
+     * @param mixed $value
+     * @return mixed
+     */
+    public function firstWhere(string $key, $operator = null, $value = null)
+    {
+        return $this->first($this->wherePredicate($key, $operator, $value, func_num_args()));
+    }
+
+    /**
+     * Build the predicate closure shared by where()/firstWhere().
+     */
+    private function wherePredicate(string $key, $operator, $value, int $argCount): callable
+    {
+        if ($argCount === 1) {
+            return fn ($item) => (bool)$this->itemValue($item, $key);
+        }
+
+        if ($argCount === 2) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        return fn ($item) => $this->compareValues($this->itemValue($item, $key), (string)$operator, $value);
+    }
+
+    /**
+     * Read an attribute from an array or object item.
+     *
+     * @param mixed $item
+     * @return mixed
+     */
+    private function itemValue($item, string $key)
+    {
+        if (is_array($item) || $item instanceof \ArrayAccess) {
+            return $item[$key] ?? null;
+        }
+
+        if (is_object($item)) {
+            return $item->$key ?? null;
+        }
+
+    }
+
+    /**
+     * Compare a retrieved value against an expected value with an operator.
+     *
+     * @param mixed $retrieved
+     * @param mixed $value
+     */
+    private function compareValues($retrieved, string $operator, $value): bool
+    {
+        return match ($operator) {
+            '!=', '<>' => $retrieved != $value,
+            '===' => $retrieved === $value,
+            '!==' => $retrieved !== $value,
+            '<' => $retrieved < $value,
+            '>' => $retrieved > $value,
+            '<=' => $retrieved <= $value,
+            '>=' => $retrieved >= $value,
+            default => $retrieved == $value,
+        };
+    }
+
+    /**
+     * Normalize an array/Collection argument into a plain array of values.
+     *
+     * @param iterable<mixed>|self $values
+     * @return array<int, mixed>
+     */
+    private function extractItems($values): array
+    {
+        if ($values instanceof self) {
+            return array_values($values->toArray());
+        }
+
+        return array_values((array)$values);
+    }
+
     public function fill($val): static
     {
         return new static(array_fill_keys(array_keys($this->data), $val));
