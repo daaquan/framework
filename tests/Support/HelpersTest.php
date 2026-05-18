@@ -1,0 +1,59 @@
+<?php
+
+test('data_get reads a nested value via dot notation', function () {
+    $data = ['user' => ['profile' => ['name' => 'Ann']]];
+
+    expect(data_get($data, 'user.profile.name'))->toBe('Ann');
+});
+
+test('data_get returns the default when the path is missing', function () {
+    expect(data_get(['a' => 1], 'a.b.c', 'fallback'))->toBe('fallback');
+});
+
+test('data_get reads from object properties', function () {
+    $obj = (object)['meta' => (object)['id' => 7]];
+
+    expect(data_get($obj, 'meta.id'))->toBe(7);
+});
+
+test('data_get supports the wildcard segment', function () {
+    $data = ['rows' => [['v' => 1], ['v' => 2], ['v' => 3]]];
+
+    expect(data_get($data, 'rows.*.v'))->toBe([1, 2, 3]);
+});
+
+test('data_set writes a nested value, creating intermediate arrays', function () {
+    $data = [];
+    data_set($data, 'a.b.c', 42);
+
+    expect($data)->toBe(['a' => ['b' => ['c' => 42]]]);
+});
+
+test('data_set does not overwrite when overwrite is false', function () {
+    $data = ['a' => ['b' => 1]];
+    data_set($data, 'a.b', 99, false);
+
+    expect($data['a']['b'])->toBe(1);
+});
+
+test('data_set with a wildcard writes to every member', function () {
+    $data = ['rows' => [['v' => 0], ['v' => 0]]];
+    data_set($data, 'rows.*.v', 5);
+
+    expect($data['rows'])->toBe([['v' => 5], ['v' => 5]]);
+});
+
+test('data_fill only fills missing keys', function () {
+    $data = ['a' => 1];
+    data_fill($data, 'a', 99);
+    data_fill($data, 'b', 2);
+
+    expect($data)->toBe(['a' => 1, 'b' => 2]);
+});
+
+test('data_forget removes a nested value via dot notation', function () {
+    $data = ['a' => ['b' => 1, 'c' => 2]];
+    data_forget($data, 'a.b');
+
+    expect($data)->toBe(['a' => ['c' => 2]]);
+});

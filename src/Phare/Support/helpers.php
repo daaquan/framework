@@ -9,8 +9,10 @@ use Phalcon\Support\Debug\Dump;
 use Phalcon\Support\Helper\Str\Random;
 use Phare\Broadcasting\BroadcastManager;
 use Phare\Broadcasting\PendingBroadcast;
+use Phare\Collections\Arr;
 use Phare\Collections\Collection;
 use Phare\Collections\Str;
+use Phare\Contracts\Debug\ExceptionHandler;
 use Phare\Contracts\Foundation\Application;
 use Phare\Events\Contracts\ShouldBroadcast;
 use Phare\Foundation\Http\ResponseStatusCode;
@@ -58,7 +60,7 @@ if (!function_exists('config')) {
 }
 
 if (!function_exists('config_set_path')) {
-    function config_set_path(\Phalcon\Config\Config $config, string $path, mixed $value): void
+    function config_set_path(Config $config, string $path, mixed $value): void
     {
         $segments = explode('.', $path);
         $current = $config;
@@ -67,16 +69,16 @@ if (!function_exists('config_set_path')) {
             $segment = array_shift($segments);
             $next = $current->path($segment);
 
-            if ($next instanceof \Phalcon\Config\Config) {
+            if ($next instanceof Config) {
                 $current = $next;
 
                 continue;
             }
 
             if (is_array($next)) {
-                $next = new \Phalcon\Config\Config($next);
+                $next = new Config($next);
             } else {
-                $next = new \Phalcon\Config\Config([]);
+                $next = new Config([]);
             }
 
             $current->set($segment, $next);
@@ -119,7 +121,7 @@ if (!function_exists('app')) {
         }
 
         if ($app->bound($abstract)) {
-            if ($app instanceof \ArrayAccess && isset($app[$abstract])) {
+            if ($app instanceof ArrayAccess && isset($app[$abstract])) {
                 return $app[$abstract];
             }
 
@@ -250,13 +252,13 @@ if (!function_exists('event')) {
 
 // report()
 if (!function_exists('report')) {
-    function report(\Throwable|string $exception): void
+    function report(Throwable|string $exception): void
     {
-        if (!$exception instanceof \Throwable) {
-            $exception = new \RuntimeException((string)$exception);
+        if (!$exception instanceof Throwable) {
+            $exception = new RuntimeException((string)$exception);
         }
 
-        $handler = app(\Phare\Contracts\Debug\ExceptionHandler::class);
+        $handler = app(ExceptionHandler::class);
 
         if ($handler) {
             $handler->report($exception);
@@ -469,11 +471,11 @@ if (!function_exists('blank')) {
             return false;
         }
 
-        if ($value instanceof \Countable) {
+        if ($value instanceof Countable) {
             return count($value) === 0;
         }
 
-        if ($value instanceof \Stringable) {
+        if ($value instanceof Stringable) {
             return trim((string)$value) === '';
         }
 
@@ -609,7 +611,7 @@ if (!function_exists('rescue')) {
     {
         try {
             return $callback();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (value($report, $e)) {
                 report($e);
             }
@@ -643,5 +645,172 @@ if (!function_exists('normalize_uri')) {
         $normalized = preg_replace('#/+#', '/', '/' . implode('/', $uri));
 
         return rtrim($normalized, '/') ?: '/';
+    }
+}
+
+// data_get()
+if (!function_exists('data_get')) {
+    /**
+     * Get an item from an array or object using "dot" notation, with optional
+     * "*" wildcard support (Laravel parity).
+     *
+     * @param mixed $target
+     * @param string|array<string>|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    function data_get($target, $key, $default = null)
+    {
+        if ($key === null) {
+            return $target;
+        }
+
+        $key = is_array($key) ? $key : explode('.', $key);
+
+        foreach ($key as $i => $segment) {
+            unset($key[$i]);
+
+            if ($segment === null) {
+                return $target;
+            }
+
+            if ($segment === '*') {
+                if (!is_iterable($target)) {
+                    return value($default);
+                }
+
+                $result = [];
+                foreach ($target as $item) {
+                    $result[] = data_get($item, $key);
+                }
+
+                return in_array('*', $key, true) ? Arr::collapse($result) : $result;
+            }
+
+            if (Arr::accessible($target) && Arr::exists($target, $segment)) {
+                $target = $target[$segment];
+            } elseif (is_object($target) && isset($target->{$segment})) {
+                $target = $target->{$segment};
+            } else {
+                return value($default);
+            }
+        }
+
+        return $target;
+    }
+}
+
+// data_set()
+if (!function_exists('data_set')) {
+    /**
+     * Set an item on an array or object using "dot" notation, with optional
+     * "*" wildcard support (Laravel parity).
+     *
+     * @param mixed $target
+     * @param string|array<string> $key
+     * @param mixed $value
+     * @return mixed
+     */
+    function data_set(&$target, $key, $value, bool $overwrite = true)
+    {
+        $segments = is_array($key) ? $key : explode('.', $key);
+
+        if (($segment = array_shift($segments)) === '*') {
+            if (!Arr::accessible($target)) {
+                $target = [];
+            }
+
+            if ($segments) {
+                foreach ($target as &$inner) {
+                    data_set($inner, $segments, $value, $overwrite);
+                }
+            } elseif ($overwrite) {
+                foreach ($target as &$inner) {
+                    $inner = $value;
+                }
+            }
+        } elseif (Arr::accessible($target)) {
+            if ($segments) {
+                if (!Arr::exists($target, $segment)) {
+                    $target[$segment] = [];
+                }
+                data_set($target[$segment], $segments, $value, $overwrite);
+            } elseif ($overwrite || !Arr::exists($target, $segment)) {
+                $target[$segment] = $value;
+            }
+        } elseif (is_object($target)) {
+            if ($segments) {
+                if (!isset($target->{$segment})) {
+                    $target->{$segment} = [];
+                }
+                data_set($target->{$segment}, $segments, $value, $overwrite);
+            } elseif ($overwrite || !isset($target->{$segment})) {
+                $target->{$segment} = $value;
+            }
+        } else {
+            $target = [];
+            if ($segments) {
+                data_set($target[$segment], $segments, $value, $overwrite);
+            } elseif ($overwrite) {
+                $target[$segment] = $value;
+            }
+        }
+
+        return $target;
+    }
+}
+
+// data_fill()
+if (!function_exists('data_fill')) {
+    /**
+     * Fill in a value on an array or object using "dot" notation only when it
+     * is missing (Laravel parity).
+     *
+     * @param mixed $target
+     * @param string|array<string> $key
+     * @param mixed $value
+     * @return mixed
+     */
+    function data_fill(&$target, $key, $value)
+    {
+        return data_set($target, $key, $value, false);
+    }
+}
+
+// data_forget()
+if (!function_exists('data_forget')) {
+    /**
+     * Remove an item from an array or object using "dot" notation, with
+     * optional "*" wildcard support (Laravel parity).
+     *
+     * @param mixed $target
+     * @param string|array<string> $key
+     * @return mixed
+     */
+    function data_forget(&$target, $key)
+    {
+        $segments = is_array($key) ? $key : explode('.', $key);
+
+        if (($segment = array_shift($segments)) === '*' && Arr::accessible($target)) {
+            if ($segments) {
+                foreach ($target as &$inner) {
+                    data_forget($inner, $segments);
+                }
+            }
+        } elseif (Arr::accessible($target)) {
+            if ($segments && Arr::exists($target, $segment)) {
+                data_forget($target[$segment], $segments);
+            } else {
+                Arr::forget($target, $segment);
+            }
+        } elseif (is_object($target) && isset($target->{$segment})) {
+            if ($segments) {
+                data_forget($target->{$segment}, $segments);
+            } else {
+                unset($target->{$segment});
+            }
+        }
+
+        return $target;
     }
 }
