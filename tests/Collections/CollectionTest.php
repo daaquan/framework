@@ -908,3 +908,61 @@ it('percentage() returns null for an empty collection', function () {
 
     expect($collection->percentage(fn () => true))->toBeNull();
 });
+
+class PipeIntoFixture
+{
+    public function __construct(public Collection $collection) {}
+}
+
+it('pipeThrough() threads the collection through each pipe', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    $result = $collection->pipeThrough([
+        fn ($c) => $c->map(fn ($v) => $v * 2),
+        fn ($c) => $c->sum(),
+    ]);
+
+    expect($result)->toBe(12);
+});
+
+it('pipeInto() instantiates the given class with the collection', function () {
+    $collection = new Collection([1, 2]);
+    $result = $collection->pipeInto(PipeIntoFixture::class);
+
+    expect($result)->toBeInstanceOf(PipeIntoFixture::class);
+    expect($result->collection)->toBe($collection);
+});
+
+it('reduceSpread() reduces into multiple accumulators', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+
+    [$min, $max] = $collection->reduceSpread(function ($min, $max, $value) {
+        return [min($min, $value), max($max, $value)];
+    }, PHP_INT_MAX, PHP_INT_MIN);
+
+    expect([$min, $max])->toBe([1, 4]);
+});
+
+it('reduceSpread() throws when the callback does not return an array', function () {
+    $collection = new Collection([1, 2]);
+
+    $collection->reduceSpread(fn ($carry, $value) => $carry + $value, 0);
+})->throws(UnexpectedValueException::class);
+
+it('ensure() returns the collection when every item matches the type', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->ensure('int'))->toBe($collection);
+});
+
+it('ensure() accepts class names and instanceof checks', function () {
+    $collection = new Collection([new RuntimeException('a'), new LogicException('b')]);
+
+    expect($collection->ensure(Throwable::class))->toBe($collection);
+});
+
+it('ensure() throws when an item does not match the type', function () {
+    $collection = new Collection([1, 'two', 3]);
+
+    $collection->ensure('int');
+})->throws(UnexpectedValueException::class);
