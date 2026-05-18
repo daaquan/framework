@@ -814,3 +814,81 @@ if (!function_exists('data_forget')) {
         return $target;
     }
 }
+
+// head()
+if (!function_exists('head')) {
+    /**
+     * Return the first element of the given array (Laravel parity).
+     *
+     * @param array<mixed> $array
+     * @return mixed
+     */
+    function head(array $array)
+    {
+        return reset($array);
+    }
+}
+
+// last()
+if (!function_exists('last')) {
+    /**
+     * Return the last element of the given array (Laravel parity).
+     *
+     * @param array<mixed> $array
+     * @return mixed
+     */
+    function last(array $array)
+    {
+        return end($array);
+    }
+}
+
+// throw_if()
+if (!function_exists('throw_if')) {
+    /**
+     * Throw the given exception when the condition is truthy, otherwise
+     * return the condition (Laravel parity).
+     *
+     * @param mixed $condition
+     * @param Throwable|string $exception
+     * @param mixed ...$parameters
+     * @return mixed
+     *
+     * @throws Throwable
+     */
+    function throw_if($condition, $exception = 'RuntimeException', ...$parameters)
+    {
+        if ($condition) {
+            if (is_string($exception) && class_exists($exception)) {
+                $exception = new $exception(...$parameters);
+            }
+
+            throw is_string($exception) ? new RuntimeException($exception) : $exception;
+        }
+
+        return $condition;
+    }
+}
+
+// throw_unless()
+if (!function_exists('throw_unless')) {
+    /**
+     * Throw the given exception when the condition is falsy, otherwise return
+     * the condition (Laravel parity).
+     *
+     * @param mixed $condition
+     * @param Throwable|string $exception
+     * @param mixed ...$parameters
+     * @return mixed
+     *
+     * @throws Throwable
+     */
+    function throw_unless($condition, $exception = 'RuntimeException', ...$parameters)
+    {
+        if (!$condition) {
+            throw_if(true, $exception, ...$parameters);
+        }
+
+        return $condition;
+    }
+}
