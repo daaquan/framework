@@ -524,4 +524,64 @@ class Arr
     {
         return [array_keys($array), array_values($array)];
     }
+
+    /**
+     * Key the array by the given attribute name or callback. On a key
+     * collision the last item wins (Laravel parity).
+     */
+    public static function keyBy(array $array, callable|string $keyBy): array
+    {
+        $resolver = is_string($keyBy)
+            ? static fn ($item) => is_array($item) ? ($item[$keyBy] ?? null) : ($item->{$keyBy} ?? null)
+            : $keyBy;
+
+        $results = [];
+        foreach ($array as $key => $item) {
+            $results[$resolver($item, $key)] = $item;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Map the array, remapping both keys and values. The callback returns a
+     * single key/value pair per item (Laravel parity).
+     */
+    public static function mapWithKeys(array $array, callable $callback): array
+    {
+        $results = [];
+        foreach ($array as $key => $value) {
+            foreach ($callback($value, $key) as $mapKey => $mapValue) {
+                $results[$mapKey] = $mapValue;
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Prepend the given prefix to every key of the array (Laravel parity).
+     */
+    public static function prependKeysWith(array $array, string $prefix): array
+    {
+        $results = [];
+        foreach ($array as $key => $value) {
+            $results[$prefix . $key] = $value;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Take the first ($limit > 0) or last ($limit < 0) items of the array
+     * (Laravel parity).
+     */
+    public static function take(array $array, int $limit): array
+    {
+        if ($limit < 0) {
+            return array_slice($array, $limit);
+        }
+
+        return array_slice($array, 0, $limit);
+    }
 }

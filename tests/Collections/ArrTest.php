@@ -185,3 +185,41 @@ test('divide splits an array into its keys and values', function () {
     expect(Arr::divide(['name' => 'Ann', 'age' => 30]))
         ->toBe([['name', 'age'], ['Ann', 30]]);
 });
+
+test('keyBy keys the array by a string attribute', function () {
+    $rows = [['id' => 10, 'name' => 'Ann'], ['id' => 20, 'name' => 'Bob']];
+
+    expect(Arr::keyBy($rows, 'id'))
+        ->toBe([10 => ['id' => 10, 'name' => 'Ann'], 20 => ['id' => 20, 'name' => 'Bob']]);
+});
+
+test('keyBy keys the array by a callback', function () {
+    expect(Arr::keyBy(['a', 'bb', 'ccc'], fn ($value) => strlen($value)))
+        ->toBe([1 => 'a', 2 => 'bb', 3 => 'ccc']);
+});
+
+test('keyBy lets the last item win on a key collision', function () {
+    $rows = [['t' => 'x', 'n' => 1], ['t' => 'x', 'n' => 2]];
+
+    expect(Arr::keyBy($rows, 't'))->toBe(['x' => ['t' => 'x', 'n' => 2]]);
+});
+
+test('mapWithKeys remaps both keys and values', function () {
+    $rows = [['id' => 1, 'name' => 'Ann'], ['id' => 2, 'name' => 'Bob']];
+
+    expect(Arr::mapWithKeys($rows, fn ($row) => [$row['id'] => $row['name']]))
+        ->toBe([1 => 'Ann', 2 => 'Bob']);
+});
+
+test('prependKeysWith prefixes every key', function () {
+    expect(Arr::prependKeysWith(['name' => 'Ann', 'age' => 30], 'user.'))
+        ->toBe(['user.name' => 'Ann', 'user.age' => 30]);
+});
+
+test('take returns the first N items for a positive limit', function () {
+    expect(Arr::take([1, 2, 3, 4, 5], 3))->toBe([1, 2, 3]);
+});
+
+test('take returns the last N items for a negative limit', function () {
+    expect(Arr::take([1, 2, 3, 4, 5], -2))->toBe([4, 5]);
+});
