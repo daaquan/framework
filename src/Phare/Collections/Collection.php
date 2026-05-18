@@ -425,6 +425,93 @@ class Collection extends \Phalcon\Support\Collection
     }
 
     /**
+     * Thread the collection through each callable pipe in turn, passing each
+     * pipe's result to the next (Laravel parity).
+     *
+     * @param iterable<callable> $pipes
+     * @return mixed
+     */
+    public function pipeThrough($pipes)
+    {
+        $carry = $this;
+        foreach ($pipes as $pipe) {
+            $carry = $pipe($carry);
+        }
+
+        return $carry;
+    }
+
+    /**
+     * Pass the collection into a new instance of the given class
+     * (Laravel parity).
+     *
+     * @param class-string $class
+     * @return mixed
+     */
+    public function pipeInto(string $class)
+    {
+        return new $class($this);
+    }
+
+    /**
+     * Reduce the collection into multiple accumulators. The callback receives
+     * the accumulators spread as arguments followed by the value and key, and
+     * must return an array of the next accumulators (Laravel parity).
+     *
+     * @param mixed ...$initial
+     * @return array<mixed>
+     *
+     * @throws \UnexpectedValueException when the callback returns a non-array
+     */
+    public function reduceSpread(callable $callback, ...$initial): array
+    {
+        $result = $initial;
+        foreach ($this->data as $key => $value) {
+            $result = $callback(...array_merge($result, [$value, $key]));
+
+            if (!is_array($result)) {
+                throw new \UnexpectedValueException(
+                    'reduceSpread() expects the reducer to return an array, got ' . get_debug_type($result) . '.'
+                );
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Verify that every item matches one of the given types (a built-in type
+     * name, class name, or interface), returning the collection unchanged
+     * (Laravel parity).
+     *
+     * @param string|array<string> $type
+     *
+     * @throws \UnexpectedValueException when an item does not match
+     */
+    public function ensure($type): static
+    {
+        $allowed = is_array($type) ? $type : [$type];
+
+        foreach ($this->data as $item) {
+            $itemType = get_debug_type($item);
+            $matched = false;
+            foreach ($allowed as $allowedType) {
+                if ($itemType === $allowedType || $item instanceof $allowedType) {
+                    $matched = true;
+                    break;
+                }
+            }
+            if (!$matched) {
+                throw new \UnexpectedValueException(
+                    sprintf('Collection should only include [%s] items, but \'%s\' found.', implode(', ', $allowed), $itemType)
+                );
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Split the collection into two — items that pass the predicate and
      * items that fail it (Laravel parity).
      *
