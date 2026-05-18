@@ -1270,6 +1270,22 @@ class Collection extends \Phalcon\Support\Collection
     }
 
     /**
+     * Map items into a dictionary keyed by the single key/value pair the
+     * callback returns, collecting values into plain arrays (Laravel parity).
+     */
+    public function mapToDictionary(callable $callback): static
+    {
+        $dictionary = [];
+        foreach ($this->data as $key => $value) {
+            foreach ($callback($value, $key) as $groupKey => $groupValue) {
+                $dictionary[$groupKey][] = $groupValue;
+            }
+        }
+
+        return new static($dictionary);
+    }
+
+    /**
      * Map items into groups keyed by the single key/value pair the callback
      * returns for each item (Laravel parity).
      */
@@ -1445,6 +1461,22 @@ class Collection extends \Phalcon\Support\Collection
     public function doesntContain($attribute): bool
     {
         return !$this->contains($attribute);
+    }
+
+    /**
+     * Determine whether the collection holds exactly one item (Laravel parity).
+     */
+    public function containsOneItem(): bool
+    {
+        return $this->count() === 1;
+    }
+
+    /**
+     * Determine whether the collection holds more than one item (Laravel parity).
+     */
+    public function containsManyItems(): bool
+    {
+        return $this->count() > 1;
     }
 
     public function containsKey($attribute)
@@ -1740,6 +1772,23 @@ class Collection extends \Phalcon\Support\Collection
         $this->data = $data;
 
         return $this;
+    }
+
+    /**
+     * Remove and return a slice of the collection, optionally replacing it
+     * with the given items. Mutates the collection (Laravel parity).
+     *
+     * @param array<mixed> $replacement
+     */
+    public function splice(int $offset, ?int $length = null, array $replacement = []): static
+    {
+        $data = array_values($this->data);
+        $removed = $length === null
+            ? array_splice($data, $offset)
+            : array_splice($data, $offset, $length, $replacement);
+        $this->data = $data;
+
+        return new static($removed);
     }
 
     public function when($condition, callable $callable)
