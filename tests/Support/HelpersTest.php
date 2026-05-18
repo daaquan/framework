@@ -57,3 +57,31 @@ test('data_forget removes a nested value via dot notation', function () {
 
     expect($data)->toBe(['a' => ['c' => 2]]);
 });
+
+test('head returns the first element of an array', function () {
+    expect(head([10, 20, 30]))->toBe(10);
+});
+
+test('last returns the last element of an array', function () {
+    expect(last([10, 20, 30]))->toBe(30);
+});
+
+test('throw_if throws the given exception when the condition is truthy', function () {
+    throw_if(true, RuntimeException::class, 'boom');
+})->throws(RuntimeException::class, 'boom');
+
+test('throw_if returns the condition when it is falsy', function () {
+    expect(throw_if(false, RuntimeException::class))->toBeFalse();
+});
+
+test('throw_if accepts an exception instance', function () {
+    throw_if(true, new LogicException('bad'));
+})->throws(LogicException::class, 'bad');
+
+test('throw_unless throws when the condition is falsy', function () {
+    throw_unless(false, RuntimeException::class, 'missing');
+})->throws(RuntimeException::class, 'missing');
+
+test('throw_unless returns the condition when it is truthy', function () {
+    expect(throw_unless('ok', RuntimeException::class))->toBe('ok');
+});
