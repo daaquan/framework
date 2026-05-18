@@ -738,4 +738,90 @@ class Str
 
         return $subject;
     }
+
+    /**
+     * Return the character at the given index, or false when the index is
+     * out of range. A negative index counts from the end (Laravel parity).
+     *
+     * @return string|false
+     */
+    public static function charAt(string $subject, int $index)
+    {
+        $length = mb_strlen($subject);
+
+        if ($index < 0) {
+            $index += $length;
+        }
+
+        if ($index < 0 || $index >= $length) {
+            return false;
+        }
+
+        return mb_substr($subject, $index, 1);
+    }
+
+    /**
+     * Remove the given wrapping strings from both ends of the value, but only
+     * when both ends are present (Laravel parity).
+     */
+    public static function unwrap(string $value, string $before, ?string $after = null): string
+    {
+        $after ??= $before;
+
+        if (self::startsWith($value, $before)) {
+            $value = substr($value, strlen($before));
+        }
+
+        if (self::endsWith($value, $after)) {
+            $value = substr($value, 0, -strlen($after));
+        }
+
+        return $value;
+    }
+
+    /**
+     * Convert the value into a space-separated, title-cased headline,
+     * splitting on snake/kebab delimiters and camel-case boundaries
+     * (Laravel parity).
+     */
+    public static function headline(string $value): string
+    {
+        $value = (string)preg_replace('/[_-]+/u', ' ', $value);
+        $value = (string)preg_replace('/(?<=\p{Ll})(?=\p{Lu})/u', ' ', $value);
+        $words = preg_split('/\s+/u', trim($value), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return implode(' ', array_map(static fn ($word) => self::title($word), $words));
+    }
+
+    /**
+     * Extract an excerpt of text around the first occurrence of a phrase,
+     * marking truncated ends with an omission string. Returns null when the
+     * phrase is not found (Laravel parity).
+     *
+     * @param array{radius?: int, omission?: string} $options
+     */
+    public static function excerpt(string $text, string $phrase = '', array $options = []): ?string
+    {
+        $radius = $options['radius'] ?? 100;
+        $omission = $options['omission'] ?? '...';
+
+        if (!preg_match('/^(.*?)(' . preg_quote($phrase, '/') . ')(.*)$/iu', $text, $matches)) {
+            return null;
+        }
+
+        $before = ltrim($matches[1]);
+        $beforeLength = mb_strlen($before);
+        $start = mb_substr($before, max($beforeLength - $radius, 0), $radius);
+        if ($start !== $before) {
+            $start = $omission . ltrim($start);
+        }
+
+        $after = rtrim($matches[3]);
+        $end = mb_substr($after, 0, $radius);
+        if ($end !== $after) {
+            $end = rtrim($end) . $omission;
+        }
+
+        return $start . $matches[2] . $end;
+    }
 }
