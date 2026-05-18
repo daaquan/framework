@@ -151,3 +151,37 @@ test('containsDuplicateValue detects duplicates', function () {
     expect(Arr::containsDuplicateValue([1, 2, 2, 3]))->toBeTrue()
         ->and(Arr::containsDuplicateValue([1, 2, 3]))->toBeFalse();
 });
+
+test('add sets a key only when it is missing', function () {
+    expect(Arr::add(['name' => 'Ann'], 'age', 30))->toBe(['name' => 'Ann', 'age' => 30]);
+});
+
+test('add leaves an existing key untouched', function () {
+    expect(Arr::add(['name' => 'Ann'], 'name', 'Bob'))->toBe(['name' => 'Ann']);
+});
+
+test('add treats a present null value as missing', function () {
+    expect(Arr::add(['name' => null], 'name', 'Ann'))->toBe(['name' => 'Ann']);
+});
+
+test('collapse flattens an array of arrays one level deep', function () {
+    expect(Arr::collapse([[1, 2], [3, 4], [5]]))->toBe([1, 2, 3, 4, 5]);
+});
+
+test('collapse ignores non-array members', function () {
+    expect(Arr::collapse([[1, 2], 'skip', [3]]))->toBe([1, 2, 3]);
+});
+
+test('crossJoin produces the cartesian product of the given arrays', function () {
+    expect(Arr::crossJoin([1, 2], ['a', 'b']))
+        ->toBe([[1, 'a'], [1, 'b'], [2, 'a'], [2, 'b']]);
+});
+
+test('crossJoin of a single array wraps each element', function () {
+    expect(Arr::crossJoin([1, 2]))->toBe([[1], [2]]);
+});
+
+test('divide splits an array into its keys and values', function () {
+    expect(Arr::divide(['name' => 'Ann', 'age' => 30]))
+        ->toBe([['name', 'age'], ['Ann', 30]]);
+});
