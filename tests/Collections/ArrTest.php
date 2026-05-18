@@ -223,3 +223,42 @@ test('take returns the first N items for a positive limit', function () {
 test('take returns the last N items for a negative limit', function () {
     expect(Arr::take([1, 2, 3, 4, 5], -2))->toBe([4, 5]);
 });
+
+test('hasAny is true when at least one key is present', function () {
+    expect(Arr::hasAny(['name' => 'Ann', 'age' => 30], ['missing', 'age']))->toBeTrue();
+});
+
+test('hasAny is false when none of the keys are present', function () {
+    expect(Arr::hasAny(['name' => 'Ann'], ['age', 'email']))->toBeFalse();
+});
+
+test('hasAny supports dot notation', function () {
+    expect(Arr::hasAny(['user' => ['name' => 'Ann']], 'user.name'))->toBeTrue();
+});
+
+test('sortRecursive sorts list values and nested arrays', function () {
+    expect(Arr::sortRecursive([3, 1, [9, 2], 2]))->toBe([1, 2, 3, [2, 9]]);
+});
+
+test('sortRecursive sorts associative arrays by key', function () {
+    expect(Arr::sortRecursive(['c' => 3, 'a' => 1, 'b' => 2]))
+        ->toBe(['a' => 1, 'b' => 2, 'c' => 3]);
+});
+
+test('sortRecursiveDesc sorts list values in descending order', function () {
+    expect(Arr::sortRecursiveDesc([1, 3, 2]))->toBe([3, 2, 1]);
+});
+
+test('random returns a single member of the array', function () {
+    $array = [10, 20, 30];
+
+    expect(in_array(Arr::random($array), $array, true))->toBeTrue();
+});
+
+test('random returns the requested number of distinct members', function () {
+    $array = [1, 2, 3, 4, 5];
+    $picked = Arr::random($array, 3);
+
+    expect($picked)->toHaveCount(3)
+        ->and(array_diff($picked, $array))->toBe([]);
+});

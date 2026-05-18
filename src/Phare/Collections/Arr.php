@@ -584,4 +584,84 @@ class Arr
 
         return array_slice($array, 0, $limit);
     }
+
+    /**
+     * Determine whether at least one of the given keys exists in the array,
+     * using "dot" notation (Laravel parity).
+     *
+     * @param string|array<string> $keys
+     */
+    public static function hasAny(array $array, string|array $keys): bool
+    {
+        foreach ((array)$keys as $key) {
+            if (self::hasDot($array, $key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Recursively sort an array by keys (associative) or values (list)
+     * (Laravel parity).
+     */
+    public static function sortRecursive(array $array, int $options = SORT_REGULAR, bool $descending = false): array
+    {
+        foreach ($array as &$value) {
+            if (is_array($value)) {
+                $value = self::sortRecursive($value, $options, $descending);
+            }
+        }
+        unset($value);
+
+        if (self::isAssoc($array)) {
+            $descending ? krsort($array, $options) : ksort($array, $options);
+        } else {
+            $descending ? rsort($array, $options) : sort($array, $options);
+        }
+
+        return $array;
+    }
+
+    /**
+     * Recursively sort an array in descending order (Laravel parity).
+     */
+    public static function sortRecursiveDesc(array $array, int $options = SORT_REGULAR): array
+    {
+        return self::sortRecursive($array, $options, true);
+    }
+
+    /**
+     * Return one or more random values from the array. With no $number a
+     * single element is returned; with $number an array is returned
+     * (Laravel parity).
+     *
+     * @return mixed
+     *
+     * @throws \InvalidArgumentException when $number exceeds the array size
+     */
+    public static function random(array $array, ?int $number = null)
+    {
+        $count = count($array);
+        $requested = $number ?? 1;
+
+        if ($requested > $count) {
+            throw new \InvalidArgumentException(
+                "You requested {$requested} items, but there are only {$count} items available."
+            );
+        }
+
+        if ($number === null) {
+            return $array[array_rand($array)];
+        }
+
+        if ($number === 0) {
+            return [];
+        }
+
+        $keys = (array)array_rand($array, $number);
+
+        return array_map(static fn ($key) => $array[$key], $keys);
+    }
 }
