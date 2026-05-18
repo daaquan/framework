@@ -591,3 +591,55 @@ it('sole() throws MultipleItemsFoundException when several match', function () {
 
     $collection->sole(fn ($value) => $value === 2);
 })->throws(MultipleItemsFoundException::class);
+
+it('takeUntil() takes items until the callback returns true', function () {
+    $collection = new Collection([1, 2, 3, 4, 1]);
+
+    expect($collection->takeUntil(fn ($v) => $v >= 3)->values()->toArray())->toBe([1, 2]);
+});
+
+it('takeUntil() takes items until a literal value is reached', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+
+    expect($collection->takeUntil(3)->values()->toArray())->toBe([1, 2]);
+});
+
+it('skipUntil() skips items until the callback returns true', function () {
+    $collection = new Collection([1, 2, 3, 4, 1]);
+
+    expect($collection->skipUntil(fn ($v) => $v >= 3)->values()->toArray())->toBe([3, 4, 1]);
+});
+
+it('skipUntil() skips items until a literal value is reached', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+
+    expect($collection->skipUntil(3)->values()->toArray())->toBe([3, 4]);
+});
+
+it('chunkWhile() groups consecutive items while the callback holds', function () {
+    $collection = new Collection([1, 2, 2, 3, 5, 5, 5]);
+
+    $chunks = $collection->chunkWhile(fn ($value, $key, $chunk) => $value === $chunk->last())
+        ->map(fn ($chunk) => $chunk->values()->toArray())
+        ->toArray();
+
+    expect($chunks)->toBe([[1], [2, 2], [3], [5, 5, 5]]);
+});
+
+it('chunkWhile() returns an empty collection for empty input', function () {
+    $collection = new Collection([]);
+
+    expect($collection->chunkWhile(fn () => true)->toArray())->toBe([]);
+});
+
+it('forPage() returns the slice for the given page', function () {
+    $collection = new Collection([1, 2, 3, 4, 5, 6, 7]);
+
+    expect($collection->forPage(2, 3)->values()->toArray())->toBe([4, 5, 6]);
+});
+
+it('forPage() returns an empty collection past the last page', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->forPage(5, 3)->toArray())->toBe([]);
+});
