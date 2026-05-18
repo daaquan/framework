@@ -808,3 +808,36 @@ it('collapseWithKeys() collapses nested collections preserving keys', function (
 
     expect($collection->collapseWithKeys()->toArray())->toBe(['a' => 1, 'b' => 20, 'c' => 3]);
 });
+
+it('sortKeys() sorts the collection ascending by key', function () {
+    $collection = new Collection(['c' => 3, 'a' => 1, 'b' => 2]);
+
+    expect($collection->sortKeys()->toArray())->toBe(['a' => 1, 'b' => 2, 'c' => 3]);
+});
+
+it('sortKeysDesc() sorts the collection descending by key', function () {
+    $collection = new Collection(['a' => 1, 'c' => 3, 'b' => 2]);
+
+    expect($collection->sortKeysDesc()->toArray())->toBe(['c' => 3, 'b' => 2, 'a' => 1]);
+});
+
+it('sortDesc() sorts the values descending', function () {
+    $collection = new Collection([2, 5, 1, 4]);
+
+    expect($collection->sortDesc()->toArray())->toBe([5, 4, 2, 1]);
+});
+
+it('sortByDesc() sorts items descending by the callback value', function () {
+    $collection = new Collection([
+        ['name' => 'a', 'score' => 10],
+        ['name' => 'b', 'score' => 30],
+        ['name' => 'c', 'score' => 20],
+    ]);
+
+    expect($collection->sortByDesc(fn ($item) => $item['score'])->values()->toArray())
+        ->toBe([
+            ['name' => 'b', 'score' => 30],
+            ['name' => 'c', 'score' => 20],
+            ['name' => 'a', 'score' => 10],
+        ]);
+});
