@@ -688,4 +688,54 @@ class Str
     {
         return wordwrap($string, $characters, $break, $cutLongWords);
     }
+
+    /**
+     * Return the index of the first occurrence of the needle, or false when
+     * it is absent (Laravel parity).
+     *
+     * @return int|false
+     */
+    public static function position(string $haystack, string $needle, int $offset = 0, ?string $encoding = null)
+    {
+        return mb_strpos($haystack, $needle, $offset, $encoding ?? mb_internal_encoding());
+    }
+
+    /**
+     * Count the number of occurrences of the needle in the haystack
+     * (Laravel parity).
+     */
+    public static function substrCount(string $haystack, string $needle, int $offset = 0, ?int $length = null): int
+    {
+        if ($length === null) {
+            return substr_count($haystack, $needle, $offset);
+        }
+
+        return substr_count($haystack, $needle, $offset, $length);
+    }
+
+    /**
+     * Replace the search string only when it appears at the start of the
+     * subject (Laravel parity).
+     */
+    public static function replaceStart(string $search, string $replace, string $subject): string
+    {
+        if ($search !== '' && str_starts_with($subject, $search)) {
+            return $replace . substr($subject, strlen($search));
+        }
+
+        return $subject;
+    }
+
+    /**
+     * Replace the search string only when it appears at the end of the
+     * subject (Laravel parity).
+     */
+    public static function replaceEnd(string $search, string $replace, string $subject): string
+    {
+        if ($search !== '' && str_ends_with($subject, $search)) {
+            return substr($subject, 0, -strlen($search)) . $replace;
+        }
+
+        return $subject;
+    }
 }

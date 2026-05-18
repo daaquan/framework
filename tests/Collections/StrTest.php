@@ -262,3 +262,35 @@ test('take returns the last N characters for a negative limit', function () {
 test('wordWrap wraps the string at the given character width', function () {
     expect(Str::wordWrap('The quick brown fox', 10, '|'))->toBe('The quick|brown fox');
 });
+
+test('position returns the index of the first occurrence', function () {
+    expect(Str::position('Hello, World!', 'World'))->toBe(7);
+});
+
+test('position returns false when the needle is absent', function () {
+    expect(Str::position('Hello', 'xyz'))->toBeFalse();
+});
+
+test('position honours the search offset', function () {
+    expect(Str::position('abcabc', 'a', 1))->toBe(3);
+});
+
+test('substrCount counts occurrences of the needle', function () {
+    expect(Str::substrCount('hello hello hello', 'hello'))->toBe(3);
+});
+
+test('replaceStart replaces the search only at the start', function () {
+    expect(Str::replaceStart('Hello', 'Hi', 'Hello World, Hello'))->toBe('Hi World, Hello');
+});
+
+test('replaceStart leaves the string untouched when it does not start with the search', function () {
+    expect(Str::replaceStart('Hello', 'Hi', 'World Hello'))->toBe('World Hello');
+});
+
+test('replaceEnd replaces the search only at the end', function () {
+    expect(Str::replaceEnd('World', 'Earth', 'Hello World'))->toBe('Hello Earth');
+});
+
+test('replaceEnd leaves the string untouched when it does not end with the search', function () {
+    expect(Str::replaceEnd('World', 'Earth', 'World Hello'))->toBe('World Hello');
+});
