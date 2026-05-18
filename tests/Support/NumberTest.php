@@ -58,3 +58,32 @@ test('pairs splits a range into inclusive pairs', function () {
 test('pairs honours a custom offset', function () {
     expect(Number::pairs(20, 10, 0))->toBe([[0, 10], [10, 20]]);
 });
+
+test('forHumans renders a number with long magnitude words', function () {
+    expect(Number::forHumans(1000))->toBe('1 thousand')
+        ->and(Number::forHumans(1500000))->toBe('2 million')
+        ->and(Number::forHumans(1500000, 1))->toBe('1.5 million');
+});
+
+test('forHumans returns small numbers unchanged', function () {
+    expect(Number::forHumans(0))->toBe('0')
+        ->and(Number::forHumans(42))->toBe('42');
+});
+
+test('abbreviate renders a number with short magnitude suffixes', function () {
+    expect(Number::abbreviate(1000))->toBe('1K')
+        ->and(Number::abbreviate(1234567, 1))->toBe('1.2M')
+        ->and(Number::abbreviate(1000000000))->toBe('1B');
+});
+
+test('abbreviate handles negative numbers', function () {
+    expect(Number::abbreviate(-1000))->toBe('-1K');
+});
+
+test('parseInt parses a grouped integer string', function () {
+    expect(Number::parseInt('1,234'))->toBe(1234);
+});
+
+test('parseFloat parses a grouped decimal string', function () {
+    expect(Number::parseFloat('1,234.5'))->toBe(1234.5);
+});
