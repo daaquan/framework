@@ -462,4 +462,66 @@ class Arr
 
         return is_array($value) ? $value : [$value];
     }
+
+    /**
+     * Add a key/value pair to an array only when the key is absent or its
+     * current value is null (Laravel parity).
+     */
+    public static function add(array $array, string|int $key, mixed $value): array
+    {
+        if (!array_key_exists($key, $array) || $array[$key] === null) {
+            $array[$key] = $value;
+        }
+
+        return $array;
+    }
+
+    /**
+     * Collapse an array of arrays into a single array, one level deep
+     * (Laravel parity). Non-array members are skipped.
+     */
+    public static function collapse(array $array): array
+    {
+        $results = [];
+        foreach ($array as $values) {
+            if (!is_array($values)) {
+                continue;
+            }
+            $results[] = $values;
+        }
+
+        return array_merge([], ...$results);
+    }
+
+    /**
+     * Cross-join the given arrays, returning the cartesian product as a list
+     * of tuples (Laravel parity).
+     */
+    public static function crossJoin(array ...$arrays): array
+    {
+        $results = [[]];
+
+        foreach ($arrays as $array) {
+            $append = [];
+            foreach ($results as $product) {
+                foreach ($array as $item) {
+                    $append[] = [...$product, $item];
+                }
+            }
+            $results = $append;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Split an array into two arrays — one of its keys, one of its values
+     * (Laravel parity).
+     *
+     * @return array{0: list<array-key>, 1: list<mixed>}
+     */
+    public static function divide(array $array): array
+    {
+        return [array_keys($array), array_values($array)];
+    }
 }
