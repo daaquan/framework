@@ -294,3 +294,44 @@ test('replaceEnd replaces the search only at the end', function () {
 test('replaceEnd leaves the string untouched when it does not end with the search', function () {
     expect(Str::replaceEnd('World', 'Earth', 'World Hello'))->toBe('World Hello');
 });
+
+test('charAt returns the character at a positive index', function () {
+    expect(Str::charAt('Hello', 1))->toBe('e');
+});
+
+test('charAt returns the character at a negative index', function () {
+    expect(Str::charAt('Hello', -1))->toBe('o');
+});
+
+test('charAt returns false for an out-of-range index', function () {
+    expect(Str::charAt('Hello', 10))->toBeFalse();
+});
+
+test('unwrap removes matching wrapping strings', function () {
+    expect(Str::unwrap('"value"', '"'))->toBe('value');
+});
+
+test('unwrap removes distinct before and after wrappers', function () {
+    expect(Str::unwrap('{value}', '{', '}'))->toBe('value');
+});
+
+test('unwrap leaves the string untouched when wrappers are absent', function () {
+    expect(Str::unwrap('value', '"'))->toBe('value');
+});
+
+test('headline converts snake case into a title-cased headline', function () {
+    expect(Str::headline('steve_jobs'))->toBe('Steve Jobs');
+});
+
+test('headline splits camel case boundaries', function () {
+    expect(Str::headline('EmailNotificationSent'))->toBe('Email Notification Sent');
+});
+
+test('excerpt extracts text around the phrase with omission markers', function () {
+    expect(Str::excerpt('This is my beautiful morning', 'beautiful', ['radius' => 5]))
+        ->toBe('...s my beautiful morn...');
+});
+
+test('excerpt returns null when the phrase is absent', function () {
+    expect(Str::excerpt('Hello world', 'xyz'))->toBeNull();
+});
