@@ -1349,6 +1349,43 @@ class Collection extends \Phalcon\Support\Collection
         return new static($data);
     }
 
+    /**
+     * Sort the collection ascending by key — Laravel-named alias of
+     * {@see sortKey()}.
+     */
+    public function sortKeys(): static
+    {
+        return $this->sortKey();
+    }
+
+    /**
+     * Sort the collection descending by key — Laravel-named alias of
+     * {@see rsortKey()}.
+     */
+    public function sortKeysDesc(): static
+    {
+        return $this->rsortKey();
+    }
+
+    /**
+     * Sort the values descending — Laravel-named alias of {@see rsort()}.
+     *
+     * @param mixed $attribute
+     */
+    public function sortDesc($attribute = null): static
+    {
+        return $this->rsort($attribute);
+    }
+
+    /**
+     * Sort items descending by the callback value — Laravel-named alias of
+     * {@see rsortBy()}.
+     */
+    public function sortByDesc(?callable $attribute = null): static
+    {
+        return $this->rsortBy($attribute);
+    }
+
     public function max($attribute = null)
     {
         $max = $this->rsort($attribute)->first();
