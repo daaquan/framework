@@ -773,3 +773,38 @@ it('splitIn() divides the collection into groups of equal ceil size', function (
 
     expect($groups)->toBe([[1, 2, 3], [4, 5]]);
 });
+
+it('combine() uses the collection values as keys for the given values', function () {
+    $collection = new Collection(['name', 'age']);
+
+    expect($collection->combine(['Ann', 30])->toArray())->toBe(['name' => 'Ann', 'age' => 30]);
+});
+
+it('combine() accepts another Collection as the values', function () {
+    $collection = new Collection(['a', 'b']);
+
+    expect($collection->combine(new Collection([1, 2]))->toArray())->toBe(['a' => 1, 'b' => 2]);
+});
+
+it('mergeRecursive() merges nested arrays recursively', function () {
+    $collection = new Collection(['user' => ['name' => 'Ann'], 'tags' => ['x']]);
+
+    expect($collection->mergeRecursive(['user' => ['age' => 30], 'tags' => ['y']])->toArray())
+        ->toBe(['user' => ['name' => 'Ann', 'age' => 30], 'tags' => ['x', 'y']]);
+});
+
+it('replaceRecursive() replaces nested values by key', function () {
+    $collection = new Collection(['user' => ['name' => 'Ann', 'age' => 30]]);
+
+    expect($collection->replaceRecursive(['user' => ['age' => 31]])->toArray())
+        ->toBe(['user' => ['name' => 'Ann', 'age' => 31]]);
+});
+
+it('collapseWithKeys() collapses nested collections preserving keys', function () {
+    $collection = new Collection([
+        ['a' => 1, 'b' => 2],
+        new Collection(['b' => 20, 'c' => 3]),
+    ]);
+
+    expect($collection->collapseWithKeys()->toArray())->toBe(['a' => 1, 'b' => 20, 'c' => 3]);
+});
