@@ -1032,6 +1032,81 @@ class Collection extends \Phalcon\Support\Collection
     }
 
     /**
+     * Map each item into a new instance of the given class (Laravel parity).
+     *
+     * @param class-string $class
+     */
+    public function mapInto(string $class): static
+    {
+        $data = [];
+        foreach ($this->data as $key => $value) {
+            $data[$key] = new $class($value, $key);
+        }
+
+        return new static($data);
+    }
+
+    /**
+     * Map items into groups keyed by the single key/value pair the callback
+     * returns for each item (Laravel parity).
+     */
+    public function mapToGroups(callable $callback): static
+    {
+        $groups = [];
+        foreach ($this->data as $key => $value) {
+            foreach ($callback($value, $key) as $groupKey => $groupValue) {
+                $groups[$groupKey][] = $groupValue;
+            }
+        }
+
+        return new static(array_map(fn ($group) => new static($group), $groups));
+    }
+
+    /**
+     * Split the collection into the given number of groups, distributing any
+     * remainder across the leading groups (Laravel parity).
+     */
+    public function split(int $numberOfGroups): static
+    {
+        if ($numberOfGroups < 1) {
+            return new static([]);
+        }
+
+        $values = array_values($this->data);
+        $count = count($values);
+        $groupSize = intdiv($count, $numberOfGroups);
+        $remainder = $count % $numberOfGroups;
+
+        $groups = [];
+        $offset = 0;
+        for ($i = 0; $i < $numberOfGroups; $i++) {
+            $size = $groupSize + ($i < $remainder ? 1 : 0);
+            if ($size === 0) {
+                continue;
+            }
+            $groups[] = new static(array_slice($values, $offset, $size));
+            $offset += $size;
+        }
+
+        return new static($groups);
+    }
+
+    /**
+     * Split the collection into the given number of groups, filling each
+     * group to its ceiling size before starting the next (Laravel parity).
+     */
+    public function splitIn(int $numberOfGroups): static
+    {
+        if ($numberOfGroups < 1 || $this->count() === 0) {
+            return new static([]);
+        }
+
+        $size = (int)ceil($this->count() / $numberOfGroups);
+
+        return $this->chunk($size, false)->map(fn ($chunk) => new static($chunk));
+    }
+
+    /**
      * Wrap a value in a callback; non-string callables pass through,
      * everything else becomes a loose-equality match (Laravel parity).
      */

@@ -723,3 +723,53 @@ it('undot() expands dot-notation keys back into nested arrays', function () {
     expect($collection->undot()->toArray())
         ->toBe(['user' => ['name' => 'Ann', 'age' => 30]]);
 });
+
+class MapIntoFixture
+{
+    public function __construct(public mixed $value, public mixed $key = null) {}
+}
+
+it('mapInto() instantiates the given class for each item with value and key', function () {
+    $collection = new Collection(['x', 'y']);
+    $result = $collection->mapInto(MapIntoFixture::class)->toArray();
+
+    expect($result)->each->toBeInstanceOf(MapIntoFixture::class);
+    expect($result[0]->value)->toBe('x');
+    expect($result[1]->key)->toBe(1);
+});
+
+it('mapToGroups() groups items by the key returned from the callback', function () {
+    $collection = new Collection([
+        ['team' => 'red', 'name' => 'Ann'],
+        ['team' => 'blue', 'name' => 'Bob'],
+        ['team' => 'red', 'name' => 'Cy'],
+    ]);
+
+    $grouped = $collection->mapToGroups(fn ($item) => [$item['team'] => $item['name']])
+        ->map(fn ($group) => $group->toArray())
+        ->toArray();
+
+    expect($grouped)->toBe(['red' => ['Ann', 'Cy'], 'blue' => ['Bob']]);
+});
+
+it('split() divides the collection into the given number of groups', function () {
+    $collection = new Collection([1, 2, 3, 4, 5]);
+
+    $groups = $collection->split(3)->map(fn ($g) => $g->values()->toArray())->toArray();
+
+    expect($groups)->toBe([[1, 2], [3, 4], [5]]);
+});
+
+it('split() yields fewer groups than requested when items run out', function () {
+    $collection = new Collection([1, 2]);
+
+    expect($collection->split(4)->count())->toBe(2);
+});
+
+it('splitIn() divides the collection into groups of equal ceil size', function () {
+    $collection = new Collection([1, 2, 3, 4, 5]);
+
+    $groups = $collection->splitIn(2)->map(fn ($g) => $g->values()->toArray())->toArray();
+
+    expect($groups)->toBe([[1, 2, 3], [4, 5]]);
+});
