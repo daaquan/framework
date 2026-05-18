@@ -841,3 +841,70 @@ it('sortByDesc() sorts items descending by the callback value', function () {
             ['name' => 'a', 'score' => 10],
         ]);
 });
+
+it('mapSpread() spreads each nested item as callback arguments', function () {
+    $collection = new Collection([[1, 2], [3, 4]]);
+
+    expect($collection->mapSpread(fn ($a, $b) => $a + $b)->toArray())->toBe([3, 7]);
+});
+
+it('mapSpread() passes the item key as the final argument', function () {
+    $collection = new Collection([[10], [20]]);
+
+    expect($collection->mapSpread(fn ($value, $key) => "$key:$value")->toArray())
+        ->toBe(['0:10', '1:20']);
+});
+
+it('eachSpread() spreads each nested item and returns the collection', function () {
+    $collection = new Collection([[1, 2], [3, 4]]);
+    $sums = [];
+
+    $result = $collection->eachSpread(function ($a, $b) use (&$sums) {
+        $sums[] = $a + $b;
+    });
+
+    expect($sums)->toBe([3, 7])->and($result)->toBe($collection);
+});
+
+it('eachSpread() stops when the callback returns false', function () {
+    $collection = new Collection([[1], [2], [3]]);
+    $seen = [];
+
+    $collection->eachSpread(function ($value) use (&$seen) {
+        $seen[] = $value;
+
+        return $value < 2;
+    });
+
+    expect($seen)->toBe([1, 2]);
+});
+
+it('firstOrFail() returns the first item matching a predicate', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->firstOrFail(fn ($value) => $value > 1))->toBe(2);
+});
+
+it('firstOrFail() returns the first item matching a key/value pair', function () {
+    $collection = new Collection([['id' => 1], ['id' => 2]]);
+
+    expect($collection->firstOrFail('id', 2))->toBe(['id' => 2]);
+});
+
+it('firstOrFail() throws ItemNotFoundException when nothing matches', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    $collection->firstOrFail(fn ($value) => $value === 99);
+})->throws(ItemNotFoundException::class);
+
+it('percentage() returns the share of items matching the predicate', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+
+    expect($collection->percentage(fn ($value) => $value % 2 === 0))->toBe(50.0);
+});
+
+it('percentage() returns null for an empty collection', function () {
+    $collection = new Collection([]);
+
+    expect($collection->percentage(fn () => true))->toBeNull();
+});
