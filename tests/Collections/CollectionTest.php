@@ -688,3 +688,38 @@ it('doesntContain() is the inverse of contains()', function () {
     expect($collection->doesntContain(4))->toBeTrue();
     expect($collection->doesntContain(2))->toBeFalse();
 });
+
+it('replace() overwrites items by matching key', function () {
+    $collection = new Collection(['a' => 1, 'b' => 2, 'c' => 3]);
+
+    expect($collection->replace(['b' => 20, 'd' => 40])->toArray())
+        ->toBe(['a' => 1, 'b' => 20, 'c' => 3, 'd' => 40]);
+});
+
+it('replace() accepts another Collection', function () {
+    $collection = new Collection(['a' => 1, 'b' => 2]);
+
+    expect($collection->replace(new Collection(['b' => 9]))->toArray())
+        ->toBe(['a' => 1, 'b' => 9]);
+});
+
+it('union() keeps existing keys and appends missing ones', function () {
+    $collection = new Collection(['a' => 1, 'b' => 2]);
+
+    expect($collection->union(['b' => 20, 'c' => 3])->toArray())
+        ->toBe(['a' => 1, 'b' => 2, 'c' => 3]);
+});
+
+it('dot() flattens a nested array into dot-notation keys', function () {
+    $collection = new Collection(['user' => ['name' => 'Ann', 'roles' => ['admin']]]);
+
+    expect($collection->dot()->toArray())
+        ->toBe(['user.name' => 'Ann', 'user.roles.0' => 'admin']);
+});
+
+it('undot() expands dot-notation keys back into nested arrays', function () {
+    $collection = new Collection(['user.name' => 'Ann', 'user.age' => 30]);
+
+    expect($collection->undot()->toArray())
+        ->toBe(['user' => ['name' => 'Ann', 'age' => 30]]);
+});
