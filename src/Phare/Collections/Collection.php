@@ -846,6 +846,94 @@ class Collection extends \Phalcon\Support\Collection
     }
 
     /**
+     * Take items until the given callback returns true, or a literal value
+     * is reached (Laravel parity).
+     */
+    public function takeUntil($value): static
+    {
+        $callback = $this->valueAsCallable($value);
+        $data = [];
+        foreach ($this->data as $k => $v) {
+            if ($callback($v, $k)) {
+                break;
+            }
+            $data[$k] = $v;
+        }
+
+        return new static($data);
+    }
+
+    /**
+     * Skip items until the given callback returns true, or a literal value
+     * is reached (Laravel parity).
+     */
+    public function skipUntil($value): static
+    {
+        $callback = $this->valueAsCallable($value);
+        $data = [];
+        $skipping = true;
+        foreach ($this->data as $k => $v) {
+            if ($skipping && $callback($v, $k)) {
+                $skipping = false;
+            }
+            if (!$skipping) {
+                $data[$k] = $v;
+            }
+        }
+
+        return new static($data);
+    }
+
+    /**
+     * Chunk consecutive items together while the callback returns true.
+     * The callback receives the value, key, and current chunk (Laravel parity).
+     */
+    public function chunkWhile(callable $callable): static
+    {
+        $chunks = [];
+        $chunk = [];
+        foreach ($this->data as $k => $v) {
+            if ($chunk === []) {
+                $chunk = [$k => $v];
+
+                continue;
+            }
+            if ($callable($v, $k, new static($chunk))) {
+                $chunk[$k] = $v;
+            } else {
+                $chunks[] = new static($chunk);
+                $chunk = [$k => $v];
+            }
+        }
+        if ($chunk !== []) {
+            $chunks[] = new static($chunk);
+        }
+
+        return new static($chunks);
+    }
+
+    /**
+     * Slice the collection for the given page (1-indexed, Laravel parity).
+     */
+    public function forPage(int $page, int $perPage): static
+    {
+        return $this->slice(max(0, $page - 1) * $perPage, $perPage);
+    }
+
+    /**
+     * Wrap a value in a callback; non-string callables pass through,
+     * everything else becomes a loose-equality match (Laravel parity).
+     */
+    protected function valueAsCallable($value): callable
+    {
+        if (!is_string($value) && is_callable($value)) {
+            return $value;
+        }
+
+        return fn ($item) => $item == $value;
+    }
+
+    /**
      * Create a collection of sliding windows over consecutive items
      * (Laravel parity).
      */
