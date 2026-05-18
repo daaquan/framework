@@ -574,6 +574,61 @@ class Collection extends \Phalcon\Support\Collection
     }
 
     /**
+     * Keep items whose attribute value falls within the inclusive range
+     * `[$values[0], $values[1]]` (Laravel parity).
+     *
+     * @param iterable<mixed>|self $values
+     */
+    public function whereBetween(string $key, $values): static
+    {
+        [$from, $to] = array_values($this->extractItems($values));
+
+        return $this->filter(function ($item) use ($key, $from, $to) {
+            $value = $this->itemValue($item, $key);
+
+            return $value >= $from && $value <= $to;
+        });
+    }
+
+    /**
+     * Remove items whose attribute value falls within the inclusive range
+     * `[$values[0], $values[1]]` (Laravel parity).
+     *
+     * @param iterable<mixed>|self $values
+     */
+    public function whereNotBetween(string $key, $values): static
+    {
+        [$from, $to] = array_values($this->extractItems($values));
+
+        return $this->filter(function ($item) use ($key, $from, $to) {
+            $value = $this->itemValue($item, $key);
+
+            return $value < $from || $value > $to;
+        });
+    }
+
+    /**
+     * Keep only items that are instances of the given class (or one of the
+     * given classes, Laravel parity).
+     *
+     * @param class-string|array<class-string> $type
+     */
+    public function whereInstanceOf($type): static
+    {
+        $types = is_array($type) ? $type : [$type];
+
+        return $this->filter(function ($item) use ($types) {
+            foreach ($types as $class) {
+                if ($item instanceof $class) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+    }
+
+    /**
      * Return the item immediately before the given value (or the first item
      * satisfying a predicate), or null (Laravel parity).
      *
@@ -1025,6 +1080,17 @@ class Collection extends \Phalcon\Support\Collection
     public function contains($attribute)
     {
         return in_array($attribute, $this->data, true);
+    }
+
+    /**
+     * Determine whether the given value is absent from the collection
+     * (inverse of contains(), Laravel parity).
+     *
+     * @param mixed $attribute
+     */
+    public function doesntContain($attribute): bool
+    {
+        return !$this->contains($attribute);
     }
 
     public function containsKey($attribute)

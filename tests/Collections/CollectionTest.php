@@ -643,3 +643,48 @@ it('forPage() returns an empty collection past the last page', function () {
 
     expect($collection->forPage(5, 3)->toArray())->toBe([]);
 });
+
+it('whereBetween() keeps items whose attribute is within the range (inclusive)', function () {
+    $collection = new Collection([
+        ['name' => 'a', 'price' => 10],
+        ['name' => 'b', 'price' => 20],
+        ['name' => 'c', 'price' => 30],
+    ]);
+
+    expect($collection->whereBetween('price', [15, 30])->values()->toArray())
+        ->toBe([['name' => 'b', 'price' => 20], ['name' => 'c', 'price' => 30]]);
+});
+
+it('whereNotBetween() removes items whose attribute is within the range', function () {
+    $collection = new Collection([
+        ['name' => 'a', 'price' => 10],
+        ['name' => 'b', 'price' => 20],
+        ['name' => 'c', 'price' => 30],
+    ]);
+
+    expect($collection->whereNotBetween('price', [15, 30])->values()->toArray())
+        ->toBe([['name' => 'a', 'price' => 10]]);
+});
+
+it('whereInstanceOf() keeps only items of the given type', function () {
+    $a = new RuntimeException('x');
+    $b = new LogicException('y');
+    $collection = new Collection([$a, $b, 'plain']);
+
+    expect($collection->whereInstanceOf(RuntimeException::class)->values()->toArray())->toBe([$a]);
+});
+
+it('whereInstanceOf() accepts an array of types', function () {
+    $a = new RuntimeException('x');
+    $b = new LogicException('y');
+    $collection = new Collection([$a, $b, 'plain']);
+
+    expect($collection->whereInstanceOf([RuntimeException::class, LogicException::class])->count())->toBe(2);
+});
+
+it('doesntContain() is the inverse of contains()', function () {
+    $collection = new Collection([1, 2, 3]);
+
+    expect($collection->doesntContain(4))->toBeTrue();
+    expect($collection->doesntContain(2))->toBeFalse();
+});
