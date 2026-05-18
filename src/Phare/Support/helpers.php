@@ -892,3 +892,82 @@ if (!function_exists('throw_unless')) {
         return $condition;
     }
 }
+
+// e()
+if (!function_exists('e')) {
+    /**
+     * Escape HTML special characters in a string (Laravel parity).
+     *
+     * @param BackedEnum|string|int|float|null $value
+     */
+    function e($value, bool $doubleEncode = true): string
+    {
+        if ($value instanceof BackedEnum) {
+            $value = $value->value;
+        }
+
+        return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8', $doubleEncode);
+    }
+}
+
+// transform()
+if (!function_exists('transform')) {
+    /**
+     * Apply the callback to the value when it is filled, otherwise return the
+     * default (resolved when callable) (Laravel parity).
+     *
+     * @param mixed $value
+     * @param mixed $default
+     * @return mixed
+     */
+    function transform($value, callable $callback, $default = null)
+    {
+        if (filled($value)) {
+            return $callback($value);
+        }
+
+        return is_callable($default) ? $default($value) : $default;
+    }
+}
+
+// object_get()
+if (!function_exists('object_get')) {
+    /**
+     * Read a nested object property using "dot" notation (Laravel parity).
+     *
+     * @param mixed $object
+     * @param mixed $default
+     * @return mixed
+     */
+    function object_get($object, ?string $key, $default = null)
+    {
+        if ($key === null || trim($key) === '') {
+            return $object;
+        }
+
+        foreach (explode('.', $key) as $segment) {
+            if (!is_object($object) || !isset($object->{$segment})) {
+                return value($default);
+            }
+            $object = $object->{$segment};
+        }
+
+        return $object;
+    }
+}
+
+// preg_replace_array()
+if (!function_exists('preg_replace_array')) {
+    /**
+     * Replace each occurrence of the pattern with the next value from the
+     * replacements array, in order (Laravel parity).
+     *
+     * @param array<string> $replacements
+     */
+    function preg_replace_array(string $pattern, array $replacements, string $subject): string
+    {
+        return preg_replace_callback($pattern, static function () use (&$replacements) {
+            return array_shift($replacements);
+        }, $subject);
+    }
+}

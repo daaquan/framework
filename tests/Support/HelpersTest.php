@@ -85,3 +85,41 @@ test('throw_unless throws when the condition is falsy', function () {
 test('throw_unless returns the condition when it is truthy', function () {
     expect(throw_unless('ok', RuntimeException::class))->toBe('ok');
 });
+
+test('e escapes HTML special characters', function () {
+    expect(e('<a href="x">tom & jerry</a>'))
+        ->toBe('&lt;a href=&quot;x&quot;&gt;tom &amp; jerry&lt;/a&gt;');
+});
+
+test('e returns an empty string for null', function () {
+    expect(e(null))->toBe('');
+});
+
+test('transform applies the callback when the value is filled', function () {
+    expect(transform(5, fn ($v) => $v * 2))->toBe(10);
+});
+
+test('transform returns the default when the value is blank', function () {
+    expect(transform(null, fn ($v) => $v * 2, 'fallback'))->toBe('fallback');
+});
+
+test('transform resolves a callable default', function () {
+    expect(transform('', fn ($v) => $v, fn () => 'computed'))->toBe('computed');
+});
+
+test('object_get reads a nested object property via dot notation', function () {
+    $obj = (object)['profile' => (object)['name' => 'Ann']];
+
+    expect(object_get($obj, 'profile.name'))->toBe('Ann');
+});
+
+test('object_get returns the default when a segment is missing', function () {
+    $obj = (object)['profile' => (object)['name' => 'Ann']];
+
+    expect(object_get($obj, 'profile.age', 0))->toBe(0);
+});
+
+test('preg_replace_array replaces matches sequentially from the array', function () {
+    expect(preg_replace_array('/\?/', ['8:30', '9:00'], 'The event runs from ? to ?'))
+        ->toBe('The event runs from 8:30 to 9:00');
+});
