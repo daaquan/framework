@@ -1675,6 +1675,73 @@ class Collection extends \Phalcon\Support\Collection
         }
     }
 
+    /**
+     * Set the given key on the collection, overwriting any existing value,
+     * and return the collection (Laravel parity).
+     *
+     * @param array-key $key
+     * @param mixed $value
+     */
+    public function put($key, $value): static
+    {
+        $data = $this->data;
+        $data[$key] = $value;
+        $this->data = $data;
+
+        return $this;
+    }
+
+    /**
+     * Remove the given keys from the collection and return it (Laravel parity).
+     *
+     * @param array-key ...$keys
+     */
+    public function forget(...$keys): static
+    {
+        $data = $this->data;
+        foreach ($keys as $key) {
+            unset($data[$key]);
+        }
+        $this->data = $data;
+
+        return $this;
+    }
+
+    /**
+     * Return the value at the given key, storing and returning the supplied
+     * default (resolved if callable) when the key is absent (Laravel parity).
+     *
+     * @param array-key $key
+     * @param mixed $value
+     * @return mixed
+     */
+    public function getOrPut($key, $value)
+    {
+        if (array_key_exists($key, $this->data)) {
+            return $this->data[$key];
+        }
+
+        $resolved = $value instanceof Closure ? $value() : $value;
+        $this->put($key, $resolved);
+
+        return $resolved;
+    }
+
+    /**
+     * Map the items in place via the callback and return the collection
+     * (Laravel parity — the mutating counterpart of map()).
+     */
+    public function transform(callable $callback): static
+    {
+        $data = [];
+        foreach ($this->data as $key => $value) {
+            $data[$key] = $callback($value, $key);
+        }
+        $this->data = $data;
+
+        return $this;
+    }
+
     public function when($condition, callable $callable)
     {
         if ($condition) {
