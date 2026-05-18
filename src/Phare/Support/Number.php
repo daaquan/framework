@@ -145,4 +145,87 @@ class Number
 
         return $output;
     }
+
+    /**
+     * Render the number with long magnitude words, e.g. 1000 → "1 thousand"
+     * (Laravel parity).
+     *
+     * @param int|float $number
+     */
+    public static function forHumans($number, int $precision = 0, ?int $maxPrecision = null): string
+    {
+        return static::summarize($number, $precision, $maxPrecision, [
+            3 => ' thousand',
+            6 => ' million',
+            9 => ' billion',
+            12 => ' trillion',
+            15 => ' quadrillion',
+        ]);
+    }
+
+    /**
+     * Render the number with short magnitude suffixes, e.g. 1000 → "1K"
+     * (Laravel parity).
+     *
+     * @param int|float $number
+     */
+    public static function abbreviate($number, int $precision = 0, ?int $maxPrecision = null): string
+    {
+        return static::summarize($number, $precision, $maxPrecision, [
+            3 => 'K',
+            6 => 'M',
+            9 => 'B',
+            12 => 'T',
+            15 => 'Q',
+        ]);
+    }
+
+    /**
+     * Parse a localized numeric string into an integer (Laravel parity).
+     *
+     * @return int|false
+     */
+    public static function parseInt(string $string, ?string $locale = null)
+    {
+        return (new NumberFormatter($locale ?? static::$locale, NumberFormatter::DECIMAL))
+            ->parse($string, NumberFormatter::TYPE_INT32);
+    }
+
+    /**
+     * Parse a localized numeric string into a float (Laravel parity).
+     *
+     * @return float|false
+     */
+    public static function parseFloat(string $string, ?string $locale = null)
+    {
+        return (new NumberFormatter($locale ?? static::$locale, NumberFormatter::DECIMAL))
+            ->parse($string, NumberFormatter::TYPE_DOUBLE);
+    }
+
+    /**
+     * Reduce a number to a scaled value plus a magnitude unit.
+     *
+     * @param int|float $number
+     * @param array<int, string> $units
+     */
+    protected static function summarize($number, int $precision, ?int $maxPrecision, array $units): string
+    {
+        if ((float)$number === 0.0) {
+            return $precision > 0 ? static::format(0, $precision, $maxPrecision) : '0';
+        }
+
+        if ($number < 0) {
+            return '-' . static::summarize(abs($number), $precision, $maxPrecision, $units);
+        }
+
+        if ($number >= 1e15) {
+            return static::summarize($number / 1e15, $precision, $maxPrecision, $units) . end($units);
+        }
+
+        $numberExponent = (int)floor(log10((float)$number));
+        $displayExponent = $numberExponent - ($numberExponent % 3);
+        $number /= 10 ** $displayExponent;
+
+        return trim(static::format($number, $precision, $maxPrecision) . ($units[$displayExponent] ?? ''));
+    }
 }
