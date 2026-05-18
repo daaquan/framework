@@ -576,4 +576,61 @@ class Str
     {
         return !self::isBlank($value);
     }
+
+    /**
+     * Mask a portion of a string with a repeated character (Laravel parity).
+     *
+     * A negative $index counts from the end of the string.
+     */
+    public static function mask(string $string, string $character, int $index, ?int $length = null, string $encoding = 'UTF-8'): string
+    {
+        if ($character === '') {
+            return $string;
+        }
+
+        $segment = mb_substr($string, $index, $length, $encoding);
+
+        if ($segment === '') {
+            return $string;
+        }
+
+        $strlen = mb_strlen($string, $encoding);
+        $startIndex = $index < 0 ? max($strlen + $index, 0) : min($index, $strlen);
+
+        $start = mb_substr($string, 0, $startIndex, $encoding);
+        $end = mb_substr($string, $startIndex + mb_strlen($segment, $encoding), null, $encoding);
+
+        return $start . str_repeat(mb_substr($character, 0, 1, $encoding), mb_strlen($segment, $encoding)) . $end;
+    }
+
+    /**
+     * Remove leading/trailing whitespace and collapse any internal runs of
+     * whitespace down to single spaces (Laravel parity).
+     */
+    public static function squish(string $value): string
+    {
+        return trim((string)preg_replace('~\s+~u', ' ', $value));
+    }
+
+    /**
+     * Split a string into segments on uppercase-letter boundaries
+     * (Laravel parity).
+     *
+     * @return list<string>
+     */
+    public static function ucsplit(string $string): array
+    {
+        return preg_split('/(?=\p{Lu})/u', $string, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    }
+
+    /**
+     * Replace every occurrence of each map key with its mapped value
+     * (Laravel parity).
+     *
+     * @param array<string, string> $map
+     */
+    public static function swap(array $map, string $subject): string
+    {
+        return strtr($subject, $map);
+    }
 }
