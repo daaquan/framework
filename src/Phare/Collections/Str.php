@@ -633,4 +633,59 @@ class Str
     {
         return strtr($subject, $map);
     }
+
+    /**
+     * Remove the given needle from the start of the subject. When an array is
+     * given, the first matching needle is removed (Laravel parity).
+     *
+     * @param string|array<string> $needle
+     */
+    public static function chopStart(string $subject, string|array $needle): string
+    {
+        foreach ((array)$needle as $n) {
+            if ($n !== '' && str_starts_with($subject, $n)) {
+                return substr($subject, strlen($n));
+            }
+        }
+
+        return $subject;
+    }
+
+    /**
+     * Remove the given needle from the end of the subject. When an array is
+     * given, the first matching needle is removed (Laravel parity).
+     *
+     * @param string|array<string> $needle
+     */
+    public static function chopEnd(string $subject, string|array $needle): string
+    {
+        foreach ((array)$needle as $n) {
+            if ($n !== '' && str_ends_with($subject, $n)) {
+                return substr($subject, 0, -strlen($n));
+            }
+        }
+
+        return $subject;
+    }
+
+    /**
+     * Take the first ($limit >= 0) or last ($limit < 0) characters of the
+     * string (Laravel parity).
+     */
+    public static function take(string $string, int $limit): string
+    {
+        if ($limit < 0) {
+            return mb_substr($string, $limit);
+        }
+
+        return mb_substr($string, 0, $limit);
+    }
+
+    /**
+     * Wrap the string to a given number of characters (Laravel parity).
+     */
+    public static function wordWrap(string $string, int $characters = 75, string $break = "\n", bool $cutLongWords = false): string
+    {
+        return wordwrap($string, $characters, $break, $cutLongWords);
+    }
 }

@@ -230,3 +230,35 @@ test('swap replaces every mapped substring', function () {
     expect(Str::swap(['PHP' => 'Phalcon', 'fast' => 'quick'], 'PHP is fast'))
         ->toBe('Phalcon is quick');
 });
+
+test('chopStart removes the needle from the start when present', function () {
+    expect(Str::chopStart('https://laravel.com', 'https://'))->toBe('laravel.com');
+});
+
+test('chopStart leaves the string untouched when the needle is absent', function () {
+    expect(Str::chopStart('laravel.com', 'https://'))->toBe('laravel.com');
+});
+
+test('chopStart removes the first matching needle from an array', function () {
+    expect(Str::chopStart('http://laravel.com', ['https://', 'http://']))->toBe('laravel.com');
+});
+
+test('chopEnd removes the needle from the end when present', function () {
+    expect(Str::chopEnd('image.jpg', '.jpg'))->toBe('image');
+});
+
+test('chopEnd removes the first matching needle from an array', function () {
+    expect(Str::chopEnd('image.png', ['.jpg', '.png']))->toBe('image');
+});
+
+test('take returns the first N characters for a positive limit', function () {
+    expect(Str::take('Hello World', 5))->toBe('Hello');
+});
+
+test('take returns the last N characters for a negative limit', function () {
+    expect(Str::take('Hello World', -5))->toBe('World');
+});
+
+test('wordWrap wraps the string at the given character width', function () {
+    expect(Str::wordWrap('The quick brown fox', 10, '|'))->toBe('The quick|brown fox');
+});
