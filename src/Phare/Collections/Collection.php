@@ -328,6 +328,29 @@ class Collection extends \Phalcon\Support\Collection
     }
 
     /**
+     * Collapse a collection of arrays/collections into a single collection,
+     * preserving keys — later keys overwrite earlier ones (Laravel parity).
+     */
+    public function collapseWithKeys(): static
+    {
+        $results = [];
+
+        foreach ($this->data as $values) {
+            if ($values instanceof self) {
+                $values = $values->toArray();
+            }
+
+            if (is_array($values)) {
+                foreach ($values as $key => $value) {
+                    $results[$key] = $value;
+                }
+            }
+        }
+
+        return new static($results);
+    }
+
+    /**
      * Create a new collection of every nth element (Laravel parity).
      */
     public function nth(int $step, int $offset = 0): static
@@ -841,6 +864,40 @@ class Collection extends \Phalcon\Support\Collection
     public function undot(): static
     {
         return new static(Arr::undot($this->data));
+    }
+
+    /**
+     * Combine the collection's values as keys with the given values
+     * (Laravel parity).
+     *
+     * @param iterable<mixed>|self $values
+     */
+    public function combine($values): static
+    {
+        return new static(array_combine(
+            array_values($this->data),
+            array_values($this->keyedItems($values))
+        ));
+    }
+
+    /**
+     * Recursively merge the given items into the collection (Laravel parity).
+     *
+     * @param iterable<mixed>|self $items
+     */
+    public function mergeRecursive($items): static
+    {
+        return new static(array_merge_recursive($this->data, $this->keyedItems($items)));
+    }
+
+    /**
+     * Recursively replace items by key from the given items (Laravel parity).
+     *
+     * @param iterable<mixed>|self $items
+     */
+    public function replaceRecursive($items): static
+    {
+        return new static(array_replace_recursive($this->data, $this->keyedItems($items)));
     }
 
     public function zip(array ...$supplementary): static
