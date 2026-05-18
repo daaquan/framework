@@ -966,3 +966,62 @@ it('ensure() throws when an item does not match the type', function () {
 
     $collection->ensure('int');
 })->throws(UnexpectedValueException::class);
+
+it('put() sets a key on the collection and returns it', function () {
+    $collection = new Collection(['a' => 1]);
+    $result = $collection->put('b', 2);
+
+    expect($result)->toBe($collection)
+        ->and($collection->toArray())->toBe(['a' => 1, 'b' => 2]);
+});
+
+it('put() overwrites an existing key', function () {
+    $collection = new Collection(['a' => 1]);
+    $collection->put('a', 9);
+
+    expect($collection->toArray())->toBe(['a' => 9]);
+});
+
+it('forget() removes the given keys and returns the collection', function () {
+    $collection = new Collection(['a' => 1, 'b' => 2, 'c' => 3]);
+    $result = $collection->forget('a', 'c');
+
+    expect($result)->toBe($collection)
+        ->and($collection->toArray())->toBe(['b' => 2]);
+});
+
+it('getOrPut() returns the existing value without overwriting', function () {
+    $collection = new Collection(['a' => 1]);
+
+    expect($collection->getOrPut('a', 99))->toBe(1)
+        ->and($collection->toArray())->toBe(['a' => 1]);
+});
+
+it('getOrPut() stores and returns a new value when the key is absent', function () {
+    $collection = new Collection(['a' => 1]);
+
+    expect($collection->getOrPut('b', 2))->toBe(2)
+        ->and($collection->toArray())->toBe(['a' => 1, 'b' => 2]);
+});
+
+it('getOrPut() resolves a callable value lazily', function () {
+    $collection = new Collection([]);
+
+    expect($collection->getOrPut('k', fn () => 42))->toBe(42)
+        ->and($collection->toArray())->toBe(['k' => 42]);
+});
+
+it('transform() maps the items in place and returns the collection', function () {
+    $collection = new Collection([1, 2, 3]);
+    $result = $collection->transform(fn ($value) => $value * 10);
+
+    expect($result)->toBe($collection)
+        ->and($collection->toArray())->toBe([10, 20, 30]);
+});
+
+it('transform() receives the key as the second argument', function () {
+    $collection = new Collection(['a' => 1, 'b' => 2]);
+    $collection->transform(fn ($value, $key) => "$key$value");
+
+    expect($collection->toArray())->toBe(['a' => 'a1', 'b' => 'b2']);
+});
