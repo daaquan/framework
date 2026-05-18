@@ -201,3 +201,32 @@ test('random generates string of given length', function () {
     $r = Str::random(32);
     expect(strlen($r))->toBe(32);
 });
+
+test('mask hides a portion of the string with a character', function () {
+    expect(Str::mask('taylor@example.com', '*', 3))->toBe('tay***************');
+});
+
+test('mask honours an explicit length', function () {
+    expect(Str::mask('taylor@example.com', '*', 3, 4))->toBe('tay****example.com');
+});
+
+test('mask counts a negative index from the end', function () {
+    expect(Str::mask('taylor@example.com', '*', -10, 3))->toBe('taylor@e***ple.com');
+});
+
+test('squish trims and collapses internal whitespace', function () {
+    expect(Str::squish("  hello   world\n\t foo  "))->toBe('hello world foo');
+});
+
+test('ucsplit splits the string on uppercase boundaries', function () {
+    expect(Str::ucsplit('FooBarBaz'))->toBe(['Foo', 'Bar', 'Baz']);
+});
+
+test('ucsplit returns a single segment when there is no uppercase break', function () {
+    expect(Str::ucsplit('foobar'))->toBe(['foobar']);
+});
+
+test('swap replaces every mapped substring', function () {
+    expect(Str::swap(['PHP' => 'Phalcon', 'fast' => 'quick'], 'PHP is fast'))
+        ->toBe('Phalcon is quick');
+});
