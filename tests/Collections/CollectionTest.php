@@ -1025,3 +1025,49 @@ it('transform() receives the key as the second argument', function () {
 
     expect($collection->toArray())->toBe(['a' => 'a1', 'b' => 'b2']);
 });
+
+it('splice() removes and returns a slice, mutating the collection', function () {
+    $collection = new Collection([1, 2, 3, 4, 5]);
+    $removed = $collection->splice(1, 2);
+
+    expect($removed)->toBeInstanceOf(Collection::class)
+        ->and($removed->toArray())->toBe([2, 3])
+        ->and(array_values($collection->toArray()))->toBe([1, 4, 5]);
+});
+
+it('splice() removes to the end when no length is given', function () {
+    $collection = new Collection([1, 2, 3, 4]);
+
+    expect($collection->splice(2)->toArray())->toBe([3, 4])
+        ->and(array_values($collection->toArray()))->toBe([1, 2]);
+});
+
+it('splice() inserts replacement items in place of the removed slice', function () {
+    $collection = new Collection([1, 2, 3]);
+    $collection->splice(1, 1, [20, 21]);
+
+    expect(array_values($collection->toArray()))->toBe([1, 20, 21, 3]);
+});
+
+it('mapToDictionary() groups values into plain arrays keyed by the callback', function () {
+    $collection = new Collection([
+        ['team' => 'red', 'name' => 'Ann'],
+        ['team' => 'blue', 'name' => 'Bob'],
+        ['team' => 'red', 'name' => 'Cy'],
+    ]);
+
+    expect($collection->mapToDictionary(fn ($item) => [$item['team'] => $item['name']])->toArray())
+        ->toBe(['red' => ['Ann', 'Cy'], 'blue' => ['Bob']]);
+});
+
+it('containsOneItem() is true only when there is exactly one item', function () {
+    expect((new Collection([1]))->containsOneItem())->toBeTrue();
+    expect((new Collection([1, 2]))->containsOneItem())->toBeFalse();
+    expect((new Collection([]))->containsOneItem())->toBeFalse();
+});
+
+it('containsManyItems() is true only when there is more than one item', function () {
+    expect((new Collection([1, 2]))->containsManyItems())->toBeTrue();
+    expect((new Collection([1]))->containsManyItems())->toBeFalse();
+    expect((new Collection([]))->containsManyItems())->toBeFalse();
+});
