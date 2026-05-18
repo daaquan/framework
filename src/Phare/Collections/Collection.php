@@ -751,6 +751,22 @@ class Collection extends \Phalcon\Support\Collection
         return array_values((array)$values);
     }
 
+    /**
+     * Normalize an items argument to an array while preserving its keys.
+     */
+    private function keyedItems($values): array
+    {
+        if ($values instanceof self) {
+            return $values->toArray();
+        }
+
+        if (is_array($values)) {
+            return $values;
+        }
+
+        return iterator_to_array($values, true);
+    }
+
     public function fill($val): static
     {
         return new static(array_fill_keys(array_keys($this->data), $val));
@@ -785,6 +801,46 @@ class Collection extends \Phalcon\Support\Collection
                     $haystack : iterator_to_array($haystack)
             )
         );
+    }
+
+    /**
+     * Replace items by key, overwriting existing keys and appending new ones
+     * (Laravel parity).
+     *
+     * @param iterable<mixed>|self $items
+     */
+    public function replace($items): static
+    {
+        return new static(array_replace($this->data, $this->keyedItems($items)));
+    }
+
+    /**
+     * Union the collection with the given items, keeping the collection's
+     * own value when a key collides (Laravel parity).
+     *
+     * @param iterable<mixed>|self $items
+     */
+    public function union($items): static
+    {
+        return new static($this->data + $this->keyedItems($items));
+    }
+
+    /**
+     * Flatten a nested collection into a single level with dot-notation keys
+     * (Laravel parity).
+     */
+    public function dot(): static
+    {
+        return new static(Arr::dot($this->data));
+    }
+
+    /**
+     * Expand dot-notation keys back into a nested array — the inverse of
+     * dot() (Laravel parity).
+     */
+    public function undot(): static
+    {
+        return new static(Arr::undot($this->data));
     }
 
     public function zip(array ...$supplementary): static
