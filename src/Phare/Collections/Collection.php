@@ -118,6 +118,40 @@ class Collection extends \Phalcon\Support\Collection
         return new static(array_map($callback, $this->data));
     }
 
+    /**
+     * Map over the items, spreading each item's elements as callback
+     * arguments; the item key is appended as the final argument
+     * (Laravel parity).
+     */
+    public function mapSpread(callable $callback): static
+    {
+        $data = [];
+        foreach ($this->data as $key => $chunk) {
+            $arguments = $chunk instanceof self ? $chunk->toArray() : (array)$chunk;
+            $arguments[] = $key;
+            $data[$key] = $callback(...$arguments);
+        }
+
+        return new static($data);
+    }
+
+    /**
+     * Run a callback over each item, spreading the item's elements as
+     * callback arguments. Returning false stops iteration (Laravel parity).
+     */
+    public function eachSpread(callable $callback): static
+    {
+        foreach ($this->data as $key => $chunk) {
+            $arguments = $chunk instanceof self ? $chunk->toArray() : (array)$chunk;
+            $arguments[] = $key;
+            if ($callback(...$arguments) === false) {
+                break;
+            }
+        }
+
+        return $this;
+    }
+
     public function mapWithKey(callable $callback): static
     {
         $data = [];
@@ -535,6 +569,51 @@ class Collection extends \Phalcon\Support\Collection
     public function firstWhere(string $key, $operator = null, $value = null)
     {
         return $this->first($this->wherePredicate($key, $operator, $value, func_num_args()));
+    }
+
+    /**
+     * Return the first item matching a predicate or an attribute comparison,
+     * throwing when nothing matches (Laravel parity).
+     *
+     * @param callable|string|null $key
+     * @param mixed $operator
+     * @param mixed $value
+     * @return mixed
+     *
+     * @throws ItemNotFoundException when no item matches
+     */
+    public function firstOrFail($key = null, $operator = null, $value = null)
+    {
+        $argCount = func_num_args();
+
+        if ($argCount === 0) {
+            $items = $this;
+        } elseif ($argCount === 1 && !is_string($key) && is_callable($key)) {
+            $items = $this->filter($key);
+        } else {
+            $items = $this->filter($this->wherePredicate((string)$key, $operator, $value, $argCount));
+        }
+
+        if ($items->count() === 0) {
+            throw new ItemNotFoundException();
+        }
+
+        return $items->first();
+    }
+
+    /**
+     * Return the percentage of items that satisfy the predicate, or null for
+     * an empty collection (Laravel parity).
+     */
+    public function percentage(callable $callback, int $precision = 2): ?float
+    {
+        $total = $this->count();
+
+        if ($total === 0) {
+            return null;
+        }
+
+        return round($this->filter($callback)->count() / $total * 100, $precision);
     }
 
     /**
