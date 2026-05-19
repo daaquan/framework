@@ -1,0 +1,24 @@
+# Ralph Progress — Laravel 13 Parity Audit Pass
+
+## Codebase Patterns
+- Audit PRD is READ-AND-RECORD ONLY. Never edit any file under `src/Phare/`. Output is docs only.
+- Laravel 13 reference is read-only at `/opt/laravel-framework/src/Illuminate/` — confirmed version `13.2.0` (const VERSION in Foundation/Application.php).
+- Each subsystem story appends a `### <Subsystem>` section to `docs/audit-area-{a..e}.md` in the fixed shape: `現状 (Current)` / `期待 (Expected)` / `差分 (Gaps)` / `工数感 (Effort: S|M|L)`.
+- Gaps split into three categories: Missing / Type mismatch / Phalcon leak.
+- Wrapper Rule (§2): a public method param/return of raw `Phalcon\*` type = a leak/gap. Container `get()/has()` inherited from `Phalcon\Di\Di` is a pre-documented exception, NOT a new gap.
+- Effort rating is coarse S/M/L with a one-line rationale.
+- Enumerate Laravel public methods fast: `grep -oE 'public function [a-zA-Z_]+\(' <file>` (avoid piping into RTK-hooked commands that choke on `--` flags; keep grep simple).
+- Phare public APIs are frequently UNTYPED (no param/return types) — record that as a Type mismatch vs Laravel's typed signatures.
+- The Ralph runner expects `tasks/prd.json`; it was generated from `tasks/prd-parity-audit-pass.md`. Branch: `ralph/parity-audit-pass`.
+
+## 2026-05-19 - US-A01 Audit Routing
+- Diffed Phare routing public API vs Laravel 13 routing reference.
+- Files changed: tasks/prd.json (new), tasks/progress.txt (new), docs/audit-area-a.md (new, ### Routing section).
+- Phare routing = `Phare\Routing\Router` (thin in-memory collector) + `RouteLoader`/`FileRouteLoader`/`ControllerRouteLoader` + `#[Route]`/`#[RouteAttribute]` attributes.
+- Result: Effort L. Many missing features (resources customization, named routes, route-model binding, pattern constraints, RouteRegistrar, closure/array actions). No public Phalcon leak, but the `router` DI service IS a raw `Phalcon\Mvc\Router`.
+- **Learnings for future iterations:**
+  - Phare's routing is structurally different from Laravel: a collector class + loader classes, not a single Router with dispatch. Don't expect 1:1 class mapping.
+  - Phare verb methods return `$this` (the collector), not a `Route` object — chaining differs from Laravel.
+  - `docs/audit-area-a.md` now has a header block; future Area-A stories should APPEND their `### <Subsystem>` section, not recreate the file.
+  - Check `src/Phare/Contracts/` for the interface that defines a subsystem's intended public surface — useful for the 現状 column.
+---
