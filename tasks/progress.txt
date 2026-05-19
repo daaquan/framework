@@ -57,3 +57,15 @@
   - `### Request`'s validation surface (`$validators`, `make`, `validate`, `rules`) overlaps US-A06 (FormRequest + Validation) — flag the decoupling there, don't double-count effort.
   - Pattern confirmed: Phalcon leaks here are STRUCTURAL (extends a Phalcon class / contract extends a Phalcon interface), not signature-level — Phare's own method signatures carry no `Phalcon\*` types. Distinguish the two leak forms in the audit.
 ---
+
+## 2026-05-19 - US-A05 Audit Response
+- Diffed Phare response surface vs Laravel 13 Http/{Response,ResponseTrait,JsonResponse,RedirectResponse}.php + Routing/ResponseFactory.php (+ contract).
+- Files changed: docs/audit-area-a.md (### Response section), tasks/prd.json, tasks/progress.txt. No framework code touched.
+- Result: Effort L. Phare = `Http\Response` (extends `Phalcon\Http\Response`, implements contract that extends `Phalcon\Http\ResponseInterface`) + unbound `FileResponse`/`StreamedResponse` (extend `Phalcon\Http\Response` directly) + `response()`/`redirect()` helpers. NO JsonResponse, NO RedirectResponse, NO ResponseFactory.
+- **Learnings for future iterations:**
+  - Response leaks on ALL THREE axes simultaneously: class inheritance (`extends Phalcon\Http\Response`), contract extension (`Contracts\Http\Response extends Phalcon\Http\ResponseInterface`), AND signature-level (`redirect()/back()/redirectTo()` return raw `Phalcon\Http\ResponseInterface`). Earlier sections each had only 1-2 of these — Response is the worst case so far.
+  - `Response::status(int): static` is a SETTER returning `$this`; Laravel's `ResponseTrait::status(): int` is a GETTER. Same name, opposite semantics — record as a Type-mismatch porting hazard, not just a missing method.
+  - `Response::view()` is a literal stub: sets content to `"View: <name> with data: <json>"`. Treat such "would need integration"/debug-string stubs as correctness defects in the audit, separate from parity gaps (same pattern as Request's `route()` stub in US-A04).
+  - Laravel's `response()` with no args returns the ResponseFactory, not a Response — the factory is the real response API (17 verbs incl. noContent/jsonp/eventStream/streamJson/redirectToRoute/...). Phare's `response()` always returns a Response. When auditing a "factory" subsystem, diff the *factory contract*, not just the value classes.
+  - `FileResponse`/`StreamedResponse` extend `Phalcon\Http\Response` directly (not Phare's `Response`) — a subsystem can have classes that bypass the project's own wrapper. Check the `extends` clause of every class, not just the primary one.
+---
