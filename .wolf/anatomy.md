@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-19T08:45:04.679Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-19T08:52:10.375Z
 > Files: 505 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -48,7 +48,7 @@
 
 ## docs/
 
-- `audit-area-a.md` — Audit — Area A: Core Web Stack (~1313 tok)
+- `audit-area-a.md` — Audit — Area A: Core Web Stack (~3911 tok)
 - `auth.md` — Authentication (~693 tok)
 - `cache.md` — Cache (~507 tok)
 - `console.md` — Console (~761 tok)
