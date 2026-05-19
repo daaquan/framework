@@ -69,3 +69,16 @@
   - Laravel's `response()` with no args returns the ResponseFactory, not a Response — the factory is the real response API (17 verbs incl. noContent/jsonp/eventStream/streamJson/redirectToRoute/...). Phare's `response()` always returns a Response. When auditing a "factory" subsystem, diff the *factory contract*, not just the value classes.
   - `FileResponse`/`StreamedResponse` extend `Phalcon\Http\Response` directly (not Phare's `Response`) — a subsystem can have classes that bypass the project's own wrapper. Check the `extends` clause of every class, not just the primary one.
 ---
+
+## 2026-05-19 - US-A06 Audit FormRequest + Validation
+- Diffed Phare FormRequest + Validator/MessageBag/ValidationException vs Laravel 13 Foundation/Http/FormRequest.php, ValidatesWhenResolvedTrait, Validation/{Validator,Rule,ValidationException}.php, Validation/Rules/*, Contracts/Validation/*.
+- Files changed: docs/audit-area-a.md (### FormRequest + Validation section), tasks/prd.json, tasks/progress.txt. No framework code touched.
+- Result: Effort L. Validator = 19 built-in rules vs Laravel ~110. No conditional/dependent/array rules, no Rule builder, no object/closure rules, no nested dot-notation, no Contracts\Validation\*. FormRequest lacks the redirect-back-with-errors flow entirely.
+- **Learnings for future iterations:**
+  - Laravel built-in rule count comes from `grep -oE 'public function validate[A-Za-z]+\(' Validation/Concerns/ValidatesAttributes.php` — ~110. The `Validation/Rule.php` static builders (28) and `Validation/Rules/*` classes are a SEPARATE surface; audit all three.
+  - Phare FormRequest extends `Phare\Http\Request` which extends `Phalcon\Http\Request` — the structural leak is INHERITED from US-A04, do not double-count it as a new leak.
+  - `src/Phare/Validation/` (Validator, MessageBag, ValidationException) is Phalcon-CLEAN — first subsystem in Area A with zero Phalcon coupling in its own namespace.
+  - Stub-defect pattern continues: `exists`/`unique` appear in `getDefaultMessage()` but have NO `validateExists`/`validateUnique` method — `validateRule()` no-ops on unknown rules, so they silently false-pass. Same defect class as `Request::route()` (US-A04) and `Response::view()` (US-A05).
+  - `safe()` return-type mismatch recurs: Phare returns plain `array`, Laravel returns a `ValidatedInput` object — flag wherever `safe()`/`validated()` appear.
+  - There is no `src/Phare/Contracts/Validation/` namespace — Validator/FormRequest publish no interface, unlike Laravel's 11-contract `Contracts\Validation\*`.
+---

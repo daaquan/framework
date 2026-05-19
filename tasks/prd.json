@@ -92,8 +92,8 @@
         "No framework code changed"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-19. ### FormRequest + Validation appended to docs/audit-area-a.md. Effort L. Validator is a 19-rule toy vs Laravel's ~110 rules; no conditional/dependent/array rules, no Rule builder/object rules, no nested dot-notation, no Contracts\\Validation\\*. FormRequest inherits the Request structural Phalcon leak (extends Phalcon\\Http\\Request) and lacks the entire redirect-back-with-errors flow. Validation namespace itself is Phalcon-clean. Correctness defect: `exists`/`unique` have default messages but NO validate* method and no presence verifier -> guaranteed false-pass. safe() returns array not ValidatedInput."
     },
     {
       "id": "US-A07",
