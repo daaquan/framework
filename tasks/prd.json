@@ -137,8 +137,8 @@
         "No framework code changed"
       ],
       "priority": 9,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-19. ### Builder appended to docs/audit-area-b.md. Effort L. Second pillar of the Eloquent facade — structurally welded to Phalcon\\Mvc\\Model\\Criteria AND BuilderInterface extends Phalcon\\Mvc\\Model\\CriteriaInterface (Phalcon interface baked into Phare's published contract — worse than US-B01). Signature-level Phalcon leaks on get()/first()/last() (return Phalcon\\Mvc\\ModelInterface / ResultsetInterface). Missing ~60/93 Eloquent Builder methods (find*/firstOr*/sole/value/value chunks/createOrFirst/updateOrCreate/upsert/touch/whereHas family/withCount/withSum) and ~180/228 Query Builder methods (aggregates, joins, HAVING, whereDate/Json/Exists/Any/All, insert*/upsert/truncate, toSql/getBindings, simplePaginate/cursorPaginate/chunk/each/lazy). No $passthru — Model::query()->count()/->toSql()/->exists() throw BadMethodCallException. Correctness defects: paginate($page,$limit): BuilderInterface (Laravel: paginate($perPage,...): LengthAwarePaginator — INVERTED arg order, opposite return); update(array) builds raw UPDATE SQL via getWriteConnection bypassing model events/mutators; delete() iterates N round-trips; select()/addSelect() CSV explode/implode corrupts comma-bearing expressions; isOperator() recognises 11 ops vs Laravel's 30+ (Postgres/MySQL ops silently mis-bind); last() is non-Laravel + Phalcon leak."
     },
     {
       "id": "US-B03",

@@ -62,8 +62,40 @@
         "json"
       ],
       "related_bugs": [],
-      "occurrences": 3,
-      "last_seen": "2026-05-19T09:04:43.121Z"
+      "occurrences": 4,
+      "last_seen": "2026-05-19T09:08:18.482Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-05-19T09:19:02.021Z",
+      "error_message": "Null/undefined access in ",
+      "file": "docs/audit-area-b.md",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T09:19:02.021Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-05-19T09:19:25.626Z",
+      "error_message": "Significant refactor of ",
+      "file": "tasks/prd.json",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 13→13 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T09:19:25.626Z"
     }
   ]
 }
