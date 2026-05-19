@@ -96,3 +96,20 @@
   - Phalcon leak split mirrors A04/A05: structural class-level (`BladeView extends Phalcon\Mvc\View`) + provider coupling (`BladeViewProvider implements Phalcon\Di\ServiceProviderInterface`). The modern stack (`Factory`/`View`/`ViewComposer`/`TemplateEngine`) and `BladeOne` itself are Phalcon-CLEAN.
   - No `Phare\Contracts\View\*` namespace exists — view layer publishes no interface.
 ---
+
+## 2026-05-19 - US-B01 Audit Eloquent Model
+- Diffed Phare `Eloquent\Model` + 6 Concerns vs Laravel 13 Database/Eloquent/Model.php + Concerns/*.
+- Files changed: docs/audit-area-b.md (new, header + ### Eloquent Model section), tasks/prd.json, tasks/progress.txt. No framework code touched.
+- Phare model = `Model extends Phalcon\Mvc\Model implements \ArrayAccess` + traits GuardsAttributes/HasAttributes/HasEvents/HasGlobalScopes/HasRelationships/HidesAttributes (no HasTimestamps use on Model itself, but trait shipped).
+- Result: Effort L. Structural leak (extends Phalcon\Mvc\Model) is the largest single leak in Area B. Signature leaks on all()/rawFind()/find()/findFirst()/assign() return types + ?Phalcon\Di\DiInterface on 4 public methods. ModelInterface is a 1-method `toArray()` stub and isn't even implemented — no real contract.
+- **Learnings for future iterations:**
+  - Phare Model is structurally welded to Phalcon\Mvc\Model — the entire Phalcon AR API (`getDI`, `setSource`, `useDynamicUpdate`, `skipAttributesOnUpdate`, `metadata`, Phalcon `assign`/`save` overloads) is published. This is one big structural leak; do NOT re-itemise individual Phalcon AR methods as separate gaps.
+  - `Model::create()` is INSTANCE `create(?array): bool`, NOT Laravel's static `create()` that returns a Model. Different signature, different return, same name — flag prominently as a porting hazard. Same shape risk for `Model::update()` (instance bool, bypasses query builder via raw `UPDATE … WHERE` SQL in `performUpdate()`).
+  - `$guarded` defaults to `['*']` in Phare's `GuardsAttributes` (Laravel default is `[]`). A fresh Phare model with neither `$fillable` nor `$guarded` defined is **totally guarded** — `fillableFromArray()` returns `[]`. Silent mass-assignment failure waiting to happen.
+  - Phare ships custom-cast classes in `src/Phare/Eloquent/Casts/` (`CastsAttributes`, `AsArrayObject`, `AsCollection`, `AsStringable`, `AsEncrypted*`, `Json`, `Attribute`) but `castAttribute()` only switches on built-in string cast types — no `is_subclass_of(..., CastsAttributes::class)` branch. Custom casts appear non-wired ⇒ likely correctness gap, not just parity gap. Same stub-defect pattern as A04/A05/A06/A07.
+  - `firstOrFail` throws `Phalcon\Mvc\Model\Exception`, not Laravel's `ModelNotFoundException` — exception-type mismatch is a parity gap of its own.
+  - Phare `Model` does NOT implement `Jsonable`/`JsonSerializable` (no `toJson`/`jsonSerialize`/`__toString`); contrast Laravel's 9 interfaces. `toArray()` is the only serialization surface.
+  - HasEvents references `Phalcon\Di\Di` (`Di::getDefault()`) internally for fallback dispatcher resolution — a non-signature Phalcon coupling inside a Concern, worth noting but not a public leak.
+  - Laravel 13 has a `casts()` method override pattern (preferred since L11) — not present here; only the legacy `$casts` array.
+  - Enumerate Laravel Model properties fast: `grep -nE '^\s+(protected|public|private)( static)? \$[a-zA-Z]+' Model.php` — ~28 properties.
+---
