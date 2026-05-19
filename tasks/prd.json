@@ -1,0 +1,553 @@
+{
+  "project": "Phare",
+  "branchName": "ralph/parity-audit-pass",
+  "description": "Laravel 13 Parity Audit Pass (Areas A-E) - read-and-record audit of every [~]/[ ] subsystem diffed 1:1 against Laravel 13 reference. No framework code written.",
+  "userStories": [
+    {
+      "id": "US-A01",
+      "title": "Audit Routing",
+      "description": "As a maintainer, I want the routing public API diffed against Laravel so I know which router features are missing or mistyped.",
+      "acceptanceCriteria": [
+        "Phare routing public API extracted from src/Phare/Routing/ and src/Phare/Attributes/ (groups, resources, named routes, route model binding, #[Route] attrs)",
+        "1:1 diff vs Laravel Routing/{Router,Route,RouteCollection,RouteRegistrar}.php completed",
+        "Gaps itemized (missing / type mismatch / Phalcon leak)",
+        "Public signatures grepped for Phalcon\\ leaks",
+        "### Routing section appended to docs/audit-area-a.md in standard Current/Expected/Gaps/Effort shape",
+        "No framework code changed"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Audited 2026-05-19. docs/audit-area-a.md created with ### Routing section. Effort L — Phare routing is a thin collector vs Laravel's full router; no public Phalcon leak but the bound `router` service is a raw Phalcon\\Mvc\\Router."
+    },
+    {
+      "id": "US-A02",
+      "title": "Re-verify HTTP kernel pipeline [x]",
+      "description": "As a maintainer, I want the already-[x] kernel re-checked specifically for Wrapper Rule compliance.",
+      "acceptanceCriteria": [
+        "Kernel public API extracted from src/Phare/Http/Kernel.php and src/Phare/Foundation/ (handle, terminate, middleware accessors)",
+        "1:1 diff vs Laravel Foundation/Http/Kernel.php and Contracts/Http/Kernel.php completed",
+        "Public signatures grepped for Phalcon\\ leaks; any leak recorded",
+        "### HTTP Kernel section appended to docs/audit-area-a.md",
+        "Confirms [x] still holds, or flags downgrade with reason",
+        "No framework code changed"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-A03",
+      "title": "Audit Middleware",
+      "description": "As a maintainer, I want middleware registration and ordering diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare middleware API extracted from src/Phare/Middleware/ and src/Phare/Pipeline/ (global/group/route alias registration, ordered application)",
+        "1:1 diff vs Laravel Foundation/Http/Middleware/*, Routing/Middleware/*, Pipeline/Pipeline.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Middleware section appended to docs/audit-area-a.md",
+        "No framework code changed"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-A04",
+      "title": "Audit Request",
+      "description": "As a maintainer, I want Request input methods verified against Laravel.",
+      "acceptanceCriteria": [
+        "Phare Request public API extracted from src/Phare/Http/Request.php - verify input/query/only/except/validate/file/header parity",
+        "1:1 diff vs Laravel Http/Request.php and Http/Concerns/InteractsWithInput.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Request section appended to docs/audit-area-a.md",
+        "No framework code changed"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-A05",
+      "title": "Audit Response",
+      "description": "As a maintainer, I want Response factories verified against Laravel.",
+      "acceptanceCriteria": [
+        "Phare response public API extracted from src/Phare/Http/ (Response, JsonResponse, RedirectResponse) - verify json/redirect/download/stream/header parity",
+        "1:1 diff vs Laravel Http/{Response,JsonResponse,RedirectResponse}.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Response section appended to docs/audit-area-a.md",
+        "No framework code changed"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-A06",
+      "title": "Audit FormRequest + Validation",
+      "description": "As a maintainer, I want the FormRequest hook and validator rule set diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare FormRequest + Validator public API extracted from src/Phare/Http/FormRequest.php and src/Phare/Validation/ (rule methods, authorize, rules, validated)",
+        "Rule set diffed vs Laravel Validation\\Rule (enumerate each available rule)",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### FormRequest + Validation section appended to docs/audit-area-a.md",
+        "No framework code changed"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-A07",
+      "title": "Audit View / Blade",
+      "description": "As a maintainer, I want Blade directive coverage diffed against the Laravel compiler.",
+      "acceptanceCriteria": [
+        "Phare view + Blade public API extracted from src/Phare/View/; directive list enumerated",
+        "Directive coverage diffed vs Laravel View/Compilers/BladeCompiler.php and Concerns/* (per-directive present/absent)",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### View / Blade section appended to docs/audit-area-a.md",
+        "No framework code changed"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-B01",
+      "title": "Audit Eloquent Model",
+      "description": "As a maintainer, I want the Eloquent Model public API diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare Model public API extracted from src/Phare/Eloquent/Model.php - fillable/guarded, casts, $hidden, events, $with",
+        "1:1 diff vs Laravel Database/Eloquent/Model.php and Eloquent/Concerns/* completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Eloquent Model section appended to docs/audit-area-b.md",
+        "No framework code changed"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-B02",
+      "title": "Audit Query Builder",
+      "description": "As a maintainer, I want the Eloquent Builder public API diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare Builder public API extracted from src/Phare/Eloquent/ - verify where*/when/whereHas/with/scopes/aggregates parity",
+        "1:1 diff vs Laravel Database/Eloquent/Builder.php and Database/Query/Builder.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Builder section appended to docs/audit-area-b.md",
+        "No framework code changed"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-B03",
+      "title": "Audit Relations",
+      "description": "As a maintainer, I want the Eloquent relations public API diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare relations public API extracted from src/Phare/Eloquent/ - hasOne/hasMany/belongsTo/belongsToMany/morph*",
+        "1:1 diff vs Laravel Database/Eloquent/Relations/* completed (per relation type)",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Relations section appended to docs/audit-area-b.md",
+        "No framework code changed"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-B04",
+      "title": "Audit Soft Deletes + Global Scopes",
+      "description": "As a maintainer, I want soft-delete and global-scope APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare soft-delete + global-scope public API extracted from src/Phare/Eloquent/",
+        "1:1 diff vs Laravel Database/Eloquent/SoftDeletes.php and Eloquent/Scope.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Soft Deletes + Global Scopes section appended to docs/audit-area-b.md",
+        "No framework code changed"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-B05",
+      "title": "Audit Migrations + Schema builder",
+      "description": "As a maintainer, I want migration and Schema builder APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare migration + Schema public API extracted from src/Phare/Database/; column types enumerated vs Laravel Blueprint",
+        "1:1 diff vs Laravel Database/Schema/{Blueprint,Builder}.php and Database/Migrations/* completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Migrations + Schema section appended to docs/audit-area-b.md",
+        "No framework code changed"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-B06",
+      "title": "Audit Seeders + Factories",
+      "description": "As a maintainer, I want seeder and factory APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare seeder + factory public API extracted from src/Phare/Database/ - verify Factory state/relationship API",
+        "1:1 diff vs Laravel Database/Seeder.php and Database/Eloquent/Factories/Factory.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Seeders + Factories section appended to docs/audit-area-b.md",
+        "No framework code changed"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-B07",
+      "title": "Audit Pagination",
+      "description": "As a maintainer, I want pagination APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare pagination public API extracted from src/Phare/Pagination/ - LengthAwarePaginator / CursorPaginator link rendering",
+        "1:1 diff vs Laravel Pagination/{LengthAwarePaginator,CursorPaginator,Paginator}.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Pagination section appended to docs/audit-area-b.md",
+        "No framework code changed"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-C01",
+      "title": "Audit AuthManager multi-guard",
+      "description": "As a maintainer, I want the AuthManager public API diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare AuthManager public API extracted from src/Phare/Auth/ (guard resolution, driver registration)",
+        "1:1 diff vs Laravel Auth/{AuthManager,SessionGuard,RequestGuard}.php and Contracts/Auth/{Guard,Factory}.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### AuthManager section appended to docs/audit-area-c.md",
+        "No framework code changed"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-C02",
+      "title": "Audit Session auth (login/logout/remember)",
+      "description": "As a maintainer, I want session-auth APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare session-auth public API extracted from src/Phare/Auth/ and src/Phare/Session/ - login/logout/attempt/remember/viaRemember",
+        "1:1 diff vs Laravel Auth/SessionGuard.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Session Auth section appended to docs/audit-area-c.md",
+        "No framework code changed"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-C03",
+      "title": "Audit Hashing",
+      "description": "As a maintainer, I want hashing APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare hashing public API extracted from src/Phare/Hashing/ - bcrypt/argon, make/check/needsRehash",
+        "1:1 diff vs Laravel Hashing/{HashManager,BcryptHasher,ArgonHasher}.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Hashing section appended to docs/audit-area-c.md",
+        "No framework code changed"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-C04",
+      "title": "Audit Encrypter",
+      "description": "As a maintainer, I want the Encrypter public API diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare encrypter public API extracted from src/Phare/Encryption/ - verify encrypt/decrypt/encryptString/decryptString parity",
+        "1:1 diff vs Laravel Encryption/Encrypter.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Encrypter section appended to docs/audit-area-c.md",
+        "No framework code changed"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-C05",
+      "title": "Audit CSRF middleware (status [ ] - confirm presence)",
+      "description": "As a maintainer, I want to confirm whether a CSRF middleware exists in Phare and diff it if present.",
+      "acceptanceCriteria": [
+        "Confirm whether a CSRF middleware exists in Phare (src/Phare/Middleware/, src/Phare/Security/); record present/absent",
+        "If present, diff public API vs Laravel Foundation/Http/Middleware/VerifyCsrfToken.php + verify token rotation",
+        "If absent, record as a confirmed missing item ([ ])",
+        "Public signatures grepped for Phalcon\\ leaks",
+        "### CSRF Middleware section appended to docs/audit-area-c.md",
+        "No framework code changed"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-C06",
+      "title": "Audit Rate Limiting",
+      "description": "As a maintainer, I want rate-limit APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare rate-limit public API extracted from src/Phare/RateLimit/ - verify RateLimiter named-limiter API",
+        "1:1 diff vs Laravel Cache/RateLimiter.php and Routing/Middleware/ThrottleRequests.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Rate Limiting section appended to docs/audit-area-c.md",
+        "No framework code changed"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-C07",
+      "title": "Audit Password reset",
+      "description": "As a maintainer, I want password-reset APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare password-reset public API extracted from src/Phare/Auth/Passwords/ - sendResetLink/reset/broker",
+        "1:1 diff vs Laravel Auth/Passwords/{PasswordBroker,PasswordBrokerManager,DatabaseTokenRepository}.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Password Reset section appended to docs/audit-area-c.md",
+        "No framework code changed"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-C08",
+      "title": "Sanctum / passkeys scope decision",
+      "description": "As a maintainer, I want an explicit in-scope-or-§7 decision for Sanctum/passkeys before any audit effort is spent.",
+      "acceptanceCriteria": [
+        "Confirm whether Sanctum/passkeys support currently exists in Phare (src/Phare/Auth/ token/sanctum)",
+        "Record a decision: in-scope (then diff) or move to completion-criteria.md §7 with a written reason",
+        "If in-scope, perform the standard audit; if §7, record the re-scope rationale only",
+        "### Sanctum / Passkeys section appended to docs/audit-area-c.md",
+        "No framework code changed"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-D01",
+      "title": "Audit Queue",
+      "description": "As a maintainer, I want queue APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare queue public API extracted from src/Phare/Queue/ - sync/database/redis drivers, Job retry/backoff/failed()",
+        "1:1 diff vs Laravel Queue/{QueueManager,Queue}.php, Queue/Jobs/*, Bus/Queueable.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Queue section appended to docs/audit-area-d.md",
+        "No framework code changed"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-D02",
+      "title": "Audit Events",
+      "description": "As a maintainer, I want event dispatcher APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare event public API extracted from src/Phare/Events/ - Dispatcher listen/dispatch/subscribe/queued listeners",
+        "1:1 diff vs Laravel Events/Dispatcher.php and Contracts/Events/Dispatcher.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Events section appended to docs/audit-area-d.md",
+        "No framework code changed"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-D03",
+      "title": "Audit Broadcasting",
+      "description": "As a maintainer, I want broadcasting APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare broadcasting public API extracted from src/Phare/Broadcasting/ - channel auth, BroadcastManager",
+        "1:1 diff vs Laravel Broadcasting/BroadcastManager.php and Broadcasting/Broadcasters/* completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Broadcasting section appended to docs/audit-area-d.md",
+        "No framework code changed"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-D04",
+      "title": "Audit Notifications",
+      "description": "As a maintainer, I want notification APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare notification public API extracted from src/Phare/Notifications/ - mail/database channels, Notifiable",
+        "1:1 diff vs Laravel Notifications/* completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Notifications section appended to docs/audit-area-d.md",
+        "No framework code changed"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-D05",
+      "title": "Audit Mail",
+      "description": "As a maintainer, I want mail APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare mail public API extracted from src/Phare/Mail/ - Mailable build/markdown, MailManager",
+        "1:1 diff vs Laravel Mail/{Mailable,MailManager,Message}.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Mail section appended to docs/audit-area-d.md",
+        "No framework code changed"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-D06",
+      "title": "Audit Console scheduler",
+      "description": "As a maintainer, I want the console scheduler APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare scheduler public API extracted from src/Phare/Console/ (Scheduling) - Schedule frequency methods, hooks",
+        "1:1 diff vs Laravel Console/Scheduling/{Schedule,Event,CallbackEvent}.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Console Scheduler section appended to docs/audit-area-d.md",
+        "No framework code changed"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-E01",
+      "title": "Re-verify Container [x]",
+      "description": "As a maintainer, I want the already-[x] Container re-checked for Wrapper Rule compliance.",
+      "acceptanceCriteria": [
+        "Phare Container public API extracted from src/Phare/Container/ (bind/singleton/make/resolve/get/has)",
+        "1:1 diff vs Laravel Container/Container.php and Contracts/Container/Container.php completed",
+        "Phalcon\\ leaks recorded; get()/has() inherited from Phalcon\\Di\\Di logged as a known documented exception",
+        "### Container section appended to docs/audit-area-e.md",
+        "Confirms [x] still holds, or flags downgrade with reason",
+        "No framework code changed"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-E02",
+      "title": "Audit Service providers",
+      "description": "As a maintainer, I want service-provider APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare service-provider public API extracted from src/Phare/Providers/ and src/Phare/Support/ - register/boot, deferred providers",
+        "1:1 diff vs Laravel Support/ServiceProvider.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Service Providers section appended to docs/audit-area-e.md",
+        "No framework code changed"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-E03",
+      "title": "Re-verify Config [x]",
+      "description": "As a maintainer, I want the already-[x] Config re-checked for Wrapper Rule compliance.",
+      "acceptanceCriteria": [
+        "Phare config public API extracted from src/Phare/Config/ (get/set/has/all, load + cache)",
+        "1:1 diff vs Laravel Config/Repository.php and Contracts/Config/Repository.php completed",
+        "Public signatures grepped for Phalcon\\ leaks",
+        "### Config section appended to docs/audit-area-e.md",
+        "Confirms [x] still holds, or flags downgrade with reason",
+        "No framework code changed"
+      ],
+      "priority": 31,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-E04",
+      "title": "Audit Console / artisan",
+      "description": "As a maintainer, I want console/artisan APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare console public API extracted from src/Phare/Console/ - command registration, signature parsing, I/O helpers",
+        "1:1 diff vs Laravel Console/{Command,Application,Parser}.php and Foundation/Console/Kernel.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Console / Artisan section appended to docs/audit-area-e.md",
+        "No framework code changed"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-E05",
+      "title": "Audit Facades",
+      "description": "As a maintainer, I want facade base class and alias map diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare facade base class + alias map extracted from src/Phare/Support/ (Facades); facade list enumerated",
+        "Alias map diffed vs Laravel Support/Facades/* facade set (per-facade present/absent)",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Facades section appended to docs/audit-area-e.md",
+        "No framework code changed"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-E06",
+      "title": "Audit Helpers",
+      "description": "As a maintainer, I want global helper coverage diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare global helper functions enumerated from src/Phare/Support/",
+        "Coverage diffed vs Laravel Support/helpers.php, Foundation/helpers.php, Collections/helpers.php (per-helper present/absent)",
+        "Gaps itemized; signatures grepped for Phalcon\\ leaks",
+        "### Helpers section appended to docs/audit-area-e.md",
+        "No framework code changed"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-E07",
+      "title": "Audit Translation",
+      "description": "As a maintainer, I want translator APIs diffed against Laravel.",
+      "acceptanceCriteria": [
+        "Phare translator public API extracted from src/Phare/Translation/ - Translator get/choice, replacements",
+        "1:1 diff vs Laravel Translation/Translator.php and Contracts/Translation/Translator.php completed",
+        "Gaps itemized; public signatures grepped for Phalcon\\ leaks",
+        "### Translation section appended to docs/audit-area-e.md",
+        "No framework code changed"
+      ],
+      "priority": 35,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-S01",
+      "title": "Cross-area gap synthesis + implementation proposal",
+      "description": "As a maintainer, I want all recorded gaps collated into one effort-sorted list so I can approve an implementation order.",
+      "acceptanceCriteria": [
+        "Every gap from docs/audit-area-{a,b,c,d,e}.md collated into one table (Area / Subsystem / Gap / Effort)",
+        "Gaps sorted by effort, smallest first",
+        "All Phalcon\\ leaks listed separately with wrap-or-exception recommendation",
+        "Any re-scope candidates (move [~] -> §7) flagged with rationale",
+        "Proposed area-by-area implementation order written (A->E, smallest gaps first per §8 step 3)",
+        "docs/audit-summary.md written; stops for human review - no implementation started"
+      ],
+      "priority": 36,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
