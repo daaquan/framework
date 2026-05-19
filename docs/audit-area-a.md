@@ -144,3 +144,92 @@
   ~18 middleware accessor methods — mechanical, mostly array operations over the
   existing `protected` fields. No structural rewrite needed; the pipeline already
   exists.
+
+### Middleware
+
+- 現状 (Current):
+  - **Pipeline** — `Phare\Pipeline\Pipeline` mirrors Laravel's `Pipeline` closely.
+    Public API: `__construct(?Container)`, `send()`, `through(...$pipes)`,
+    `pipe(...$pipes)`, `via(string)`, `finally(Closure)`, `then(Closure)`,
+    `thenReturn()`, `setContainer()`. Pipe resolution supports callables, objects,
+    and `name:param,param` strings (`parsePipeString`). No Phalcon types on any
+    public signature.
+  - **Middleware contracts** — `Phare\Contracts\Http\Middleware` interface declares
+    `handle(Phalcon\Http\RequestInterface, Closure): Phalcon\Http\ResponseInterface`.
+    `Phare\Contracts\Http\MiddlewareContract` is an abstract class implementing both
+    `Middleware` and `Phalcon\Mvc\Micro\MiddlewareInterface`; it wires Phalcon event
+    hooks (`beforeHandleRequest`/`beforeSendResponse`) keyed off the marker
+    interfaces `Foundation\Http\Concerns\BeforeMiddleware` / `AfterMiddleware`, and a
+    public `call(Phalcon\Mvc\Micro $app)`.
+  - **Registration (in `Foundation\Http\Kernel`)** — three `protected` fields:
+    `$middlewares` (global), `$middlewareGroups` (`web`/`api`), `$routeMiddleware`
+    (alias → class map). `syncMiddleware()`/`syncMiddlewareGroup()`/
+    `syncRouteMiddleware()` push entries through `registerMiddleware()`. Alias+param
+    strings (`alias:p1,p2`) resolved by `resolveRouteMiddlewareAlias()`.
+  - **Two execution modes** — Phalcon-native (`$app->middleware()`) by default, or a
+    `Pipeline`-based stack when `app.http.use_pipeline_middleware` is true
+    (`pipelineMiddlewareStack`, `dispatchThroughMiddleware()`, `sendThroughPipeline()`).
+  - **Helper classes (Phare-only)** — `Routing\MiddlewareApplicator` (apply a list in
+    order with `onStart`/`onEnd` callbacks) and `Routing\RouteMiddlewareResolver`
+    (alias array → class array; duplicates Kernel logic).
+  - **Built-in middleware** — `Middleware\` ships `ThrottleRequests`, `VerifyCsrfToken`,
+    `TokenMismatchException`; `Routing\Middleware\CorsMiddleware`;
+    `Foundation\Http\Middleware\CheckForMaintenanceMode`.
+
+- 期待 (Expected) — Laravel 13:
+  - `Pipeline\Pipeline` public API: `__construct`, `send`, `through`, `pipe`, `via`,
+    `then`, `thenReturn`, `finally`, `withinTransaction`, `setContainer`.
+  - Middleware is duck-typed (`handle($request, Closure $next)`) — Laravel has **no**
+    single `Middleware` interface; controller middleware uses the
+    `Routing\Controllers\HasMiddleware` contract + `Middleware` value object.
+  - Kernel registration fields: `$middleware`, `$middlewareGroups`, `$routeMiddleware`
+    /`$middlewareAliases`, **plus `$middlewarePriority`** (ordered priority list).
+  - Built-in `Foundation/Http/Middleware/*`: `CheckForMaintenanceMode`,
+    `ConvertEmptyStringsToNull`, `HandlePrecognitiveRequests`,
+    `InvokeDeferredCallbacks`, `PreventRequestForgery`,
+    `PreventRequestsDuringMaintenance`, `TransformsRequest`, `TrimStrings`,
+    `ValidateCsrfToken`, `ValidatePostSize`, `VerifyCsrfToken`.
+  - Built-in `Routing/Middleware/*`: `SubstituteBindings`, `ThrottleRequests`,
+    `ThrottleRequestsWithRedis`, `ValidateSignature`.
+
+- 差分 (Gaps):
+  - **Missing — Pipeline:** `withinTransaction()` absent. (Phare adds extra
+    try/catch handling — `prepareDestination`/`carry`/`handleException`/
+    `handleCarry` — which Laravel does not have; an intentional superset, not a gap.)
+  - **Missing — priority:** no `$middlewarePriority` field and none of the priority
+    mutators (`prependToMiddlewarePriority`, `appendToMiddlewarePriority`,
+    `addToMiddlewarePriorityBefore/After`, `getMiddlewarePriority`,
+    `setMiddlewarePriority`). Middleware runs purely in declared array order — no
+    way to enforce relative ordering. (The Kernel-accessor gap itself is itemised
+    in the `### HTTP Kernel` section above; not repeated here.)
+  - **Missing — built-in middleware:** `ConvertEmptyStringsToNull`, `TrimStrings`,
+    `TransformsRequest`, `ValidatePostSize`, `HandlePrecognitiveRequests`,
+    `InvokeDeferredCallbacks` (Foundation); `SubstituteBindings` (route-model
+    binding — also flagged in `### Routing`), `ValidateSignature`,
+    `ThrottleRequestsWithRedis` (Routing). `CheckForMaintenanceMode` exists but is
+    the legacy single-file form, not Laravel 13's `PreventRequestsDuringMaintenance`.
+  - **Type mismatch:** Phare imposes a single `Middleware` interface forcing the
+    `handle()` shape; Laravel keeps middleware duck-typed and only contracts
+    *controller* middleware (`HasMiddleware`). Phare has no `HasMiddleware`
+    equivalent. Phare `$middlewares` field is named with a trailing `s` vs Laravel
+    `$middleware`. `RouteMiddlewareResolver` duplicates `resolveRouteMiddlewareAlias`
+    logic in the Kernel — divergence risk.
+  - **Phalcon leak (Wrapper Rule §2 violation):**
+    - `Contracts\Http\Middleware::handle()` — raw `Phalcon\Http\RequestInterface`
+      param and `Phalcon\Http\ResponseInterface` return on a **published interface**.
+      Every middleware class (`ThrottleRequests`, `VerifyCsrfToken`, `CorsMiddleware`)
+      inherits this leak in its public `handle()`.
+    - `Contracts\Http\MiddlewareContract` — abstract class leaks `Phalcon\Mvc\Micro`
+      on the public `call()` method, and `Phalcon\Events\Event` /
+      `Phalcon\Mvc\Application` on its `protected` hook methods; also implements the
+      raw `Phalcon\Mvc\Micro\MiddlewareInterface`.
+    - Correct public types would be `Phare\Http\Request` / `Phare\Http\Response`.
+
+- 工数感 (Effort): **L** — three independent workstreams. (1) Re-type the
+  `Middleware` interface + `MiddlewareContract` to Phare's `Request`/`Response`
+  wrappers — contract-breaking, cascades to every middleware class. (2) Port the
+  `$middlewarePriority` system + its mutators (depends on the Kernel-accessor work
+  from `### HTTP Kernel`). (3) Port ~6 missing built-in middleware. Plus
+  `withinTransaction()` on the Pipeline (S on its own). The dual-mode
+  Phalcon-native vs Pipeline execution path is a structural divergence that any
+  fix must preserve or deliberately retire.
