@@ -1,0 +1,27 @@
+{
+  "session_id": "session-2026-05-19-1743",
+  "started": "2026-05-19T08:43:19.486Z",
+  "files_read": {
+    "/opt/framework/tasks/prd.json": {
+      "count": 3,
+      "tokens": 7295,
+      "first_read": "2026-05-19T08:44:54.665Z"
+    }
+  },
+  "files_written": [
+    {
+      "file": "/opt/framework/tasks/prd.json",
+      "action": "edit",
+      "tokens": 124,
+      "at": "2026-05-19T08:45:04.727Z"
+    }
+  ],
+  "edit_counts": {
+    "tasks/prd.json": 1
+  },
+  "anatomy_hits": 1,
+  "anatomy_misses": 0,
+  "repeated_reads_warned": 2,
+  "cerebrum_warnings": 0,
+  "stop_count": 0
+}

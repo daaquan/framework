@@ -75,3 +75,72 @@
   fluent `RouteRegistrar`, resource customization, and closure/array actions are
   all absent. Reaching Laravel-13 parity is a near-rewrite of the routing layer,
   not an incremental patch.
+
+---
+
+### HTTP Kernel
+
+*Re-verification of a previously `[x]` subsystem against the Wrapper Rule (§2).*
+
+- 現状 (Current):
+  - `Phare\Foundation\Http\Kernel` (abstract) implements `Phare\Contracts\Http\Kernel`.
+    Public surface: `__construct(Phare\Contracts\Foundation\Application $app)`,
+    `abstract handle(Phalcon\Http\RequestInterface $request): Phalcon\Http\ResponseInterface`,
+    `bootstrap()` (untyped return), `terminate(Phalcon\Http\RequestInterface $request,
+    Phalcon\Http\ResponseInterface $response): void`, `getApplication(): Application`.
+  - `Phare\Contracts\Http\Kernel` declares the same four methods — `handle` and
+    `terminate` carry `Phalcon\Http\RequestInterface` / `Phalcon\Http\ResponseInterface`
+    in their public signatures.
+  - Middleware state (`$middlewares`, `$middlewareGroups`, `$routeMiddleware`,
+    `$bootstrappers`, `$pipelineMiddlewareStack`) is held in `protected` fields with
+    `protected` sync/apply/register helpers — no public accessors or mutators.
+  - Constructor eagerly runs `bootstrap()` → `registerRoutes()` → `syncMiddleware()`.
+  - Optional Laravel-style `Phare\Pipeline\Pipeline` path gated by config flag
+    `app.http.use_pipeline_middleware`; default path delegates to Phalcon-native
+    middleware via `$app->middleware()`.
+
+- 期待 (Expected):
+  - Laravel `Foundation\Http\Kernel` — public surface: `__construct(Application $app,
+    Router $router)`, `handle($request)` (untyped param, Symfony Response return),
+    `bootstrap()`, `terminate($request, $response)`, `getApplication()`,
+    `setApplication(Application $app)`, `requestStartedAt()`,
+    `whenRequestLifecycleIsLongerThan($threshold, $handler)`, plus the middleware
+    accessor API: `hasMiddleware`, `prependMiddleware`, `pushMiddleware`,
+    `prependMiddlewareToGroup`, `appendMiddlewareToGroup`, `prependToMiddlewarePriority`,
+    `appendToMiddlewarePriority`, `addToMiddlewarePriorityBefore`,
+    `addToMiddlewarePriorityAfter`, `getMiddlewarePriority`, `setMiddlewarePriority`,
+    `getGlobalMiddleware`, `setGlobalMiddleware`, `getMiddlewareGroups`,
+    `setMiddlewareGroups`, `getRouteMiddleware`, `getMiddlewareAliases`,
+    `setMiddlewareAliases`.
+  - `Contracts\Http\Kernel` — four methods (`bootstrap`, `handle`, `terminate`,
+    `getApplication`), all parameters untyped; HTTP types only in docblocks
+    (`Symfony\Component\HttpFoundation\Request/Response`).
+
+- 差分 (Gaps):
+  - **Missing:** the entire middleware accessor/mutator API (18 methods listed
+    above) — Phare keeps middleware in `protected` fields, so no runtime
+    inspection or programmatic registration is possible. `setApplication`,
+    `requestStartedAt`, `whenRequestLifecycleIsLongerThan` also absent.
+  - **Type mismatch:** Phare `handle()`/`terminate()` are typed but with `Phalcon\*`
+    types; Laravel leaves params untyped and documents Symfony in docblocks.
+    Phare constructor takes only `Application` (Laravel also injects `Router`).
+    `bootstrap()` untyped return on both sides — match.
+  - **Phalcon leak (Wrapper Rule §2 violation):** `handle()` exposes a raw
+    `Phalcon\Http\RequestInterface` param and a raw `Phalcon\Http\ResponseInterface`
+    return; `terminate()` exposes both raw `Phalcon\Http\*` types as params. The
+    leak is present **both in the abstract `Foundation\Http\Kernel` and in the
+    `Contracts\Http\Kernel` interface** — i.e. baked into the published contract.
+    Phare ships `Phare\Http\Request` / `Phare\Http\Response` wrappers that should
+    be the public types here. This is a genuine public-surface leak, not a
+    container-resolution one.
+  - **Status decision:** `[x]` does **NOT** hold — **downgrade to `[~]`**. Reason:
+    the kernel functions, but its core public lifecycle methods (`handle`,
+    `terminate`) violate the Wrapper Rule by typing on `Phalcon\Http\*` directly,
+    and the violation is enshrined in the `Contracts\Http\Kernel` interface.
+
+- 工数感 (Effort): **M** — two distinct fixes. (1) Re-type `handle()`/`terminate()`
+  in both the abstract class and the contract to Phare's own `Request`/`Response`
+  wrappers (or a Phare HTTP interface) — small but contract-breaking. (2) Add the
+  ~18 middleware accessor methods — mechanical, mostly array operations over the
+  existing `protected` fields. No structural rewrite needed; the pipeline already
+  exists.

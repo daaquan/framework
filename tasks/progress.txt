@@ -22,3 +22,15 @@
   - `docs/audit-area-a.md` now has a header block; future Area-A stories should APPEND their `### <Subsystem>` section, not recreate the file.
   - Check `src/Phare/Contracts/` for the interface that defines a subsystem's intended public surface — useful for the 現状 column.
 ---
+
+## 2026-05-19 - US-A02 Re-verify HTTP Kernel [x]
+- Re-checked the previously [x] HTTP kernel against the Wrapper Rule (§2).
+- Files changed: docs/audit-area-a.md (### HTTP Kernel section), tasks/prd.json, tasks/progress.txt.
+- Phare kernel = abstract `Phare\Foundation\Http\Kernel` implements `Phare\Contracts\Http\Kernel`. No `src/Phare/Http/Kernel.php` exists — kernel lives under Foundation/Http/.
+- Result: [x] DOWNGRADED to [~]. `handle()` and `terminate()` expose raw `Phalcon\Http\RequestInterface`/`ResponseInterface` on public signatures — leak is in BOTH the abstract class AND the `Contracts\Http\Kernel` interface. Missing all ~18 Laravel middleware accessor methods (hasMiddleware/pushMiddleware/get*/set* etc.). Effort M.
+- **Learnings for future iterations:**
+  - PRD AC paths can be wrong: it said `src/Phare/Http/Kernel.php` but the kernel is `src/Phare/Foundation/Http/Kernel.php`. Use `find src/Phare -name "*Kernel*"` first.
+  - A Phalcon leak inside a `Contracts/` interface is worse than one in a concrete class — it is baked into the published contract; call it out explicitly.
+  - Re-verify [x] stories CAN downgrade — the "Confirms [x] still holds, or flags downgrade" AC is satisfied either way; document the reason.
+  - Phare ships `Phare\Http\Request`/`Phare\Http\Response` wrappers — the correct public types whenever a Phalcon HTTP type leaks.
+---
