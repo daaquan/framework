@@ -82,3 +82,17 @@
   - `safe()` return-type mismatch recurs: Phare returns plain `array`, Laravel returns a `ValidatedInput` object — flag wherever `safe()`/`validated()` appear.
   - There is no `src/Phare/Contracts/Validation/` namespace — Validator/FormRequest publish no interface, unlike Laravel's 11-contract `Contracts\Validation\*`.
 ---
+
+## 2026-05-19 - US-A07 Audit View / Blade
+- Diffed Phare view + Blade surface vs Laravel 13 View/Factory.php, View/Compilers/BladeCompiler.php + 21 Concerns/Compiles*.php, ComponentTagCompiler, Concerns/Manages*.
+- Files changed: docs/audit-area-a.md (### View / Blade section), tasks/prd.json, tasks/progress.txt. No framework code touched.
+- Result: Effort L. Phare ships TWO conflicting view stacks. Engine is vendored EFTEC/BladeOne v4.9 — ~98 compile* methods vs Laravel 13's 124; ~30 directives missing.
+- **Learnings for future iterations:**
+  - Phare has NO Blade compiler of its own. `Phare\View\Blade extends BladeOne` — `BladeOne.php` is a vendored 3rd-party single-file engine (EFTEC/BladeOne v4.9, ~4160 lines). Directive parity = whatever BladeOne ships, not Phare-authored.
+  - TWO providers bind `'view'`: `View\ViewServiceProvider` (→ `Phare\View\Factory`, modern, but `View::render()` is a debug-string STUB — non-functional) AND `Providers\BladeViewProvider` (→ `Phare\View\BladeView extends Phalcon\Mvc\View`, functional, renders via a Phalcon `dispatch:afterExecuteRoute` event). Whichever registers last wins. Check BOTH `src/Phare/View/` and `src/Phare/Providers/` for a subsystem — providers can live outside the subsystem dir.
+  - Stub-defect pattern continues 4x: `Request::route()` (A04), `Response::view()` (A05), validator `exists`/`unique` no-op (A06), now `View::render()` (A07). When auditing, always open the primary `render()`/main method body — a Laravel-shaped class can be a hollow stub.
+  - Enumerate BladeOne directives: `grep -hoE 'function compile[A-Z][a-zA-Z]+' BladeOne.php` (do NOT pipe into `sed`/`sort` in one line — the RTK grep hook hijacks multi-stage pipes; run grep alone, dedupe by eye or a second call).
+  - Laravel 13 Blade directive count = `grep -rhoE 'protected function compile[A-Z][a-zA-Z]+' BladeCompiler.php Concerns/*.php | sort -u | wc -l` → 124. Run from inside `View/Compilers/`.
+  - Phalcon leak split mirrors A04/A05: structural class-level (`BladeView extends Phalcon\Mvc\View`) + provider coupling (`BladeViewProvider implements Phalcon\Di\ServiceProviderInterface`). The modern stack (`Factory`/`View`/`ViewComposer`/`TemplateEngine`) and `BladeOne` itself are Phalcon-CLEAN.
+  - No `Phare\Contracts\View\*` namespace exists — view layer publishes no interface.
+---

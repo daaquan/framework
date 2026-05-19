@@ -619,3 +619,123 @@
   redirect-back-with-errors flow and the missing accessor/hook surface. The
   `exists`/`unique` false-pass is a correctness defect that should be fixed (or the
   rules removed from `getDefaultMessage()`) regardless of the larger build-out.
+
+### View / Blade
+
+- Current — Phare ships **two parallel, conflicting view stacks**:
+
+  - **Stack 1 — `src/Phare/View/` (modern, non-functional).**
+    `ViewServiceProvider` binds `'view'` to `Phare\View\Factory`. `Factory` builds
+    `Phare\View\View` value objects (`make/exists/addLocation/addNamespace/`
+    `composer/creator/share/addExtension/getExtensions/getShared/getPaths`, plus
+    wildcard composer/creator matching). **`View::render()` is a debug-string
+    stub** — it returns `"View: {$this->view} with data: " . json_encode(...)` and
+    never invokes any compiler. `Factory` stores `extensions` as a string map but
+    has no engine resolver, so a `.blade.php` extension resolves to nothing.
+    `ViewComposer` is an abstract `compose(View $view)` hook.
+  - **Stack 2 — `BladeViewProvider` (Phalcon-native, functional).**
+    `src/Phare/Providers/BladeViewProvider` binds `'blade'` to `Phare\View\Blade`
+    and **re-binds `'view'`** to `Phare\View\BladeView`. Rendering is wired through
+    a Phalcon `dispatch:afterExecuteRoute` event that calls `$app['blade']->run()`.
+    This is the path that actually renders templates.
+  - **Engine — `Phare\View\BladeOne`** is a vendored copy of the third-party
+    EFTEC/BladeOne **v4.9** single-file Blade engine (~4160 lines). `Blade extends
+    BladeOne` and mixes in two trait files: `Tags\BladeFunction` (adds `@lang`,
+    `@config`) and `Tags\BladeHtml` (`useTailwind()`, `useDaisyui()`). `BladeOneHtml`
+    is a further HTML-helper subclass. Phare has **no Blade compiler of its own** —
+    directive coverage is entirely whatever BladeOne 4.9 ships.
+  - **`TemplateEngine`** (`View/Template/`) is a separate runtime helper holding
+    section/stack/include logic (`startSection/yieldContent/extend/include*/`
+    `push/stack/prepend/...`) — Laravel keeps this logic in the *compiler*; Phare
+    keeps a runtime parallel to it.
+  - No `Phare\Contracts\View\*` namespace exists — the view layer publishes no
+    interface.
+
+- Expected — Laravel 13:
+
+  - `View\Factory` resolves an `EngineResolver` → `CompilerEngine`/`PhpEngine`/
+    `FileEngine`; `FileViewFinder` (`ViewFinderInterface`) locates templates;
+    7 `Concerns\Manages*` traits (Layouts, Stacks, Components, Fragments, Loops,
+    Translations, Events) live in the factory.
+  - `View\Compilers\BladeCompiler` composes **21 `Concerns\Compiles*` traits** —
+    **124 `compile*` methods**. Public compiler API includes `directive()`,
+    `if()`, `component()`/`components()`, `componentNamespace()`, anonymous-
+    component paths/namespaces, `aliasComponent/aliasInclude`, `precompiler()`,
+    `prepareStringsForCompilationUsing()`, `with/withoutDoubleEncoding()`,
+    `withoutComponentTags()`.
+  - `ComponentTagCompiler` handles the `<x-foo>` / `<x-slot>` tag syntax;
+    `Component`, `AnonymousComponent`, `DynamicComponent`, `ComponentAttributeBag`,
+    `ComponentSlot` back the class-component system.
+  - `Middleware\ShareErrorsFromSession` auto-shares the `$errors` MessageBag.
+
+- Gaps:
+
+  - **Missing — Blade directives (~30 absent vs Laravel 13).** BladeOne 4.9
+    exposes ~98 `compile*` methods; Laravel 13 has 124. Diffing the user-facing
+    set, BladeOne is missing:
+    - Component system: `@props`, `@aware`, `@componentFirst`, and the **entire
+      `<x-component>` / `<x-slot>` tag compiler** (`ComponentTagCompiler`) — the
+      single largest gap. BladeOne's `@component` is the legacy string-based form
+      only; there is no class-component / anonymous-component machinery.
+    - HTML-attribute directives: `@class`, `@style`, `@checked`, `@selected`,
+      `@disabled`, `@readonly`, `@required`.
+    - Security / assets: `@csrf`, `@vite`, `@viteReactRefresh`, `@js`.
+    - Environment: `@env`/`@endenv`, `@production`/`@endproduction`.
+    - Sections / stacks: `@once`, `@prependOnce`, `@pushIf`/`@elsePushIf`,
+      `@elsePush`, `@hasStack`, `@sectionMissing`, `@session`/`@endsession`,
+      `@fragment`/`@endfragment`, `@extendsFirst`.
+    - Includes: `@includeUnless`, `@includeIsolated`.
+    - Misc: `@context`/`@endcontext`, `@bool`, `@choice` (translation choice).
+    Present in both (parity OK): echoes (raw/escaped/regular), `@if/@unless/`
+    `@for/@foreach/@forelse/@while/@switch`, `@isset/@empty`, `@section/@yield/`
+    `@show/@stop/@overwrite/@append/@parent/@hasSection`, `@push/@pushOnce/`
+    `@prepend/@stack`, `@include/@includeIf/@includeWhen/@includeFirst`,
+    `@extends`, `@auth/@guest/@can/@cannot/@canany` (+`@else*`/`@end*`),
+    `@php/@unset/@use/@inject/@json/@dd/@dump/@method/@each`, `@slot/@component`
+    (legacy). BladeOne also ships **non-Laravel extras** (`@canonical`, `@base`,
+    `@relative`, `@splitForeach`, `@includeFast`, `@compileStamp`, `@asset`) —
+    divergent surface, not parity.
+  - **Type mismatch — `@lang` semantics.** Phare's `Tags\BladeFunction::`
+    `compileLang()` emits `<?= __$expression ?>` — an inline translation echo.
+    Laravel's `@lang ... @endlang` is a *block* directive; the inline equivalent
+    is `{{ __() }}`. Same directive name, different shape.
+  - **Correctness defect — `View::render()` is a stub.** Stack 1's `Factory`
+    produces `View` objects whose `render()` returns a debug string and never
+    compiles a template. Any code resolving `'view'` before `BladeViewProvider`
+    re-binds it, or using `Phare\View\Factory` directly, renders garbage. Same
+    stub-defect class as `Request::route()` (US-A04), `Response::view()` (US-A05),
+    and the validator `exists`/`unique` no-op (US-A06).
+  - **Architecture defect — two providers bind `'view'`.** `ViewServiceProvider`
+    and `BladeViewProvider` both register a `'view'` service with incompatible
+    types (`Phare\View\Factory` vs `Phare\View\BladeView`). Resolution depends on
+    registration order — a divergence/footgun, flagged like the
+    `RouteMiddlewareResolver`/`Kernel` duplication in `### Middleware`.
+  - **Missing — Factory parity.** No `EngineResolver`/`CompilerEngine`/`PhpEngine`,
+    no `ViewFinderInterface`/`FileViewFinder` resolution, no `first()`/
+    `renderWhen`/`renderEach`, no view events (`composing:`/`creating:`), none of
+    the 7 `Manages*` concerns as factory methods (section/stack/component/loop
+    state lives in the separate runtime `TemplateEngine` instead). `composer()`/
+    `creator()`/`share()` with wildcard matching ARE present — a genuine parity
+    point.
+  - **Missing — `$errors` auto-share.** No `ShareErrorsFromSession` equivalent;
+    ties to the redirect-back-with-errors gap recorded in `### FormRequest +
+    Validation` (US-A06).
+  - **Phalcon leak — structural, Stack 2 only.** `BladeView extends`
+    `\Phalcon\Mvc\View` (class-level leak — full Phalcon view API published).
+    `BladeViewProvider implements Phalcon\Di\ServiceProviderInterface`, its
+    `register()` param is typed `Application|DiInterface` (Phalcon), and the body
+    pulls in `Phalcon\Mvc\Dispatcher`, `Phalcon\Html\Escaper`,
+    `Phalcon\Flash\Session`. The functional view stack is deeply Phalcon-coupled.
+  - **Phalcon leak — none in Stack 1 / engine.** `Factory`, `View`,
+    `ViewComposer`, `TemplateEngine`, `Blade`, `BladeOne` carry no `Phalcon\`
+    types — the modern stack and the vendored engine are Phalcon-clean (but the
+    modern stack is non-functional, per the correctness defect above).
+
+- Effort: **L** — three independent workstreams. (1) Reconcile the two
+  view stacks into one and make `Factory`/`View::render()` actually invoke the
+  engine (engine resolver + view finder + real `render()`) — currently the
+  Laravel-shaped stack is a dead stub. (2) Re-home the functional path off
+  `Phalcon\Mvc\View`/`ServiceProviderInterface` to satisfy the Wrapper Rule.
+  (3) Directive parity: ~30 missing directives, dominated by the absent
+  `<x-component>` tag compiler and the class/anonymous-component system — that
+  alone is a large build-out, since BladeOne 4.9 has no equivalent architecture.
