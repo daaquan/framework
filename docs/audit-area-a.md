@@ -233,3 +233,140 @@
   `withinTransaction()` on the Pipeline (S on its own). The dual-mode
   Phalcon-native vs Pipeline execution path is a structural divergence that any
   fix must preserve or deliberately retire.
+
+### Request
+
+- Current — Phare:
+  - `Phare\Http\Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request`,
+    `use FileHelpers`. The published contract is
+    `Phare\Contracts\Http\Request extends Phalcon\Http\RequestInterface` and declares
+    only `all()` + `input()`.
+  - Constructor is `__construct(protected array $rules = [])` — Request is coupled to
+    a set of **validation rules**, not to HTTP payload params. It eagerly snapshots
+    input into `$this->data = $this->get()` (Phalcon GET∪POST merge) at construct time.
+  - Input accessors: `all()`, `input($name,$default=null)`, `only(array $keys)`,
+    `except(array $keys)`, `query(?string $key=null,mixed $default=null)`,
+    `has(string|array $key)`, `filled(string|array $key)`, `missing(string $key)`.
+  - HTTP meta: `ip()`, `header(string $name,$default=null)`, `headers()`,
+    `bearerToken(): ?string`, `url()`, `fullUrl(): string`, `isJson()`, `wantsJson()`,
+    `isMethod($methods,bool $strict=true)`, `route(?string $param=null): mixed`.
+  - Files (`FileHelpers` trait): `file(?string $key=null): ?UploadedFile`,
+    `allFiles(): array`, `hasFile(string $key): bool`, plus non-Laravel extras
+    `validateFileUpload()`, `validateImage()`.
+  - Validation surface baked into Request: static `$validators` map (Phalcon
+    validator classes), `make(array $data,array $rules,array $messages,array $customAttributes): static`,
+    `rules(): array`, `validate($data): bool`, `getMessages()`, protected
+    `firstRuleName()`/`formatValidationMessage()`.
+  - Everything else (`getQuery`, `getPost`, `getHeader`, `getHeaders`, `getURI`,
+    `getMethod`, `getClientAddress`, `hasFiles`, `getUploadedFiles`, `getServer`, …)
+    is **inherited verbatim from `\Phalcon\Http\Request`** and surfaces on the public API.
+
+- Expected — Laravel 13:
+  - `Illuminate\Http\Request extends SymfonyRequest implements Arrayable, ArrayAccess`,
+    composing traits `CanBePrecognitive`, `InteractsWithContentTypes`,
+    `InteractsWithFlashData`, `InteractsWithInput` (which pulls
+    `Support\Traits\InteractsWithData`), `Conditionable`, `Macroable`.
+  - Input — `InteractsWithInput` + `InteractsWithData`: `all`, `input`, `query`,
+    `post`, `server`, `keys`, `fluent`, `cookie`/`hasCookie`, `header`/`hasHeader`,
+    `bearerToken`, `allFiles`/`hasFile`/`file`, `exists`, `has`, `hasAny`, `whenHas`,
+    `filled`, `isNotFilled`, `anyFilled`, `whenFilled`, `missing`, `whenMissing`,
+    `only`, `except`, `str`/`string`, `boolean`, `integer`, `float`, `clamp`, `date`,
+    `interval`, `enum`, `enums`, `array`, `collect`, `dump`.
+  - URL/meta — `Request.php`: `method`, `root`, `url`, `fullUrl`,
+    `fullUrlWithQuery`, `fullUrlWithoutQuery`, `uri`, `path`, `decodedPath`,
+    `segment`, `segments`, `is`, `routeIs`, `fullUrlIs`, `host`, `httpHost`,
+    `schemeAndHttpHost`, `ajax`, `pjax`, `prefetch`, `secure`, `ip`, `ips`,
+    `userAgent`, `getAcceptableContentTypes`, `merge`, `mergeIfMissing`, `replace`,
+    `get`, `json`, `instance`, `duplicate`, `toArray`, `offsetExists/Get/Set/Unset`,
+    `__isset`/`__get`.
+  - Routing/session/user: `route`, `routeIs`, `fingerprint`, `hasSession`,
+    `getSession`, `session`, `setLaravelSession`, `user`, `getUserResolver`/
+    `setUserResolver`, `getRouteResolver`/`setRouteResolver`.
+  - Content negotiation — `InteractsWithContentTypes`: `isJson`, `expectsJson`,
+    `wantsJson`, `wantsMarkdown`, `accepts`, `prefers`, `acceptsAnyContentType`,
+    `acceptsJson`, `acceptsMarkdown`, `acceptsHtml`, `format`.
+  - Flash — `InteractsWithFlashData`: `old`, `flash`, `flashOnly`, `flashExcept`,
+    `flush`.
+  - Precognition — `CanBePrecognitive`: `filterPrecognitiveRules`,
+    `isAttemptingPrecognition`, `isPrecognitive`.
+  - `$request->validate(array $rules, ...)` is a **macro** (registered by the
+    validation layer) returning the **validated data array**, not bool.
+
+- Gaps:
+  - **Missing — input shape helpers:** `post`, `server`, `cookie`/`hasCookie`,
+    `hasHeader`, `keys`, `fluent`, `json`, `merge`, `mergeIfMissing`, `replace`,
+    `exists`, `hasAny`, `whenHas`, `whenFilled`, `whenMissing`, `anyFilled`,
+    `isNotFilled`, `str`/`string`, `boolean`, `integer`, `float`, `clamp`, `date`,
+    `interval`, `enum`, `enums`, `array`, `collect`, `dump`. Phare ships only the
+    bare `input/query/all/only/except/has/filled/missing` set.
+  - **Missing — URL/path API:** `method`, `path`, `decodedPath`, `segment`,
+    `segments`, `is`, `routeIs`, `fullUrlIs`, `host`, `httpHost`,
+    `schemeAndHttpHost`, `root`, `uri`, `fullUrlWithQuery`, `fullUrlWithoutQuery`,
+    `ajax`, `pjax`, `prefetch`, `secure`, `ips`, `userAgent`,
+    `getAcceptableContentTypes`. (`url`/`fullUrl`/`ip` exist; the rest do not.)
+  - **Missing — content negotiation:** `expectsJson`, `wantsMarkdown`, `accepts`,
+    `prefers`, `acceptsAnyContentType`, `acceptsJson`, `acceptsMarkdown`,
+    `acceptsHtml`, `format`. Only `isJson`/`wantsJson` exist, and they are naive
+    substring checks (`str_contains(..., '/json')`).
+  - **Missing — flash / old input:** entire `InteractsWithFlashData` surface
+    (`old`, `flash`, `flashOnly`, `flashExcept`, `flush`) absent — no
+    flash-on-error round-trip.
+  - **Missing — precognition:** entire `CanBePrecognitive` surface absent.
+  - **Missing — session/user/route resolvers:** `hasSession`, `getSession`,
+    `session`, `user`, `getUserResolver`/`setUserResolver`, `getRouteResolver`/
+    `setRouteResolver`, `fingerprint`. Critically, `route()` is a **stub**: its
+    body is a placeholder comment that always `return null` — route-model binding
+    and route param access are non-functional. (Routing gap already itemised in
+    `### Routing`; the Request-side stub is the consumer of that missing wiring.)
+  - **Missing — interop:** `Arrayable`/`ArrayAccess` not implemented (`toArray`,
+    `offsetExists/Get/Set/Unset`, `__get`/`__isset`); no `Conditionable`/`Macroable`,
+    so no `$request->validate()` macro and no `when()`.
+  - **Type mismatch — Request is a validation object.** The constructor
+    `__construct(array $rules)` couples a *transport* object to *validation rules*;
+    Laravel's Request constructor mirrors Symfony's
+    `($query,$request,$attributes,$cookies,$files,$server,$content)`. `make()`
+    builds a validation harness and returns a Request whose `validate()` has
+    already run — colliding by name with Laravel's `Request::create()` (build a
+    request from URI/method) while doing something unrelated. `make()`'s
+    `$messages` and `$customAttributes` params are accepted but **silently ignored**
+    (dead params).
+  - **Type mismatch — `validate()` semantics.** Phare `validate($data): bool`
+    takes the data as an argument, returns bool, and on failure keeps **only the
+    first error** in `$messages` as a flat `['field'=>,'type'=>,'message'=>]` array.
+    Laravel `validate(array $rules)` validates `$this` input, throws
+    `ValidationException` on failure, and returns the full validated data array;
+    errors are a `MessageBag`. `getMessages()` returns this single-error array, not
+    a bag — incompatible with any Laravel error-rendering path.
+  - **Type mismatch — untyped signatures.** `all()`, `input()`, `only()`,
+    `except()`, `ip()`, `header()`, `headers()`, `url()`, `getMessages()`,
+    `rules()`-consumers carry no/loose param+return types where Laravel is fully
+    typed. `input()` reads only the construct-time `$this->data` snapshot (Phalcon
+    `get()` = GET∪POST) — it never consults the JSON body or route params, so
+    `input()` on a JSON request silently misses payload keys. `missing()` accepts
+    only `string` (no array form) unlike `has`/`filled`.
+  - **Phalcon leak (Wrapper Rule §2 violation):**
+    - `Phare\Http\Request extends \Phalcon\Http\Request` — the entire Phalcon
+      Request public API (`getQuery`, `getPost`, `getHeader(s)`, `getURI`,
+      `getMethod`, `getClientAddress`, `hasFiles`, `getUploadedFiles`, `getServer`,
+      `getJsonRawBody`, …) is published on Phare's `Request`. Phare's own wrappers
+      then re-delegate to these (`query→getQuery`, `header→getHeader`,
+      `url→getURI`, `ip→getClientAddress`, `isMethod→getMethod`).
+    - `Phare\Contracts\Http\Request extends Phalcon\Http\RequestInterface` — the
+      **published contract** directly extends a raw Phalcon interface (cf. the
+      `### HTTP Kernel` learning: a leak baked into `Contracts/` is the worst form).
+      Any consumer typed against the contract is bound to Phalcon.
+    - No raw `Phalcon\*` type appears on Phare's *own* method param/return
+      signatures — the leak is structural (inheritance + contract extension), not
+      signature-level. The correct shape is a `Request` that wraps, not extends,
+      `Phalcon\Http\Request` and a contract free of `RequestInterface`.
+
+- Effort: **L** — three large workstreams. (1) Decouple Request from
+  validation: drop the `$rules` constructor + `make()`/`validate()`/`$validators`
+  into the FormRequest/validation layer (overlaps `US-A06`), restoring a
+  transport-shaped constructor. (2) Sever the Phalcon inheritance + contract
+  extension and re-expose ~50+ missing Laravel methods (input-shape helpers,
+  URL/path API, content negotiation, flash, precognition, `ArrayAccess`/`Macroable`)
+  over a wrapped Phalcon request. (3) Implement a real `route()` backed by the
+  routing layer (blocked on `### Routing` route-object/model-binding gaps). The
+  `input()`-misses-JSON-body bug is a correctness defect that should be fixed
+  regardless of the larger re-architecture.

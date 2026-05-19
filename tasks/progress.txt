@@ -46,3 +46,14 @@
   - When a gap was already itemised in an earlier section (e.g. Kernel middleware accessors in `### HTTP Kernel`), reference it rather than re-listing — keeps the audit DRY.
   - `RouteMiddlewareResolver` duplicates `Kernel::resolveRouteMiddlewareAlias` — flag duplicated logic as a Type-mismatch/divergence-risk gap.
 ---
+
+## 2026-05-19 - US-A04 Audit Request
+- Diffed Phare `Http\Request` public API vs Laravel 13 `Http/Request.php` + `Concerns/InteractsWithInput.php` (which composes `Support/Traits/InteractsWithData.php`).
+- Files changed: docs/audit-area-a.md (### Request section), tasks/prd.json, tasks/progress.txt. No framework code touched.
+- Result: Effort L. Phare `Request` extends `\Phalcon\Http\Request` (class-level leak — whole Phalcon API published) and the contract `Contracts\Http\Request extends Phalcon\Http\RequestInterface` (leak baked into published contract). Request is structurally a validation object: ctor takes `$rules`, `make()`/`validate()` are a validation harness. `validate()` returns bool not the validated array; `getMessages()` is a single-error flat array not a MessageBag. `route()` is a stub returning null. ~50+ Laravel methods missing (input-shape helpers, URL/path API, content negotiation, flash, precognition, ArrayAccess/Macroable).
+- **Learnings for future iterations:**
+  - Laravel 13 moved the input-shape helpers (`has/filled/only/except/string/enum/collect/whenHas/...`) into `Support/Traits/InteractsWithData.php`, pulled in via `InteractsWithInput`. Grep that trait too — `InteractsWithInput` alone only shows ~15 methods.
+  - Phare `Request`'s `input()` reads a construct-time snapshot `$this->data = $this->get()` (Phalcon GET∪POST) — it never sees the JSON body. Real correctness bug, not just a parity gap.
+  - `### Request`'s validation surface (`$validators`, `make`, `validate`, `rules`) overlaps US-A06 (FormRequest + Validation) — flag the decoupling there, don't double-count effort.
+  - Pattern confirmed: Phalcon leaks here are STRUCTURAL (extends a Phalcon class / contract extends a Phalcon interface), not signature-level — Phare's own method signatures carry no `Phalcon\*` types. Distinguish the two leak forms in the audit.
+---

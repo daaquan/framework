@@ -32,6 +32,22 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-19T08:45:04.729Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-05-19T08:52:10.424Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "docs/audit-area-a.md",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T08:52:10.424Z"
     }
   ]
 }
