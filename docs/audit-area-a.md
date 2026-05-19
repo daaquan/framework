@@ -370,3 +370,116 @@
   routing layer (blocked on `### Routing` route-object/model-binding gaps). The
   `input()`-misses-JSON-body bug is a correctness defect that should be fixed
   regardless of the larger re-architecture.
+
+### Response
+
+- Current: Phare's response surface is three classes plus two global
+  helpers — there is **no** `JsonResponse`, **no** `RedirectResponse`, and **no**
+  response factory.
+  - `Phare\Http\Response extends \Phalcon\Http\Response implements
+    Phare\Contracts\Http\Response`. Own methods: `json(data,status=200,headers=[])`,
+    `status(int)` (a **setter** returning `$this`), `cookie(name,value,expire,path,
+    domain,secure,httponly)`, `withHeaders(array)`, `header(name,value)`,
+    `view(view,data=[])`, `redirect($location=null,$externalRedirect=false,
+    $statusCode=302)`, `back(status=302)`, `redirectTo(location,status=302)`.
+  - `Phare\Http\FileResponse extends \Phalcon\Http\Response` (downloads): static
+    `create()`, `send()`, `deleteFileAfterSend()`, `stream()`, `inline()`,
+    `download()`, `setHeaders()`. Streams the file by `echo fread()` itself.
+  - `Phare\Http\StreamedResponse extends \Phalcon\Http\Response`: ctor
+    `(Closure,status=200,headers=[])`, static `create()`, `send()`,
+    `setCallback()`, `isStreamed()`.
+  - `Phare\Contracts\Http\Response interface extends Phalcon\Http\ResponseInterface`
+    (empty body).
+  - Helpers in `src/Phare/Support/helpers.php`: `response($content=null,
+    ResponseStatusCode $statusCode=OK): Phare\Contracts\Http\Response` and
+    `redirect(string $location, int $statusCode=302): Response`. `'response'` is
+    bound as a **singleton** of `Phare\Http\Response` (`ResponseProvider`).
+    `FileResponse`/`StreamedResponse` are not bound and have no factory entry.
+
+- Expected: Laravel 13 splits the response surface across
+  `Http/Response.php` (+ `Http/ResponseTrait.php`), `Http/JsonResponse.php`,
+  `Http/RedirectResponse.php`, and the `Routing/ResponseFactory.php` factory
+  (contract `Contracts/Routing/ResponseFactory.php`). `response()` with no args
+  returns the **factory**; the factory exposes `make`, `noContent`, `view`,
+  `json`, `jsonp`, `eventStream`, `stream`, `streamJson`, `streamDownload`,
+  `download`, `file`, `redirectTo`, `redirectToRoute`, `redirectToAction`,
+  `redirectGuest`, `redirectToIntended`. `ResponseTrait` adds `status()` (a
+  **getter** → int), `statusText()`, `content()`, `getOriginalContent()`,
+  `header(key,values,replace=true)`, `withHeaders()`, `withoutHeader()`,
+  `cookie()`/`withCookie()`/`withoutCookie()`, `getCallback()`, `withException()`,
+  `throwResponse()`. `RedirectResponse` adds session-flash chaining: `with()`,
+  `withInput()`, `onlyInput()`, `exceptInput()`, `withErrors()`, `withCookies()`,
+  `withFragment()`/`withoutFragment()`, `get/setSession()`, `get/setRequest()`.
+  `Response`/`JsonResponse` are `Macroable` and track `$original` content.
+
+- Gaps:
+  - **Missing:**
+    - `JsonResponse` class — none. `Response::json()` mutates and returns the
+      shared `Response` singleton; there is no distinct JSON response type, no
+      `getData()`/`setData()`/`setEncodingOptions()`/`hasEncodingOption()`, no
+      JSON encoding-option handling, no `Arrayable`/`Jsonable`/`JsonSerializable`
+      morphing.
+    - `RedirectResponse` class — none. `redirect()`/`back()`/`redirectTo()` return
+      a bare Phalcon response; **all** session-flash redirect chaining is absent
+      (`with`, `withInput`, `withErrors`, `withCookies`, `onlyInput`,
+      `exceptInput`, `withFragment`, `get/setSession`, `get/setRequest`).
+    - `ResponseFactory` (class + contract) — none. The factory verbs `make`,
+      `noContent`, `jsonp`, `eventStream`, `streamJson`, `streamDownload`,
+      `redirectToRoute`, `redirectToAction`, `redirectGuest`,
+      `redirectToIntended` have no Phare equivalent. `download`/`file` exist only
+      as the unbound `FileResponse` class, `stream` only as `StreamedResponse`.
+    - `ResponseTrait` accessors: `statusText()`, `content()`,
+      `getOriginalContent()`, `withoutHeader()`, `withCookie()`,
+      `withoutCookie()`, `getCallback()`, `withException()`, `throwResponse()`.
+    - `$original` content tracking and `Renderable`/`Jsonable` auto-morphing in
+      `setContent()`.
+    - `Macroable` on every response type.
+  - **Type mismatch:**
+    - `Response::status(int): static` is a **setter** that returns `$this`;
+      Laravel's `ResponseTrait::status(): int` is a **getter**. Same name,
+      opposite semantics — a porting hazard.
+    - `Response::view(view,data=[])` is a **stub**: it sets the literal string
+      `"View: <name> with data: <json>"` as content (`// This would need
+      integration with the view system`). No actual View rendering.
+    - `redirect()`, `back()`, `redirectTo()` declare return type
+      `Phalcon\Http\ResponseInterface` instead of `static`/`RedirectResponse`,
+      and produce no redirect-specific object.
+    - `cookie()` signature is positional `(name,value,expire,path,domain,secure,
+      httponly)`; Laravel `cookie()` takes a `Symfony\...\Cookie` or delegates to
+      the `cookie()` helper. `header()` lacks the `$replace` third argument.
+    - `response()` helper takes `($content, ResponseStatusCode $statusCode)` and
+      always returns a `Response` — it never returns a factory, has no `$headers`
+      param, and array content is hardwired to a JSON response.
+    - Phare response methods are typed, but inconsistently — `json()`/`status()`
+      are typed while `redirect()`/`back()` use loose `Phalcon\*` returns.
+  - **Phalcon leak (Wrapper Rule §2 violation):**
+    - `Phare\Http\Response extends \Phalcon\Http\Response` — the entire Phalcon
+      Response API (`setStatusCode`, `setContent`, `setJsonContent`,
+      `setContentType`, `setHeader`, `getHeaders`, `getCookies`, `send`, …) is
+      published on Phare's `Response`. Phare's own methods then re-delegate to it.
+    - `Phare\Contracts\Http\Response extends Phalcon\Http\ResponseInterface` — the
+      **published contract** directly extends a raw Phalcon interface (cf. the
+      `### HTTP Kernel` / `### Request` learning: a leak baked into `Contracts/`
+      is the worst form).
+    - Signature-level leak: `redirect()`, `back()`, `redirectTo()` all declare
+      `: ResponseInterface` (raw `Phalcon\Http\ResponseInterface`) as the return
+      type — unlike `### Request`, the leak here reaches Phare's *own* method
+      signatures, not just inheritance.
+    - The `response()` helper return type `Phare\Contracts\Http\Response`
+      transitively leaks the Phalcon interface to every helper caller.
+    - `FileResponse` and `StreamedResponse` extend `Phalcon\Http\Response`
+      **directly** (not Phare's `Response`), so they are entirely outside the
+      wrapper and miss even Phare's own `json()`/`header()`/`withHeaders()`.
+
+- Effort: **L** — the response layer is the least wrapped subsystem
+  audited so far. Three workstreams: (1) introduce real `JsonResponse` and
+  `RedirectResponse` types plus a `ResponseFactory` (class + contract) so
+  `response()` can return a factory matching Laravel's 17-verb surface;
+  (2) sever the Phalcon inheritance — `Response` (and `FileResponse`/
+  `StreamedResponse`) should *wrap* `Phalcon\Http\Response`, the contract must
+  drop `extends ResponseInterface`, and `redirect()/back()/redirectTo()` must
+  stop returning `Phalcon\Http\ResponseInterface`; (3) resolve the `status()`
+  setter/getter semantic clash, implement a non-stub `view()` wired to the View
+  layer, and add `ResponseTrait` accessors + `Macroable` + `$original` tracking.
+  The `view()` stub is a correctness defect (returns a debug string as the
+  response body) that should be fixed regardless of the larger re-architecture.
