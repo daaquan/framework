@@ -113,3 +113,19 @@
   - Laravel 13 has a `casts()` method override pattern (preferred since L11) — not present here; only the legacy `$casts` array.
   - Enumerate Laravel Model properties fast: `grep -nE '^\s+(protected|public|private)( static)? \$[a-zA-Z]+' Model.php` — ~28 properties.
 ---
+
+## 2026-05-19 - US-B02 Audit Query Builder
+- Diffed Phare `Eloquent\Builder` + `BuilderInterface` vs Laravel 13 Database/Eloquent/Builder.php (93 public + BuildsQueries + QueriesRelationships) and Database/Query/Builder.php (228 public methods).
+- Files changed: docs/audit-area-b.md (### Builder section), tasks/prd.json, tasks/progress.txt. No framework code touched.
+- Phare builder = `Builder extends Phalcon\Mvc\Model\Criteria implements BuilderInterface`; `BuilderInterface extends Phalcon\Mvc\Model\CriteriaInterface`. ~52 public methods that mutate Phalcon Criteria's `$params` then call `Model::rawFind()`/`parent::execute()`.
+- Result: Effort L. Second-pillar Eloquent facade — same shape as Model (US-B01) but bigger. Structural leak (extends Criteria) + contract leak (extends CriteriaInterface — worse than B01's stub ModelInterface) + signature leaks on get/first/last. ~60 missing Eloquent methods + ~180 missing Query Builder methods. No $passthru — count/exists/toSql throw. Behavioural defects: paginate() inverted args + non-paginator return; update() raw SQL skips model events/mutators; isOperator() 11 ops vs Laravel 30+ (silent mis-bind on Postgres/MySQL ops); select()/addSelect() CSV explode corrupts comma-bearing expressions.
+- **Learnings for future iterations:**
+  - Phare Builder is structurally welded to Phalcon Criteria — like B01 Model, do NOT itemise each inherited Phalcon method as a separate gap. Call out the inheritance as ONE structural leak, mention the headline names (`bind`/`bindTypes`/`getParams`/`join`/`having`/`fromInput`/...) once.
+  - BuilderInterface DOES extend a Phalcon interface — contract-leak severity is HIGHER than B01 (where ModelInterface was a stub Model didn't implement). This is the same defect class as `Contracts\Http\Kernel extends Phalcon\Http\…` (A02) and `Contracts\Http\Response extends Phalcon\Http\ResponseInterface` (A05). Cross-reference these contract leaks rather than describing the pattern from scratch each time.
+  - Laravel Eloquent Builder is NOT just `Builder.php`'s 93 public methods — `BuildsQueries` trait adds chunk/each/lazy and Eloquent's `__call` forwards a 33-entry `$passthru` to Query Builder (228 methods). The real Eloquent surface = 93 + 33 passthru + 16 QueriesRelationships + macroable. When auditing a "facade over a query layer" subsystem, enumerate the `$passthru` table explicitly.
+  - The `paginate()` argument-inversion (Phare `($page,$limit)` vs Laravel `($perPage,$columns,$pageName,$page,$total)`) is the second instance of the "same name, opposite shape" porting hazard pattern (first was `Model::create()` in B01). Worth a dedicated "behavioural divergences" callout in the audit-summary (US-S01).
+  - `update()` raw-SQL emit pattern = a SECOND silent-event bypass defect class (after the stub-defect class — Request::route, Response::view, validator exists/unique, View::render, Model casts). Worth a section in the synthesis.
+  - Phalcon Criteria has only `having($conditions)` (single string) — Laravel's 11-method having* surface is entirely absent and not closable without a real query builder.
+  - Enumerate Laravel Query Builder fast: `grep -c '^\s*public function' Database/Query/Builder.php` → 228 (includes WHERE/HAVING/JOIN/JSON families). Don't enumerate per-method — group by family and count.
+  - `eagerLoadRelations(ResultsetInterface $results)` is PRIVATE — Phalcon type as a private param is not a public-signature leak; record under "internal coupling", not under signature leaks.
+---
