@@ -129,3 +129,19 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 17:55 | US-A04 audit Request | docs/audit-area-a.md | done, Effort L | ~9k |
+
+## Session: 2026-05-19 17:55
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:57 | Edited tasks/prd.json | 6→6 lines | ~197 |
+| 17:58 | Session end: 1 writes across 1 files (prd.json) | 1 reads | ~7596 tok |
+
+## Session: 2026-05-19 17:58
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 18:00 | Edited tasks/prd.json | 6→6 lines | ~208 |
+
+## 2026-05-19 — US-A06 Audit FormRequest + Validation
+- docs/audit-area-a.md: appended ### FormRequest + Validation section. Phare Validator = 19 rules vs Laravel ~110; FormRequest inherits Request's Phalcon leak; exists/unique false-pass defect. Effort L.

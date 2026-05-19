@@ -483,3 +483,139 @@
   layer, and add `ResponseTrait` accessors + `Macroable` + `$original` tracking.
   The `view()` stub is a correctness defect (returns a debug string as the
   response body) that should be fixed regardless of the larger re-architecture.
+
+### FormRequest + Validation
+
+- Current — Phare:
+  - `Phare\Http\FormRequest extends Phare\Http\Request` (abstract). It transitively
+    extends `\Phalcon\Http\Request` — the structural class-level leak documented in
+    `### Request` is inherited by every FormRequest subclass.
+  - Hooks: `rules(): array`, `messages(): array`, `attributes(): array`,
+    `authorize(): bool`, protected `prepareForValidation(): void`,
+    `passedValidation(): void`, `failedValidation(Validator): void`,
+    `failedAuthorization(): void`, `createValidator(): Validator`.
+  - Accessors: `validated(): array`, `safe(): array`, `validator(): Validator`,
+    `getValidatorInstance(): Validator`, `validateResolved(): void`.
+  - `validateResolved()` runs `authorize()` then `validator()->fails()` and throws
+    `ValidationException`. There is **no redirect path** — failure is always an
+    exception, never a redirect-back-with-errors. `prepareForValidation()` and
+    `passedValidation()` are declared but **never invoked** by `validateResolved()`
+    (only `getValidatorInstance()` calls `prepareForValidation()`).
+  - `Phare\Validation\Validator`: ctor `(array $data, array $rules, array $messages=[],
+    array $customAttributes=[])`; `passes()`, `fails()`, `errors(): MessageBag`,
+    `validated(): array`, `safe(): array`, `addCustomRule(string,\Closure): void`,
+    static `make(...)`. Rules are `string` (pipe-delimited) or `array` of strings only.
+  - Built-in rules — **19 total**: `required`, `string`, `integer`, `numeric`,
+    `email`, `min`, `max`, `between`, `in`, `not_in`, `confirmed`, `same`,
+    `different`, `array`, `boolean`, `date`, `url`, `regex`, `nullable`.
+  - `Phare\Validation\MessageBag implements ArrayAccess, Countable, JsonSerializable`:
+    `add`, `merge`, `has`, `first`, `get`, `all`, `keys`, `isEmpty`, `isNotEmpty`,
+    `count`, `toArray`, `jsonSerialize`, `__toString`.
+  - `Phare\Validation\ValidationException extends \Exception`: `getValidator()`,
+    `errors(): MessageBag`, `getStatus(): int`, `setStatus(int): self`,
+    `errorBag(): string`, static `withMessages(array): self`.
+
+- Expected — Laravel 13:
+  - `Illuminate\Foundation\Http\FormRequest extends Request implements ValidatesWhenResolved`,
+    `use ValidatesWhenResolvedTrait`. Surface: `validationData()`, `validationRules()`,
+    `validated()`, `safe(): ValidatedInput`, `messages()`, `attributes()`,
+    `setValidator()`, `setRedirector()`, `setContainer()`, `getValidatorInstance()`,
+    `createDefaultValidator()`, `failedValidation()`, `getRedirectUrl()`,
+    `passesAuthorization()`, `failedAuthorization()`, `validateResolved()`,
+    `prepareForValidation()`, `passedValidation()`, `configureFromAttributes()`.
+    Redirect properties `$redirect`, `$redirectRoute`, `$redirectAction`, plus
+    `$errorBag`, `$stopOnFirstFailure`, `$after`.
+  - `Illuminate\Validation\Validator implements ValidatorContract` — ~60 public
+    methods incl. `after`, `whenPasses`/`whenFails`, `validate`, `validateWithBag`,
+    `safe`, `valid`/`invalid`/`failed`, `messages`/`errors`/`getMessageBag`,
+    `hasRule`, `sometimes`, `stopOnFirstFailure`, `setData`/`setRules`/`addRules`/
+    `appendRules`, `addExtension`/`addImplicit*`/`addDependent*`, `addReplacer`,
+    `setCustomMessages`/`setAttributeNames`/`addCustomAttributes`, presence verifier,
+    translator. `__construct` takes a `Translator`.
+  - Built-in rules — **~110**: Accepted(If), Declined(If), ActiveUrl, Ascii, Bail,
+    Before/After(OrEqual), Alpha(Dash/Num), Array, List, RequiredArrayKeys, Between,
+    Boolean, Confirmed, Contains/DoesntContain, Date/DateFormat/DateEquals, Decimal,
+    Different, Digits(Between), Dimensions, Distinct, Email, Encoding, Exists, Unique,
+    Extensions, File, Filled, Gt/Lt/Gte/Lte, Lowercase/Uppercase, HexColor, Image,
+    In/InArray(Keys), Integer, Ip, MacAddress, Json, Max(Digits), Mimes/Mimetypes,
+    Min(Digits), Missing(If/Unless/With/WithAll), MultipleOf, Nullable, NotIn,
+    Numeric, Present(If/Unless/With/WithAll), Regex/NotRegex, Required(If/Unless/
+    With/WithAll/Without/WithoutAll/IfAccepted/IfDeclined), Prohibited(If/Unless/
+    IfAccepted/IfDeclined)/Prohibits, Exclude(If/Unless/With/Without), Same, Size,
+    Sometimes, Starts/EndsWith, DoesntStart/EndsWith, String, Timezone, Url, Ulid,
+    Uuid.
+  - `Illuminate\Validation\Rule` — 28 static builders (`unique`, `exists`, `in`,
+    `notIn`, `requiredIf`, `enum`, `file`, `imageFile`, `dimensions`, `date`,
+    `email`, `password`, `array`, `forEach`, `when`/`unless`, `can`, `anyOf`,
+    `contains`, …) returning rich `Rules/*` objects (`Password`, `File`, `Email`,
+    `Enum`, `Numeric`, `StringRule`, `Dimensions`, `Unique`, `Exists`, …).
+  - Object-rule support: closure rules (`ClosureValidationRule`), `ValidationRule`/
+    `InvokableRule`/`Rule` contracts, `DataAwareRule`, `ValidatorAwareRule`,
+    `NestedRules`, `ConditionalRules`. Nested/array data via dot-notation and `.*`
+    wildcards (`ValidationRuleParser`, `ValidationData`).
+  - `Contracts\Validation\{Validator, Factory, Rule, ValidationRule, InvokableRule,
+    ImplicitRule, DataAwareRule, ValidatorAwareRule, CompilableRules,
+    ValidatesWhenResolved, UncompromisedVerifier}` — a full contract surface.
+  - `Illuminate\Validation\ValidationException`: props `$status=422`, `$errorBag`,
+    `$redirectTo`, `$response`; methods `status()`, `errorBag()`, `redirectTo()`,
+    `getResponse()`, static `withMessages()`.
+
+- Gaps:
+  - **Missing — Validator rules (~91 of ~110 absent).** No conditional/dependent
+    rules at all: `sometimes`, `bail`, `required_if/unless/with/without/...`,
+    `exclude*`, `prohibited*`, `prohibits`, `missing*`, `present*`. No `size`,
+    `digits`, `gt/lt/gte/lte`, `distinct`, `alpha*`, `accepted/declined`,
+    `before/after`, `date_format`, `uuid/ulid`, `ip`, `json`, `timezone`,
+    `mimes/file/image/dimensions`, `decimal`, `multiple_of`, `starts_with/ends_with`,
+    `lowercase/uppercase`, `active_url`, etc.
+  - **Missing — FormRequest redirect flow.** No `$redirect`/`$redirectRoute`/
+    `$redirectAction`, `getRedirectUrl()`, `setRedirector()`, `validationData()`,
+    `validationRules()`, `setValidator()`, `setContainer()`, `$errorBag`,
+    `$stopOnFirstFailure`, `$after`, `configureFromAttributes()`. Validation
+    failure can only throw — the redirect-back-with-errors UX is unsupported.
+  - **Missing — Validator surface.** No `after()` callbacks, `sometimes()`,
+    `validateWithBag()`/named error bags, `valid()`/`invalid()`/`failed()`,
+    `getMessageBag()`/`messages()`, `setData`/`setRules`/`addRules`, custom
+    extensions/replacers, translator integration, presence verifier.
+  - **Missing — object rules.** Rules must be plain strings; no support for
+    closure rules, `Rule::*()` builders, `Rules/*` objects, or the
+    `ValidationRule`/`InvokableRule` contracts. No `Rule` facade equivalent.
+  - **Missing — nested/array validation.** No dot-notation or `.*` wildcard
+    expansion; `Validator` only iterates top-level `array_keys($rules)`.
+  - **Missing — `Contracts\Validation\*`.** Phare publishes no validation
+    interfaces; `Validator`/`FormRequest` are concrete-only (cf. the absent
+    `Contracts/Validation/` namespace).
+  - **Type mismatch — `safe()` return.** Phare `FormRequest::safe()` and
+    `Validator::safe()` return a plain `array`; Laravel returns a `ValidatedInput`
+    object (`only`/`except`/`collect`/`merge`). Porting hazard.
+  - **Type mismatch — `boolean` rule.** Phare accepts the strings `'true'`/`'false'`;
+    Laravel's `boolean` rule does not (only `true,false,1,0,'1','0'`).
+  - **Type mismatch — `confirmed` rule.** Phare hardcodes the `_confirmation`
+    suffix; Laravel 9+ accepts `confirmed:other_field`.
+  - **Type mismatch — custom-message placeholders.** Phare substitutes rule params
+    only into its own *default* messages; user-supplied `messages()` get no
+    `:attribute`/`:min`/`:other` placeholder replacement.
+  - **Type mismatch — untyped signatures.** `Validator` rule methods take an
+    untyped `$value`; `addCustomRule` callback contract is undocumented.
+  - **Correctness defect — `exists`/`unique` silently pass.** Both appear in
+    `getDefaultMessage()` but have **no** `validateExists`/`validateUnique` method
+    and there is no presence verifier. `validateRule()` finds no handler and no
+    custom rule, so it does nothing — a rule of `unique`/`exists` is a guaranteed
+    false-pass. Same class of stub defect as `Request::route()` (US-A04) and
+    `Response::view()` (US-A05).
+  - **Phalcon leak — inherited structural.** `FormRequest` extends
+    `Phare\Http\Request extends \Phalcon\Http\Request`; the entire
+    `Phalcon\Http\Request` API is published on every FormRequest subclass. This is
+    the `### Request` leak inherited, not a new one — do not double-count.
+  - **Phalcon leak — Validation namespace is clean.** `grep -rn "Phalcon"`
+    `src/Phare/Validation/` and `src/Phare/Http/FormRequest.php` returns nothing:
+    `Validator`, `MessageBag`, `ValidationException` carry no Phalcon types.
+
+- Effort: L — The validator is a 19-rule toy beside Laravel's ~110-rule
+  engine; closing it means the conditional/dependent/array-aware rule machinery,
+  the `Rule` builder + `Rules/*` object family, object/closure-rule contracts,
+  nested dot-notation parsing, the translator-driven message layer, and the full
+  `Contracts\Validation\*` surface. `FormRequest` additionally needs the entire
+  redirect-back-with-errors flow and the missing accessor/hook surface. The
+  `exists`/`unique` false-pass is a correctness defect that should be fixed (or the
+  rules removed from `getDefaultMessage()`) regardless of the larger build-out.
