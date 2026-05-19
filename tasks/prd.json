@@ -122,8 +122,8 @@
         "No framework code changed"
       ],
       "priority": 8,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-19. docs/audit-area-b.md created with ### Eloquent Model section. Effort L. Model structurally extends Phalcon\\Mvc\\Model — largest single leak in Area B, plus signature-level leaks on all()/rawFind()/find()/findFirst()/assign() (return Phalcon\\Mvc\\Model\\ResultsetInterface or ModelInterface) and ?Phalcon\\Di\\DiInterface params on query()/newQuery*(). No real Phare model contract — ModelInterface is a 1-method toArray() stub and not implemented. Major behavioural divergences: Phare::create() is INSTANCE returning bool (Laravel: static, returns Model); $guarded default ['*'] silently no-ops mass assignment when neither fillable nor guarded set (Laravel default []); all()/find() return Phalcon ResultsetInterface not Eloquent Collection; firstOrFail throws PhModel\\Exception not ModelNotFoundException. Missing: $with/$withCount/load*/loadMissing eager-load, *OrFail/updateQuietly/pushQuietly/destroy/fresh/refresh/replicate, toJson/jsonSerialize/__toString (not Jsonable/JsonSerializable), $keyType/$incrementing API, strict-mode guards, HasUuids/HasUlids. Custom-cast classes ship in Eloquent/Casts/ but castAttribute() never invokes the CastsAttributes contract — likely correctness gap."
     },
     {
       "id": "US-B02",
