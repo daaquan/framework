@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 30089,
-    "total_reads": 7,
-    "total_writes": 7,
-    "total_sessions": 25,
-    "anatomy_hits": 7,
+    "total_tokens_estimated": 37887,
+    "total_reads": 8,
+    "total_writes": 8,
+    "total_sessions": 26,
+    "anatomy_hits": 8,
     "anatomy_misses": 0,
     "repeated_reads_blocked": 2,
-    "estimated_savings_vs_bare_cli": 15990
+    "estimated_savings_vs_bare_cli": 16190
   },
   "sessions": [
     {
@@ -151,6 +151,34 @@
       "totals": {
         "input_tokens_estimated": 7399,
         "output_tokens_estimated": 197,
+        "reads_count": 1,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-05-19-1758",
+      "started": "2026-05-19T08:58:12.208Z",
+      "ended": "2026-05-19T09:01:14.569Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 7590,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 208,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 7590,
+        "output_tokens_estimated": 208,
         "reads_count": 1,
         "writes_count": 1,
         "repeated_reads_blocked": 0,
