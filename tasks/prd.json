@@ -32,8 +32,8 @@
         "No framework code changed"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-19. ### HTTP Kernel appended to docs/audit-area-a.md. [x] does NOT hold — downgraded to [~]. Wrapper Rule violation: handle()/terminate() expose raw Phalcon\\Http\\RequestInterface/ResponseInterface in public signatures of BOTH Foundation\\Http\\Kernel and Contracts\\Http\\Kernel. Also missing all ~18 Laravel middleware accessor methods. Effort M."
     },
     {
       "id": "US-A03",
