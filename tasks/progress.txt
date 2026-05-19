@@ -34,3 +34,15 @@
   - Re-verify [x] stories CAN downgrade — the "Confirms [x] still holds, or flags downgrade" AC is satisfied either way; document the reason.
   - Phare ships `Phare\Http\Request`/`Phare\Http\Response` wrappers — the correct public types whenever a Phalcon HTTP type leaks.
 ---
+
+## 2026-05-19 - US-A03 Audit Middleware
+- Diffed Phare middleware registration/ordering + Pipeline vs Laravel 13.
+- Files changed: docs/audit-area-a.md (### Middleware section), tasks/prd.json, tasks/progress.txt. No framework code touched.
+- Phare middleware = `Pipeline\Pipeline` + `Contracts\Http\Middleware`/`MiddlewareContract` + Kernel's 3 protected fields ($middlewares/$middlewareGroups/$routeMiddleware) + helper classes `Routing\MiddlewareApplicator` & `Routing\RouteMiddlewareResolver`.
+- Result: Effort L. Phalcon leaks in the `Middleware` interface AND `MiddlewareContract` abstract class (raw Phalcon\Http\* + Phalcon\Mvc\Micro/Application/Event). Missing $middlewarePriority system, ~6 built-in middleware, Pipeline::withinTransaction.
+- **Learnings for future iterations:**
+  - Phare has a UNIQUE dual-mode middleware exec: Phalcon-native (`$app->middleware()`) by default OR Pipeline-based when `app.http.use_pipeline_middleware` config true. No Laravel equivalent — Laravel always uses Pipeline.
+  - Phare imposes a single `Contracts\Http\Middleware` interface; Laravel middleware is duck-typed (no interface). Don't expect a Laravel `Middleware` interface to diff against.
+  - When a gap was already itemised in an earlier section (e.g. Kernel middleware accessors in `### HTTP Kernel`), reference it rather than re-listing — keeps the audit DRY.
+  - `RouteMiddlewareResolver` duplicates `Kernel::resolveRouteMiddlewareAlias` — flag duplicated logic as a Type-mismatch/divergence-risk gap.
+---
