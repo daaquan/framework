@@ -152,8 +152,8 @@
         "No framework code changed"
       ],
       "priority": 10,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-21. ### Relations appended to docs/audit-area-b.md. Effort L — largest Area-B subsystem. 15 Phare relation classes wrap a Phalcon\\Mvc\\Model\\Relation root (THIRD structural Phalcon leak in Area B after Model/Builder). NEW public-signature leak: HasRelationships::hasOne/hasMany/belongsTo/hasOneThrough return UNION `<PhareRelation>|\\Phalcon\\Mvc\\Model\\Relation` — Phare publishes Phalcon-shaped overloads from its own factory methods. Three families wholesale missing: (1) `Or`/`Quietly` find/first/save/create surface (~40 verbs across HasOneOrMany/BelongsToMany/HasOneOrManyThrough); (2) ENTIRE QueriesRelationships trait — 43 methods (has/whereHas/withCount/withSum/...) — biggest user-facing hole; (3) modifier Concerns CanBeOneOfMany/SupportsDefaultModels(withDefault)/SupportsInverseRelations(inverse/chaperone)/ComparesRelatedModels(is/isNot)/AsPivot. Stub-defect pattern continues: Relation::getRelationExistenceQuery returns $query unchanged — silent no-op. Silent-arg-drop pattern: BelongsToMany attach/detach/sync/toggle accept $touch but never call touchIfTouching. MorphTo::match() is a NO-OP. BelongsToMany/HasOneOrManyThrough emit raw SQL via getReadConnection/fetchAll bypassing Phalcon Criteria. MorphMany extends HasMany directly — Phare collapses Laravel's MorphOneOrMany layer."
     },
     {
       "id": "US-B04",

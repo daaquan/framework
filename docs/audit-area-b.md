@@ -556,3 +556,322 @@
   silent-event `update()` are the two highest-impact behavioural
   divergences — call them out alongside US-B01's `create()`/`$guarded`
   flags before any porting starts.
+
+---
+
+### Relations
+
+- Current — Phare:
+  `src/Phare/Eloquent/Relations/` (15 files) + factory methods on the
+  `HasRelationships` trait (US-B01). Inheritance tree:
+  - `abstract Relation extends Phalcon\Mvc\Model\Relation` — root.
+  - `abstract HasOneOrMany extends Relation` → `HasOne`, `HasMany`.
+  - `BelongsTo extends Relation`.
+  - `BelongsToMany extends Relation` → `MorphToMany extends BelongsToMany`
+    → `MorphedByMany extends MorphToMany`.
+  - `abstract HasOneOrManyThrough extends Relation` → `HasOneThrough`,
+    `HasManyThrough`.
+  - `MorphMany extends HasMany` (**not** the Laravel
+    `MorphOneOrMany` layer — Phare collapses it). `MorphOne extends MorphMany`.
+  - `MorphTo extends Relation`.
+  - `Pivot extends Phare\Eloquent\Model` (no `AsPivot` trait, no
+    `Contracts\Database\Eloquent\Pivot` interface). `MorphPivot extends Pivot`.
+
+  Public surface per file (`grep -cE '^\s*public function ' Relations/*.php`):
+  `Relation 16 / HasOneOrMany 5 / HasOne 3 / HasMany 3 / BelongsTo 11 /
+   BelongsToMany 27 / MorphTo 9 / MorphMany 4 / MorphOne 4 /
+   MorphToMany 2 / MorphedByMany 1 / HasOneOrManyThrough 9 /
+   HasOneThrough 3 / HasManyThrough 3 / Pivot 8 / MorphPivot 3`.
+
+  Factory entry points from `HasRelationships` (US-B01): `hasOne`,
+  `hasMany`, `belongsTo`, `hasOneThrough`, `hasManyThrough`, `morphOne`,
+  `morphMany`, `morphTo`, `belongsToMany`, `morphToMany`, `morphedByMany`,
+  `newQuery(?Phalcon\Di\DiInterface)`. No `through(...)->has(...)` chain.
+
+  Eager-load runtime — `Builder::with($relations, $callback = null)` (US-B02)
+  is the single entry; `Builder::eagerLoadRelations()` (private, takes
+  `Phalcon\Mvc\Model\Resultset\ResultsetInterface`) dispatches per-name
+  to `Relation::addEagerConstraints()`, `getEager()`, `match()`.
+  `Model::load($relations): static` re-runs the factory on the parent
+  instance one relation at a time.
+
+- Expected — Laravel 13:
+  `Illuminate/Database/Eloquent/Relations/` (16 files + `Concerns/`):
+  - `Relation` 20 public methods (incl. `sole`, `touch`, `rawUpdate`,
+    `getRelationExistenceCountQuery`, `getRelationExistenceQuery`,
+    `getRelationCountHash`, `getBaseQuery`, `toBase`, `createdAt`,
+    `updatedAt`, `relatedUpdatedAt`, `__clone`).
+  - `HasOneOrMany` 35 public (full save/create/upsert family +
+    `make`/`makeMany`/`findOrNew`/`firstOrNew`/`firstOrCreate`/
+    `createOrFirst`/`updateOrCreate`/`upsert`/`save{,Quietly}`/`saveMany{,Quietly}`/
+    `create{,Quietly}`/`forceCreate{,Quietly}`/`createMany{,Quietly}`/
+    `forceCreateMany{,Quietly}` + `take`/`limit`/key accessors).
+  - `BelongsTo` 19 (`associate`/`dissociate`/`disassociate`/`touch` +
+    `getRelationExistenceQueryForSelfRelation` + key accessors +
+    `getRelationName`).
+  - `BelongsToMany` 84 + `InteractsWithPivotTable` concern 21 (sync*,
+    toggle*, attach*, detach*, updateExistingPivot*, syncWithoutDetaching,
+    syncWithPivotValues, hasPivotColumn, newPivot{Statement,Query},
+    withPivot, wherePivot{,In,NotIn,Null,NotNull,Between,NotBetween},
+    orWherePivot{...}, orderByPivot{,Desc}, withPivotValue, find{,Many,Sole,OrFail,Or},
+    firstWhere, first{,OrFail,Or,OrCreate,OrNew}, paginate/simplePaginate/
+    cursorPaginate, chunk{,ById,ByIdDesc}, each{,ById}, lazy{,ById,ByIdDesc},
+    cursor, touchIfTouching, allRelatedIds, save{,Quietly,Many,ManyQuietly},
+    create, createMany, getRelationExistenceQuery{,ForSelfJoin}, take/limit,
+    using, as, getExistenceCompareKey, withTimestamps, createdAt/updatedAt,
+    ~22 key/column getters, qualifyPivotColumn).
+  - `MorphTo` 18 (`morphWith`/`morphWithCount`/`constrain`/`withTrashed`/
+    `withoutTrashed`/`onlyTrashed`/`associate`/`dissociate`/`touch`/
+    `createModelByType`/`getDictionary`/`getMorphType`/...).
+  - `MorphOneOrMany` 9 (`forceCreate`/`upsert`/`getRelationExistenceQuery`/
+    `getQualifiedMorphType`/`getMorphType`/`getMorphClass`). Phare collapses
+    this layer entirely.
+  - `HasOneOrManyThrough` 45 (full first/find/firstOr/findOr family,
+    paginate/simplePaginate/cursorPaginate, chunk*/each*/lazy*/cursor,
+    `throughParentSoftDeletes`, `withTrashedParents`, key accessors).
+  - `HasOne` 8 (adds CanBeOneOfMany hooks + `newRelatedInstanceFor`).
+  - `Pivot` is a 0-method skeleton; `Concerns/AsPivot` ships 13 public
+    methods (`getQueueableId`, `newQueryForRestoration`,
+    `setRelatedModel`, `getOtherKey`, `setPivotKeys`, `unsetRelations`,
+    `delete`, `hasTimestampAttributes`, `getCreatedAtColumn`,
+    `getUpdatedAtColumn`, `getTable`, `getForeignKey`, `getRelatedKey`).
+  - `MorphPivot` 6 (`getMorphType`/`setMorphType`/`setMorphClass`/`delete`/
+    `getQueueableId`/`newQueryForRestoration`).
+  - Relation-level concerns (Phare has **none** of these):
+    `CanBeOneOfMany` 7 (`ofMany`/`latestOfMany`/`oldestOfMany`/
+    `addOneOfManySubQueryConstraints`/`getOneOfManySubQuerySelectColumns`/
+    `addOneOfManyJoinSubQueryConstraints`/`getOneOfManySubQuery`/
+    `isOneOfMany`/`qualifySubSelectColumn`).
+    `SupportsDefaultModels` 1 (`withDefault`).
+    `SupportsInverseRelations` 5 (`inverse`/`chaperone`/
+    `getInverseRelationship`/`withoutInverse`/`withoutChaperone`).
+    `ComparesRelatedModels` 3 (`is`/`isNot`/`getParentKey`).
+    `InteractsWithDictionary` (protected dictionary helpers).
+  - `QueriesRelationships` 43 methods bolted on `Eloquent\Builder`
+    (`has`/`orHas`/`doesntHave`/`orDoesntHave`/`whereHas`/`withWhereHas`/
+    `orWhereHas`/`whereDoesntHave`/`orWhereDoesntHave`/`hasMorph` family/
+    `whereHasMorph` family/`whereRelation`/`withWhereRelation`/
+    `whereDoesntHaveRelation`/`whereMorphedTo`/`whereNotMorphedTo`/
+    `whereBelongsTo`/`whereAttachedTo`/`withAggregate`/`withCount`/
+    `withMax`/`withMin`/`withSum`/`withAvg`/`withExists`/
+    `mergeConstraintsFrom`). Phare ships ZERO of these.
+
+- Gaps:
+  - **Missing (per relation class):**
+    - `Relation` — `sole`, `touch`, `rawUpdate`,
+      `getRelationExistenceCountQuery`, `getRelationCountHash`,
+      `getBaseQuery`, `toBase`, `createdAt`/`updatedAt`/`relatedUpdatedAt`,
+      `__clone`. Phare's `getRelationExistenceQuery()` is a stub that
+      returns `$query` unchanged — same stub-defect class as
+      A04/A05/A06/A07/B01/B02. Consequence: no relation-existence
+      subquery can be built, even if `whereHas` existed.
+    - `HasOneOrMany` — `make`/`makeMany`/`findOrNew`/`firstOrNew`/
+      `firstOrCreate`/`createOrFirst`/`updateOrCreate`/`upsert`/
+      `saveMany`/`forceCreate*`/`createMany*`/`forceCreateMany*`/
+      `*Quietly` variants/`matchOne`/`matchMany`/`take`/`limit`/
+      `getExistenceCompareKey`/`getForeignKeyName`/`getQualifiedForeignKeyName`/
+      `getLocalKeyName`. Phare ships just `save`+`create` (~30 missing).
+    - `BelongsTo` — `touch`, `getRelationExistenceQueryForSelfRelation`,
+      `getChild`, `getForeignKeyName`, `getQualifiedForeignKeyName`,
+      `getParentKey`, `getOwnerKeyName`, `getQualifiedOwnerKeyName`,
+      `getRelationName`.
+    - `BelongsToMany` — `using` (custom pivot model), `withPivotValue`,
+      ALL `wherePivot{Between,NotBetween,In,NotIn,Null,NotNull}` + their
+      `or` variants, `orderByPivotDesc`, full
+      `find/first/findOr/firstOr*/findOrFail/findSole/findMany/firstWhere/firstOrCreate/firstOrNew/createOrFirst/updateOrCreate`
+      surface, `paginate`/`simplePaginate`/`cursorPaginate`,
+      `chunk{,ById,ByIdDesc}`/`each{,ById}`/`lazy{,ById,ByIdDesc}`/
+      `cursor`, `touchIfTouching`/`touch`, `allRelatedIds`,
+      `saveMany{,Quietly}`/`saveQuietly`/`createMany`, `take`/`limit`,
+      `getRelationExistenceQuery`/`getRelationExistenceQueryForSelfJoin`,
+      `qualifyPivotColumn` (private in Phare), `getExistenceCompareKey`,
+      ~22 key/column accessors. From `InteractsWithPivotTable`: `toggle`
+      and `attach`/`detach`/`sync`/`updateExistingPivot` are present
+      but their `OrFail`/`syncWithoutDetaching`/`syncWithPivotValues`/
+      `hasPivotColumn`/`newPivotStatement{,ForId}`/`newPivotQuery`
+      siblings are absent.
+    - `MorphTo` — `morphWith`/`morphWithCount`/`constrain`/
+      `withTrashed`/`withoutTrashed`/`onlyTrashed`/`associate`/
+      `dissociate`/`touch`/`createModelByType`/`getDictionary` (only
+      stored internally)/`getQualifiedOwnerKeyName`. Phare's `match()`
+      is a no-op — it returns `$models` unchanged and relies on a
+      side-effect inside `getEager()` to wire results, departing from
+      the Laravel addEager/initRelation/match contract.
+    - `MorphMany`/`MorphOne` — the whole `MorphOneOrMany` layer
+      (`forceCreate`/`upsert`/`getQualifiedMorphType`/`getMorphType`/
+      `getMorphClass` on the relation), plus inherited `HasOneOrMany`
+      gaps above.
+    - `HasOneOrManyThrough`/`HasOneThrough`/`HasManyThrough` —
+      `firstOrNew`/`firstOrCreate`/`createOrFirst`/`updateOrCreate`/
+      `firstWhere`/`first`/`firstOrFail`/`firstOr`/`find`/`findSole`/
+      `findMany`/`findOrFail`/`findOr`/`paginate`/`simplePaginate`/
+      `cursorPaginate`/`chunk*`/`each*`/`cursor`/`lazy*`/`take`/`limit`/
+      `throughParentSoftDeletes`/`withTrashedParents`/
+      `getRelationExistenceQueryForSelfRelation`/
+      `getRelationExistenceQueryForThroughSelfRelation` + key accessors
+      (~36 missing of 45).
+    - `HasOne` — `CanBeOneOfMany` hooks, `newRelatedInstanceFor`. No
+      one-of-many subquery support anywhere.
+    - `Pivot` — entire `AsPivot` concern (13 methods). No
+      `Contracts\Database\Eloquent\Pivot` marker interface.
+    - `MorphPivot` — `getQueueableId`/`newQueryForRestoration`.
+    - **Concerns wholesale missing:** `CanBeOneOfMany`,
+      `SupportsDefaultModels` (`withDefault`),
+      `SupportsInverseRelations` (`inverse`/`chaperone`/
+      `withoutInverse`/`withoutChaperone`/`getInverseRelationship`),
+      `ComparesRelatedModels` (`is`/`isNot`/`getParentKey`),
+      `InteractsWithDictionary`.
+    - **`QueriesRelationships` wholesale missing** — Phare `Builder`
+      ships no `has`/`whereHas`/`orWhereHas`/`withWhereHas`/`doesntHave`/
+      `whereDoesntHave`/`orWhereDoesntHave`/`withCount`/`withMin`/
+      `withMax`/`withSum`/`withAvg`/`withExists`/`withAggregate`/
+      `hasMorph`/`whereHasMorph`/`whereRelation`/`whereMorphedTo`/
+      `whereBelongsTo`/`whereAttachedTo` (43 methods). The `with()`
+      eager-load is the ONLY relation-aware Builder method (US-B02
+      records this gap as well).
+    - `Model::load`: no `loadMissing`/`loadCount`/`loadAggregate`/
+      `loadMin`/`loadMax`/`loadSum`/`loadAvg`/`loadExists`/`loadMorph*`.
+      Eager-load API is one verb, not the Laravel ~12.
+
+  - **Type mismatch / behavioural divergence:**
+    - `HasRelationships::hasOne`/`hasMany`/`belongsTo`/`hasOneThrough`
+      return a UNION of the Phare relation class **and**
+      `\Phalcon\Mvc\Model\Relation` — `HasOne|\Phalcon\Mvc\Model\Relation`
+      etc. This is a **public-signature Phalcon leak** on Phare's most
+      visible relationship API (factory methods on every model). The
+      union is taken when called with a 3-arg "Phalcon-style" signature
+      (`$fields,$referenceModel,$referencedFields[,$options]`) — i.e.
+      Phare publishes BOTH Eloquent-shaped and Phalcon-shaped overloads
+      from the same method.
+    - `Relation::addConstraints/addEagerConstraints/initRelation/match/
+      getResults/getRelationFields/getRelatedFields/getRelationType` are
+      typed `: void`/`: array`/`: mixed`/`: int` — Laravel signatures
+      use `void`/`array`/`Collection|Model|null` and `string` for the
+      type. The `int` `getRelationType()` is Phare-specific (mirrors
+      Phalcon `Relation::HAS_ONE`/`HAS_MANY`/`BELONGS_TO` constants);
+      Laravel has no such concept.
+    - `Relation::__call(string, array): mixed` — fluent forwarding to
+      `$this->query` that rewrites `$this->query` returns back to
+      `$this`. Laravel forwards via `__call` too but does not pun the
+      return — Phare's chain-coercion can mask the distinction between
+      builder-mutating and builder-terminating calls (e.g. `get()`
+      forwarded to Builder vs Relation's own `get()`).
+    - `Relation::get(): Collection` — wraps `iterator_to_array(... false)`
+      around Phalcon's `ResultsetInterface`; Laravel returns the
+      relation-specific Collection/Model and runs eager-load+match in
+      one call (Phare's match path is decoupled and only runs through
+      `eagerLoadModels`).
+    - `Relation::update(array): int` and `Relation::delete(): int` —
+      both delegate to `Builder::update/delete`, inheriting the
+      silent-event raw-SQL `update()` defect documented in US-B02
+      (events/mutators/timestamps not fired).
+    - `BelongsTo::associate(Model|int|string|null)` — accepts a scalar
+      key. Laravel accepts `Model|int|string`; passing `null` is the
+      dissociate path. Phare's `null` branch sets the foreign key to
+      `null` then unsets the loaded relation — matches Laravel's
+      `dissociate()` behaviour but pretends to be `associate()`. Same
+      method, slightly different shape: signed off as a Type-mismatch.
+    - `BelongsToMany::attach($id, array $attributes = [], $touch = true)`
+      — `$touch` is accepted then **ignored** (no `touchIfTouching`
+      call). Silent argument drop. Same for `detach`/`sync`/`toggle`/
+      `updateExistingPivot`. (Cf. US-B02's `update()` raw-SQL pattern —
+      this is the second instance of "signature accepts a Laravel
+      parameter, runtime drops it.")
+    - `BelongsToMany::first(): ?Model` — restores limit via a closure
+      `(function (array $params){ $this->params = $params; })->call($this->query, $params)`
+      that reaches into Phalcon Criteria's private `$params`. Internal
+      coupling to Phalcon Criteria internals; not a public-signature
+      leak but a Wrapper Rule porting hazard.
+    - `BelongsToMany::sync($ids, $detaching = true): array` — return
+      shape `compact('attached','detached','updated')` matches Laravel.
+      However `$touch` semantics absent (see attach/detach above) and
+      no `syncWithoutDetaching`/`syncWithPivotValues`.
+    - `BelongsToMany::wherePivot($column,$operator=null,$value=null)`
+      — when only `(column,$operator)` is passed (Laravel shorthand for
+      `column = $operator`), Phare forwards three args directly to
+      `Builder::where()` whose `where($column,$operator,$value=null)`
+      treats `$value` as null literal (raw bind). Same shape but the
+      operator-shorthand promotion is missing.
+    - `MorphTo::match()` is a documented NO-OP — return `$models`
+      unchanged. The match step happens inside `getEager()` via
+      side-effect on `$model->setRelation()`. This breaks the Laravel
+      `addEager → initRelation → match` contract and means anyone
+      replacing the builder externally will see relations that never
+      get populated.
+    - `Pivot::delete(): bool` — Laravel returns `int` rows-affected.
+      Type mismatch.
+    - `Pivot::getDeleteQuery(): array` and `getForeignKey`/`getRelatedKey`
+      — Phare-specific surface; no Laravel counterpart.
+    - `HasOneOrManyThrough::compileSqlAndBindings()` — bypasses the
+      Phalcon query layer entirely; emits raw SQL via
+      `$this->related->getReadConnection()->fetchAll($sql, FETCH_ASSOC, $bind)`.
+      Internal coupling, same defect class as `BelongsToMany`'s raw SQL.
+    - `HasOneOrManyThrough::hydrateRow()` — calls
+      `Phalcon\Mvc\Model::cloneResultMap()` directly. Internal coupling
+      to a Phalcon static; non-signature leak.
+
+  - **Phalcon leak (Wrapper Rule §2):**
+    - Structural (class-level): `abstract Relation extends Phalcon\Mvc\Model\Relation`.
+      Inherits 15 public methods from Phalcon — `getFields`,
+      `getForeignKey`, `getIntermediateFields`, `getIntermediateModel`,
+      `getIntermediateReferencedFields`, `getOption`, `getOptions`,
+      `getParams`, `getType`, `getReferencedFields`,
+      `getReferencedModel`, `isForeignKey`, `isThrough`, `isReusable`,
+      `setIntermediateRelation`. Every Phare relation publishes these.
+      Same defect class as B01 (`Model extends Phalcon\Mvc\Model`) and
+      B02 (`Builder extends Phalcon\Mvc\Model\Criteria`) — Area B's
+      THIRD structural leak.
+    - Signature-level (public union return): `HasRelationships::hasOne`,
+      `hasMany`, `belongsTo`, `hasOneThrough` each declare
+      `: <PhareRelation>|\Phalcon\Mvc\Model\Relation`. Equivalent to
+      A05's `Response::redirect()/back()/redirectTo(): ResponseInterface`
+      — the Phare wrapper publishes a raw Phalcon type as one half of
+      a union.
+    - Signature-level (parameter): `HasRelationships::newQuery(?DiInterface $container=null)`
+      already counted in B01; surfaced again through the Relation
+      constructor's transitive use.
+    - Constant access: `Relation::HAS_ONE`/`HAS_MANY`/`BELONGS_TO` (and
+      the `parent::__construct(...)` call in the Relation ctor) bind
+      Phare's relations to Phalcon's relation-type enum. No public
+      type leak but the contract is Phalcon's, not Phare's.
+    - Internal-only (private/protected, not a public-API leak but a
+      porting hazard worth noting): `BelongsToMany` and
+      `HasOneOrManyThrough` import `Phalcon\Db\Enum`;
+      `HasOneOrManyThrough::hydrateRow` calls `Phalcon\Mvc\Model::cloneResultMap`;
+      `MorphTo::addConstraints/getResults` mutate the Phare Builder via
+      `setModelName`/`setEloquentModel` (Phare-internal, no Phalcon
+      leak there).
+
+- Effort: L — **Largest single Area-B subsystem.** The relations
+  package is ~15 classes wrapping a Phalcon\Mvc\Model\Relation root,
+  duplicating ~30% of Laravel's relation public surface. The remaining
+  ~70% is missing in three families: (1) the find/first/save/create
+  *Or*/*Quietly* family (~40 verbs across `HasOneOrMany`/`BelongsToMany`/
+  `HasOneOrManyThrough`); (2) the relation traversal/aggregation
+  family (`QueriesRelationships` 43 methods, all wholesale absent —
+  `whereHas`/`withCount`/`withSum`/etc. are the single biggest user-facing
+  hole in the Phare Eloquent surface); (3) the relation-modifier
+  concerns (`CanBeOneOfMany` 9, `SupportsDefaultModels` 1,
+  `SupportsInverseRelations` 5, `ComparesRelatedModels` 3, AsPivot 13).
+  Three structural Phalcon leaks already counted (Model/Builder/Relation)
+  plus the union-return leak on `HasRelationships::hasOne`/`hasMany`/
+  `belongsTo`/`hasOneThrough` mean every relation factory and every
+  relation instance publishes Phalcon types. Behavioural defects
+  cluster around two patterns documented earlier in the audit: the
+  stub-defect pattern (`getRelationExistenceQuery` returns `$query`
+  unchanged — silent failure for any `whereHas` if it ever lands) and
+  the silent-arg-drop pattern (`$touch` ignored on attach/detach/sync/
+  toggle/updateExistingPivot — touchIfTouching never fires). Porting
+  order suggestion for US-S01: (a) wrap `Relation` so it stops
+  extending `Phalcon\Mvc\Model\Relation`; (b) excise the union-return
+  leak by splitting the Phalcon-style overload off into its own
+  protected method; (c) land `QueriesRelationships` as the single
+  highest-leverage user-facing feature (unlocks `whereHas`/`withCount`/
+  the existence-query stub at the same time); (d) backfill the
+  Or/Quietly/find/first/save/create surface on HasOneOrMany and
+  BelongsToMany together (shared trait); (e) port `CanBeOneOfMany` and
+  `SupportsDefaultModels` (small, well-scoped); (f) split
+  `MorphOneOrMany` out from `MorphMany`/`MorphOne` so morph one/many
+  share the right ancestor. Note: a real `whereHas` requires a real
+  query builder (US-B02), so this story's biggest gap is downstream of
+  US-B02's structural-leak fix.
