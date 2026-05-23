@@ -1,12 +1,14 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-23T02:04:30.447Z
-> Files: 508 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-23T02:10:48.562Z
+> Files: 510 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
 - `prog-b04.md` — 2026-05-23 - US-B04 Audit Soft Deletes + Global Scopes (~795 tok)
+- `prog-b05.md` — 2026-05-23 - US-B05 Audit Migrations + Schema Builder (~922 tok)
 - `section-b04.md` — ## Soft Deletes + Global Scopes (~2192 tok)
+- `section-b05.md` — ## Migrations + Schema Builder (~3673 tok)
 
 ## ./
 
@@ -782,7 +784,7 @@
 
 ## tasks/
 
-- `prd.json` — Declares mismatch (~9094 tok)
+- `prd.json` — Declares mismatch (~9457 tok)
 - `progress.txt` — Ralph Progress — Laravel 13 Parity Audit Pass (~6148 tok)
 
 ## tests/
