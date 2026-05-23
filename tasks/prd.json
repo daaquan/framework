@@ -182,8 +182,8 @@
         "No framework code changed"
       ],
       "priority": 12,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-23. ### Migrations + Schema Builder appended to docs/audit-area-b.md. Effort L. NEW leak shape for Area B: no inheritance/contract leak (all files Phalcon-clean by inheritance) but four public signatures PUBLISH raw \\Phalcon\\Db\\Adapter\\Pdo\\AbstractPdo as a dependency — Blueprint::toSql, SchemaBuilder::__construct, Grammar::compileBlueprint, Migrator::__construct; no Phare Connection wrapper exists, whole layer drives Phalcon PDO + Phalcon\\Db\\Enum directly. Coverage: Blueprint 18/~75 column types, ColumnDefinition 15/30 modifiers, SchemaBuilder 8/42, Migrator 4/22; ForeignKeyDefinition is the one near-complete piece. No MigrationRepositoryInterface (history store inlined as raw SQL), no migration events, no pretend/force/options-array, no schema introspection (getColumns/getIndexes/getForeignKeys). Defects: rollback($steps) = batch-count int vs Laravel options-array/step-migrations (3rd same-name-opposite-shape hazard after B01 create/B02 paginate); runDown() swallows down() failures silently (error-swallow defect family); unconditional begin/commit wrap is illusory on MySQL DDL; introspection inlined in builder not grammar; index methods return void (non-chainable, no IndexDefinition); foreignId has no constrained(). No Phare Contracts for Database/Schema/Migration. id/decimal(8,2)/float(53)/enum DO match L13."
     },
     {
       "id": "US-B06",

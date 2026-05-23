@@ -241,3 +241,13 @@
 | 11:04 | Created ../../tmp/section-b04.md | — | ~2339 |
 | 11:04 | Created ../../tmp/prog-b04.md | — | ~848 |
 | 11:04 | US-B04 audit soft-deletes + global-scopes vs Laravel 13 | docs/audit-area-b.md, tasks/prd.json, tasks/progress.txt | Effort M; first Area-B Phalcon-clean namespace; un-qualified-column + raw-SQL-bypass defects flagged | ~9k |
+| 11:04 | Session end: 2 writes across 2 files (section-b04.md, prog-b04.md) | 9 reads | ~11684 tok |
+
+## Session: 2026-05-23 11:04
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:10 | Created ../../tmp/section-b05.md | — | ~3918 |
+| 11:10 | Edited tasks/prd.json | 5→5 lines | ~408 |
+| 11:10 | Created ../../tmp/prog-b05.md | — | ~984 |
+| 11:10 | US-B05 audit migrations+schema vs Laravel 13 | docs/audit-area-b.md, tasks/prd.json, tasks/progress.txt | Effort L; NEW dependency/param Phalcon leak (AbstractPdo via ctors/params), no Connection wrapper; Blueprint 18/~75 types, Migrator 4/22, no repo iface/events | ~9k |

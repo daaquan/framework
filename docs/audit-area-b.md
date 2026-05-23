@@ -1015,3 +1015,221 @@
   net-new but self-contained. Route the raw-SQL `restore`/`delete`
   through whatever update path B02 produces so casts/events stop being
   bypassed (shared fix with B02/B03).
+
+
+---
+
+### Migrations + Schema Builder
+
+- 現状 (Current) — Phare's schema/migration stack lives entirely under
+  `src/Phare/Database/` and is **Phalcon-clean by inheritance** (no class
+  here `extends` a Phalcon type), but it **publishes raw Phalcon PDO as a
+  dependency** rather than wrapping it:
+
+  - **`Database\Schema\Blueprint`** (251 lines) — table-definition collector.
+    Column-type verbs (all return `ColumnDefinition`): `id`, `bigIncrements`,
+    `increments`, `string($col,$len=255)`, `text`, `longText`, `integer`,
+    `bigInteger`, `decimal($col,$p=8,$s=2)`, `float($col,$p=53)`, `double`,
+    `boolean`, `date`, `dateTime`, `timestamp`, `json`, `binary`,
+    `enum($col,$values)` — **18 types**. Composites: `timestamps(): void`,
+    `softDeletes(): void`. FKs: `foreign($col): ForeignKeyDefinition`,
+    `foreignId($col)` (= `bigInteger->unsigned`), `foreignIdFor($model,$col=null)`.
+    Indexes `primary`/`unique`/`index`/`fulltext` — all return **`void`**
+    (not chainable). Drops: `dropColumn`, `dropPrimary`, `dropUnique`,
+    `dropIndex`, `dropForeign`, `renameColumn`. Getters
+    `getTable`/`getColumns`/`getCommands`/`isUpdating`. Terminal:
+    `toSql(\Phalcon\Db\Adapter\Pdo\AbstractPdo $connection, Grammar $grammar): array`.
+  - **`Database\Schema\ColumnDefinition`** (140 lines, Phalcon-clean) —
+    15 fluent modifiers returning `self`: `nullable($v=true)`, `default($v)`,
+    `unsigned`, `autoIncrement`, `primary`, `unique`, `index`, `comment`,
+    `after`, `first`, `charset`, `collation`, `change`, `useCurrent`,
+    `useCurrentOnUpdate`.
+  - **`Database\Schema\ForeignKeyDefinition`** (123 lines, Phalcon-clean) —
+    `references`, `on`, `onDelete`, `onUpdate`, `cascadeOnDelete`,
+    `cascadeOnUpdate`, `restrictOnDelete`, `restrictOnUpdate`, `nullOnDelete`,
+    `noActionOnDelete`, `noActionOnUpdate`, `name` + getters. **Most
+    Laravel-complete file in the subsystem.**
+  - **`Database\Schema\SchemaBuilder`** (154 lines) — `__construct(\Phalcon\Db\Adapter\Pdo\AbstractPdo $connection)`;
+    8 public verbs: `create($t,Closure)`, `table($t,Closure)`, `drop`,
+    `dropIfExists`, `rename`, `hasTable`, `hasColumn`, `getColumnListing`.
+    Driver introspection (`hasTable`/`hasColumn`/`getColumnListing`) is
+    **inline `match($driver)` raw SQL** against `information_schema` /
+    `sqlite_master` / `PRAGMA`, using `Phalcon\Db\Enum::FETCH_ASSOC`.
+    Grammar is hard-selected by driver string in `getGrammar()`.
+  - **`Database\Schema\Grammar`** (abstract) + `Grammars\{MySql,Postgres,Sqlite}Grammar`
+    — `compileCreate`/`compileAdd`/`compileDrop`/`compileDropIfExists`/
+    `compileRename` + `compileBlueprint(Blueprint, \Phalcon\Db\Adapter\Pdo\AbstractPdo): array`.
+  - **`Database\Migrator`** (268 lines) — `__construct(Application $app, \Phalcon\Db\Adapter\Pdo\AbstractPdo $connection)`;
+    4 public verbs: `run($paths=[]): array`, `rollback($steps=1): array`,
+    `reset(): array`, `refresh($paths=[]): array`. The migration **log is
+    inlined** — raw `INSERT/DELETE/SELECT` against a `migrations` table
+    interpolated as `{$this->table}` directly inside the Migrator (no
+    repository class). Anonymous-class migrations supported (`require`
+    returns a `Migration` instance → `setSchema`); else snake→PascalCase
+    `new $class`. Each migration wrapped in `begin()/commit()` with
+    `rollback()` on exception.
+  - **`Database\Migration`** (abstract, 66 lines, Phalcon-clean) —
+    `abstract up(): void`, `down(): void`, `setSchema`, + protected proxy
+    helpers `table`/`create`/`dropIfExists`/`drop`/`rename`/`hasTable`/`hasColumn`
+    that delegate to the injected `SchemaBuilder`. Phare migrations author
+    via `$this->create(...)`, **not** the `Schema::` facade.
+  - **No published contract** — `Contracts/` has nothing for Database / Schema /
+    Migration. There is no `MigrationRepositoryInterface` equivalent and no
+    Schema/Builder interface; the entire surface is concrete classes.
+
+- 期待 (Expected) — Laravel 13 `Database/Schema/{Blueprint,Builder}.php`,
+  `Schema/ColumnDefinition.php`, `Schema/ForeignKeyDefinition.php`,
+  `Database/Migrations/{Migrator,Migration,MigrationRepositoryInterface,DatabaseMigrationRepository,MigrationCreator}.php`:
+  - **`Blueprint`** — 123 public methods incl. ~75 column-type/composite verbs:
+    `char`, `string`, `tinyText`, `text`, `mediumText`, `longText`,
+    `tinyInteger`/`smallInteger`/`mediumInteger`/`integer`/`bigInteger` +
+    all `unsigned*` variants, `tinyIncrements`…`bigIncrements`,
+    `integerIncrements`, `float`, `double`, `decimal`, `boolean`, `enum`,
+    `set`, `json`, `jsonb`, `date`, `dateTime`, `dateTimeTz`, `time`,
+    `timeTz`, `timestamp`, `timestampTz`, `timestamps`, `timestampsTz`,
+    `nullableTimestamps`, `year`, `binary`, `uuid`, `ulid`, `ipAddress`,
+    `macAddress`, `geometry`, `geography`, `vector`, `tsvector`, `computed`,
+    `rememberToken`, `morphs`/`nullableMorphs`/`uuidMorphs`/`ulidMorphs`/
+    `numericMorphs` (+ nullable variants), `foreignId`, `foreignUuid`,
+    `foreignUlid`, `foreignIdFor`; chainable index methods returning
+    `IndexDefinition` (`primary`/`unique`/`index`/`fullText`/`spatialIndex`/
+    `rawIndex`); the full drop family (`dropMorphs`, `dropSoftDeletes(Tz)`,
+    `dropTimestamps(Tz)`, `dropRememberToken`, `dropConstrainedForeignId(For)`,
+    `renameIndex`, `dropFullText`, `dropSpatialIndex`); table options
+    `engine`/`charset`/`collation`/`temporary`/`comment`; `getState`/`build`.
+  - **`Schema\Builder`** — 42 public methods incl. `createDatabase`,
+    `dropDatabaseIfExists`, `dropAllTables`/`dropAllViews`/`dropAllTypes`,
+    `hasColumn(s)`, `hasIndex`, `hasView`, `getColumns`, `getColumnType`,
+    `getTables`/`getTableListing`/`getViews`/`getIndexes`/`getIndexListing`/
+    `getForeignKeys`/`getSchemas`, `enable/disable/withoutForeignKeyConstraints`,
+    `dropColumns`, `whenTableHasColumn`/`whenTableDoesntHaveColumn` (+ index),
+    `getConnection`, `blueprintResolver`. Introspection delegated to the
+    grammar, not inlined in the builder.
+  - **`ColumnDefinition`** — 30 fluent modifiers (the 15 Phare lacks:
+    `always`, `from`, `fulltext`, `generatedAs`, `instant`, `invisible`,
+    `lock`, `persisted`, `spatialIndex`, `vectorIndex`, `startingValue`,
+    `storedAs`, `type`, `virtualAs`).
+  - **`ForeignKeyDefinition`** — same cascade/restrict surface as Phare **plus**
+    `deferrable`, `initiallyImmediate`, `lock`; references composite columns;
+    `ForeignIdColumnDefinition::constrained()` ergonomic.
+  - **`Migrator`** — 22 public methods (`run`, `runPending`, `rollback`,
+    `reset`, `resolve`, `path`/`paths`, `getMigrationFiles`, `requireFiles`,
+    `getMigrationName`, `getRepository`, `repositoryExists`,
+    `hasRunAnyMigrations`, `deleteRepository`, `setOutput`, `getConnection`/
+    `setConnection`/`usingConnection`/`resolveConnection`, `getFilesystem`,
+    `fireMigrationEvent`). Options-array driven (`['step'=>n,'pretend'=>true]`),
+    fires 6 migration events, swappable repository.
+  - **`MigrationRepositoryInterface`** (12 methods) +
+    `DatabaseMigrationRepository` — log abstraction so the migration history
+    store is parameterised and testable.
+  - **`Migration`** base — `getConnection`, `shouldRun`, `$connection`,
+    `$withinTransaction`. Migrations call `Schema::` facade, not proxy helpers.
+
+- 差分 (Gaps)
+  - **Phalcon leak — published-dependency form (NEW shape for Area B).**
+    No class here inherits a Phalcon type (unlike B01 Model / B02 Builder /
+    B03 Relation structural leaks), yet four public signatures **publish raw
+    `\Phalcon\Db\Adapter\Pdo\AbstractPdo`**:
+    `Blueprint::toSql(...)`, `SchemaBuilder::__construct(...)`,
+    `Grammar::compileBlueprint(...)`, `Migrator::__construct(...)`. There is
+    **no Phare `Connection` wrapper** — the whole schema/migration layer
+    operates directly on the Phalcon PDO adapter
+    (`execute`/`fetchOne`/`fetchAll`/`begin`/`commit`/`rollback`/`getType`)
+    and on `Phalcon\Db\Enum::FETCH_ASSOC`. Record this as a distinct leak
+    class from B01–B03: *dependency/parameter leak*, not *inheritance/contract
+    leak*. Closing it requires wrapping the connection (broader DB-layer work),
+    so it is the same root cause across all four files.
+  - **Missing — Blueprint column types (~57).** Phare ships 18 of ~75. Absent:
+    `char`, `tinyText`, `mediumText`, `tinyInteger`, `smallInteger`,
+    `mediumInteger`, all `unsigned*` integer variants, all `*Increments`
+    except `increments`/`bigIncrements`, `set`, `jsonb`, `dateTimeTz`,
+    `time`/`timeTz`, `timestampTz`, `timestampsTz`, `nullableTimestamps`,
+    `year`, `uuid`, `ulid`, `ipAddress`, `macAddress`, `geometry`,
+    `geography`, `vector`, `tsvector`, `computed`, `rememberToken`, the
+    entire `morphs` family (`morphs`/`nullableMorphs`/`uuidMorphs`/
+    `ulidMorphs`/`numericMorphs` + nullable), `foreignUuid`, `foreignUlid`.
+    (`id`/`decimal(8,2)`/`float(53)`/`bigIncrements`/`enum` **do** match
+    Laravel 13 — including the L11 `float()` scale-drop.)
+  - **Missing — Blueprint drops/table-options.** No `dropMorphs`,
+    `dropSoftDeletes(Tz)`, `dropTimestamps(Tz)`, `dropRememberToken`,
+    `dropConstrainedForeignId(For)`, `renameIndex`, `dropFullText`,
+    `dropSpatialIndex`; no `engine`/`charset`/`collation`/`temporary`/`comment`
+    table-level options; no `getState`/`build`.
+  - **Missing — ColumnDefinition modifiers (~14).** See 期待 list; notably
+    no generated/virtual/stored columns (`virtualAs`/`storedAs`/`generatedAs`),
+    no `invisible`, no `spatialIndex`/`vectorIndex`, no `type` override,
+    no auto-increment `startingValue`/`from`.
+  - **Missing — SchemaBuilder methods (~34).** No DB-level
+    (`createDatabase`/`dropDatabaseIfExists`), no bulk drop
+    (`dropAllTables`/`dropAllViews`/`dropAllTypes`), no introspection
+    (`getColumns`/`getColumnType`/`getTables`/`getIndexes`/`getForeignKeys`/
+    `getViews`/`getSchemas`), no `hasIndex`/`hasView`/`hasColumns`, no
+    FK-constraint toggles (`enable/disable/withoutForeignKeyConstraints`),
+    no conditional `whenTableHasColumn` family, no `dropColumns`,
+    no `getConnection`/`blueprintResolver`.
+  - **Missing — Migrator + repository.** No `runPending`, no options-array
+    (`step`/`pretend`/`force`), **no pretend/dry-run** (`getQueries`), no
+    `path`/`paths`/`getMigrationName`/`hasRunAnyMigrations`/`getRepository`/
+    `repositoryExists`/`deleteRepository`/`setOutput`/`getFilesystem` and no
+    connection selection (`setConnection`/`usingConnection`). **No migration
+    events** (Laravel fires `MigrationsStarted`/`MigrationStarted`/
+    `MigrationEnded`/`MigrationsEnded`/`NoPendingMigrations`/`SchemaLoaded`;
+    Phare fires none). **No `MigrationRepositoryInterface`** — the history
+    store is inlined SQL, not a swappable abstraction. No `schema:dump`/
+    squashing, no `MigrationResult`.
+  - **Missing — Migration base.** No `$connection` (per-migration connection),
+    no `$withinTransaction` toggle, no `shouldRun`, no `getConnection`.
+  - **Type mismatch — index methods non-chainable.** Phare
+    `primary`/`unique`/`index`/`fulltext` return `void`; Laravel returns
+    `IndexDefinition` → cannot set index `algorithm`/language/name fluently.
+  - **Type mismatch — `Migrator::rollback($steps=1)` (porting hazard).**
+    Phare's `$steps` is a positional int = *number of distinct batches* to
+    roll back (`getLastBatch` `LIMIT steps`). Laravel's
+    `rollback($paths=[], array $options=[])` rolls back the **last batch** by
+    default and reads `['step'=>n]` to count *migrations*. Same verb, different
+    arg shape **and** different unit (batches vs migrations / int vs options
+    array) — third instance of the "same name, opposite shape" hazard after
+    `Model::create()` (B01) and `Builder::paginate()` (B02). `run()`/`refresh()`
+    likewise drop Laravel's options array.
+  - **Correctness — `runDown()` swallows failures.** A throwing `down()` is
+    caught, returns `false`, the loop **skips `removeFromLog`** and surfaces
+    **no error** — a failed rollback silently no-ops while reporting success
+    upstream. Error-swallow defect (cf. the stub/no-op defect family:
+    Request::route A04, Response::view A05, validator exists/unique A06,
+    View::render A07, Relation::getRelationExistenceQuery B03).
+  - **Correctness/divergence — illusory DDL transaction.** `runMigration`
+    unconditionally wraps `up()` in `begin()/commit()`; on MySQL, DDL
+    (`CREATE/ALTER TABLE`) implicitly commits, so the wrap gives **no
+    rollback guarantee** there. Laravel only wraps when the grammar reports
+    `supportsSchemaTransactions` **and** the migration opts in via
+    `$withinTransaction`.
+  - **Divergence — introspection inlined in the builder.** `hasTable`/
+    `hasColumn`/`getColumnListing` embed per-driver `match()` SQL inside
+    `SchemaBuilder` instead of delegating to the grammar (Laravel pushes
+    introspection into `Schema/Grammars/*` + `processColumnListing`).
+    Maintainability/coupling defect — adding a driver means editing the
+    builder, not just a grammar.
+  - **Divergence — `foreignId()` has no `constrained()`.** Returns a plain
+    `ColumnDefinition`; the `foreignId('user_id')->constrained()`
+    auto-FK/auto-index ergonomic and `ForeignIdColumnDefinition` are absent.
+    FK references are single-column only (no composite).
+
+- 工数感 (Effort: L) — Largest remaining Area-B subsystem after the Eloquent
+  trio. The work splits four ways: (1) **column-type backfill** — ~57 missing
+  Blueprint verbs + ~14 modifiers, mostly mechanical but each needs a grammar
+  type-map entry across all three `Grammars/*` (and the morphs/uuid/ulid
+  composites pull in cast/key conventions); (2) **schema introspection +
+  builder breadth** — ~34 `Builder` methods (`getColumns`/`getIndexes`/
+  `getForeignKeys`/FK toggles/bulk drops), ideally moved out of the builder
+  into the grammars; (3) **migration engine** — repository abstraction
+  (`MigrationRepositoryInterface` + DB repository), events, options-array
+  (`step`/`pretend`/`force`), pretend/dry-run, per-migration connection +
+  `$withinTransaction`, and fixing the `rollback` unit/arg mismatch and the
+  silent `runDown` swallow; (4) **the Phalcon-PDO dependency leak** —
+  removing raw `AbstractPdo` from `Blueprint`/`SchemaBuilder`/`Grammar`/
+  `Migrator` signatures requires a Phare `Connection` wrapper, which is shared
+  DB-layer work, not local to this subsystem. FK definitions (the one
+  near-complete piece) need only `deferrable`/`initiallyImmediate`/`lock` +
+  composite/`constrained()`. Net: deep but mostly additive; no inheritance
+  to unwind, but the connection-wrapper item gates true Wrapper-Rule
+  compliance.
