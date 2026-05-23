@@ -12,12 +12,12 @@
         "1:1 diff vs Laravel Routing/{Router,Route,RouteCollection,RouteRegistrar}.php completed",
         "Gaps itemized (missing / type mismatch / Phalcon leak)",
         "Public signatures grepped for Phalcon\\ leaks",
-        "### Routing section appended to docs/audit-area-a.md in standard \u73fe\u72b6/\u671f\u5f85/\u5dee\u5206/\u5de5\u6570\u611f shape",
+        "### Routing section appended to docs/audit-area-a.md in standard Current/Expected/Gaps/Effort shape",
         "No framework code changed"
       ],
       "priority": 1,
       "passes": true,
-      "notes": "Audited 2026-05-19. docs/audit-area-a.md created with ### Routing section. Effort L \u2014 Phare routing is a thin collector vs Laravel's full router; no public Phalcon leak but the bound `router` service is a raw Phalcon\\Mvc\\Router."
+      "notes": "Audited 2026-05-19. docs/audit-area-a.md created with ### Routing section. Effort L — Phare routing is a thin collector vs Laravel's full router; no public Phalcon leak but the bound `router` service is a raw Phalcon\\Mvc\\Router."
     },
     {
       "id": "US-A02",
@@ -33,7 +33,7 @@
       ],
       "priority": 2,
       "passes": true,
-      "notes": "Audited 2026-05-19. ### HTTP Kernel appended to docs/audit-area-a.md. [x] does NOT hold \u2014 downgraded to [~]. Wrapper Rule violation: handle()/terminate() expose raw Phalcon\\Http\\RequestInterface/ResponseInterface in public signatures of BOTH Foundation\\Http\\Kernel and Contracts\\Http\\Kernel. Also missing all ~18 Laravel middleware accessor methods. Effort M."
+      "notes": "Audited 2026-05-19. ### HTTP Kernel appended to docs/audit-area-a.md. [x] does NOT hold — downgraded to [~]. Wrapper Rule violation: handle()/terminate() expose raw Phalcon\\Http\\RequestInterface/ResponseInterface in public signatures of BOTH Foundation\\Http\\Kernel and Contracts\\Http\\Kernel. Also missing all ~18 Laravel middleware accessor methods. Effort M."
     },
     {
       "id": "US-A03",
@@ -167,7 +167,7 @@
         "No framework code changed"
       ],
       "priority": 11,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -324,11 +324,11 @@
     {
       "id": "US-C08",
       "title": "Sanctum / passkeys scope decision",
-      "description": "As a maintainer, I want an explicit in-scope-or-\u00a77 decision for Sanctum/passkeys before any audit effort is spent.",
+      "description": "As a maintainer, I want an explicit in-scope-or-§7 decision for Sanctum/passkeys before any audit effort is spent.",
       "acceptanceCriteria": [
         "Confirm whether Sanctum/passkeys support currently exists in Phare (src/Phare/Auth/ token/sanctum)",
-        "Record a decision: in-scope (then diff) or move to completion-criteria.md \u00a77 with a written reason",
-        "If in-scope, perform the standard audit; if \u00a77, record the re-scope rationale only",
+        "Record a decision: in-scope (then diff) or move to completion-criteria.md §7 with a written reason",
+        "If in-scope, perform the standard audit; if §7, record the re-scope rationale only",
         "### Sanctum / Passkeys section appended to docs/audit-area-c.md",
         "No framework code changed"
       ],
@@ -541,8 +541,8 @@
         "Every gap from docs/audit-area-{a,b,c,d,e}.md collated into one table (Area / Subsystem / Gap / Effort)",
         "Gaps sorted by effort, smallest first",
         "All Phalcon\\ leaks listed separately with wrap-or-exception recommendation",
-        "Any re-scope candidates (move [~] -> \u00a77) flagged with rationale",
-        "Proposed area-by-area implementation order written (A->E, smallest gaps first per \u00a78 step 3)",
+        "Any re-scope candidates (move [~] -> §7) flagged with rationale",
+        "Proposed area-by-area implementation order written (A->E, smallest gaps first per §8 step 3)",
         "docs/audit-summary.md written; stops for human review - no implementation started"
       ],
       "priority": 36,

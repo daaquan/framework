@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 79324,
-    "total_reads": 17,
-    "total_writes": 12,
-    "total_sessions": 28,
-    "anatomy_hits": 17,
+    "total_tokens_estimated": 158421,
+    "total_reads": 43,
+    "total_writes": 18,
+    "total_sessions": 39,
+    "anatomy_hits": 43,
     "anatomy_misses": 0,
-    "repeated_reads_blocked": 3,
-    "estimated_savings_vs_bare_cli": 25760
+    "repeated_reads_blocked": 4,
+    "estimated_savings_vs_bare_cli": 39542
   },
   "sessions": [
     {
@@ -291,6 +291,226 @@
         "writes_count": 2,
         "repeated_reads_blocked": 0,
         "anatomy_lookups": 7
+      }
+    },
+    {
+      "id": "session-2026-05-19-1809",
+      "started": "2026-05-19T09:09:31.912Z",
+      "ended": "2026-05-19T09:21:02.326Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 8333,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 624,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Builder.php",
+          "tokens_estimated": 5563,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/BuilderInterface.php",
+          "tokens_estimated": 528,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-b.md",
+          "tokens_estimated": 2925,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-b.md",
+          "tokens_estimated": 6558,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 576,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 1082,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 17973,
+        "output_tokens_estimated": 8216,
+        "reads_count": 5,
+        "writes_count": 3,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 5
+      }
+    },
+    {
+      "id": "session-2026-05-20-0400",
+      "started": "2026-05-20T19:00:36.475Z",
+      "ended": "2026-05-20T19:07:37.301Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 8717,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 5061,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/Relation.php",
+          "tokens_estimated": 793,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Concerns/HasRelationships.php",
+          "tokens_estimated": 3961,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/HasOneOrMany.php",
+          "tokens_estimated": 800,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/HasOne.php",
+          "tokens_estimated": 183,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/HasMany.php",
+          "tokens_estimated": 202,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/BelongsTo.php",
+          "tokens_estimated": 905,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/BelongsToMany.php",
+          "tokens_estimated": 4712,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/MorphTo.php",
+          "tokens_estimated": 1358,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/MorphMany.php",
+          "tokens_estimated": 307,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/MorphOne.php",
+          "tokens_estimated": 233,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/MorphToMany.php",
+          "tokens_estimated": 780,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/MorphedByMany.php",
+          "tokens_estimated": 191,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/HasManyThrough.php",
+          "tokens_estimated": 326,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/HasOneOrManyThrough.php",
+          "tokens_estimated": 1470,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/HasOneThrough.php",
+          "tokens_estimated": 318,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/Pivot.php",
+          "tokens_estimated": 715,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Relations/MorphPivot.php",
+          "tokens_estimated": 214,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Builder.php",
+          "tokens_estimated": 5563,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-b.md",
+          "tokens_estimated": 8582,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-b.md",
+          "tokens_estimated": 5656,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 562,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 1299,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 45391,
+        "output_tokens_estimated": 7517,
+        "reads_count": 21,
+        "writes_count": 3,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 21
       }
     }
   ],

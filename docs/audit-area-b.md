@@ -875,3 +875,143 @@
   share the right ancestor. Note: a real `whereHas` requires a real
   query builder (US-B02), so this story's biggest gap is downstream of
   US-B02's structural-leak fix.
+
+### Soft Deletes + Global Scopes
+
+- Current — Phare ships four files, **all Phalcon-CLEAN** (zero
+  `Phalcon\` in signatures or bodies — first Area-B subsystem with no
+  Phalcon coupling in its own namespace, like Validation in A06):
+  - `Eloquent/Concerns/SoftDeletes.php` — trait. Public:
+    `bootSoftDeletes()`, `initializeSoftDeletes()`, `restore(): bool`,
+    `delete(): bool`, `forceDelete(): bool`, `trashed(): bool`,
+    `getDeletedAtColumn(): string`, `getQualifiedDeletedAtColumn(): string`
+    (8). Protected `$forceDeleting`, const `DELETED_AT = 'deleted_at'`,
+    protected `deleteKeyValue()`.
+  - `Eloquent/Concerns/HasGlobalScopes.php` — trait. Public:
+    `addGlobalScope($scope,$impl=null): void`, `hasGlobalScope($scope): bool`,
+    `getGlobalScopes(): array` (**static**), `getGlobalScope($scope): Scope|Closure|null`
+    (4) + protected `resolveGlobalScopeIdentifier()`. Static
+    `$globalScopes` map keyed by class.
+  - `Eloquent/Scope.php` — interface, single method
+    `apply(Builder $builder, Model $model): void` (Phare types, no leak).
+  - `Eloquent/SoftDeletingScope.php` — `implements Scope`. `apply()` +
+    `extend(Builder): void` registering 5 builder macros (withTrashed,
+    onlyTrashed, withoutTrashed, restore, forceDelete) + protected
+    `runDeleteStateUpdate()`/`runForceDelete()`/`modelKeys()`.
+  - Wiring confirmed: `Model::newQuery()` → `registerGlobalScopes(newQueryWithoutScopes())`
+    iterates `getGlobalScopes()` and calls `$builder->withGlobalScope($id,$scope)`,
+    which invokes `$scope->extend($builder)` (extend discovered via
+    `method_exists`, matching Laravel's convention — `extend` is NOT on the
+    `Scope` interface in either framework). `Builder::applyScopes()` runs
+    each scope's `apply()` lazily on first `get()/first()`. So the
+    SoftDeletingScope macros and the trashed filter are actually live.
+
+- Expected — Laravel 13 `Database/Eloquent/SoftDeletes.php` (16
+  public methods + 2 protected `performDeleteOnModel`/`runSoftDelete`),
+  `Eloquent/SoftDeletingScope.php` (6 extensions + `onDelete` hook),
+  `Eloquent/Scope.php` (interface, 1 method), and
+  `Eloquent/Concerns/HasGlobalScopes.php` (9 public methods). Plus the
+  `#[ScopedBy]` and `#[Scope]` attribute classes under
+  `Eloquent/Attributes/`.
+
+- Gaps:
+  - **Missing — SoftDeletes trait (8 of 16 public methods absent):**
+    - `forceDeleteQuietly()` — no quiet (event-suppressed) variant.
+    - `restoreQuietly()` — ditto.
+    - `forceDestroy($ids)` — static bulk hard-delete by id list (accepts
+      Collection|array|int|string). No equivalent.
+    - `isForceDeleting(): bool` — Phare has the `$forceDeleting` flag but
+      publishes no accessor.
+    - The 5 static event-registrar shortcuts `softDeleted()`, `restoring()`,
+      `restored()`, `forceDeleting()`, `forceDeleted()` (each wraps
+      `registerModelEvent`). All absent — callers must use the generic
+      event API (and Phare's HasEvents differs from Laravel's, see B01).
+    - No `restoreOrCreate` / `createOrRestore` builder macros (Laravel
+      registers them from the scope). Phare's scope registers neither.
+  - **Missing — HasGlobalScopes trait (5 of 9 public methods absent):**
+    - `bootHasGlobalScopes()` + `resolveGlobalScopeAttributes()` — the
+      whole `#[ScopedBy]` attribute pipeline. No `Eloquent/Attributes/`
+      namespace exists, so attribute-driven scopes are unsupported.
+    - `addGlobalScopes(array $scopes)` — bulk register.
+    - `getAllGlobalScopes()` / `setAllGlobalScopes($scopes)` — the
+      whole-map getter/setter (used for test reset and scope transfer).
+  - **Missing — SoftDeletingScope:**
+    - `onDelete` hook on the builder: Laravel's scope registers
+      `$builder->onDelete(fn → update[deleted_at])` so a **mass**
+      `$query->delete()` becomes a single soft-delete UPDATE. Phare's
+      `Builder` has no `onDelete`; its `delete()` instead loops
+      `applyScopes()->get()` and calls `$model->delete()` per row
+      (see behavioural note below). The 5-vs-6 extension gap is the two
+      *OrCreate/OrRestore macros above.
+  - **Missing — local-scope surface (cross-ref B02):** no `#[Scope]`
+    attribute and no `Builder::scopes(array)` bulk applier. Phare supports
+    only the implicit `scopeFoo()` magic via `Builder::__call`. Out of
+    primary scope for this story but part of the same scope machinery.
+  - **Type mismatch:**
+    - `addGlobalScope()` returns `void`; Laravel returns the registered
+      scope (`mixed`). Also Phare REJECTS a bare class-string: Laravel's
+      4th branch `is_string && class_exists && is_subclass_of(Scope)`
+      instantiates `new $scope` — Phare throws `InvalidArgumentException`
+      instead, so `addGlobalScope(MyScope::class)` is unsupported.
+    - `getGlobalScopes()` is **static** in Phare, **instance** in Laravel
+      (`Arr::get($globalScopes, static::class, [])`). Same-name,
+      different binding — porting hazard (Laravel callers do
+      `$model->getGlobalScopes()`).
+    - `forceDelete()`/`restore()`/`delete()` return `bool`; Laravel's
+      `forceDelete()`/`restore()` return `bool|null`. Minor.
+    - `Scope::apply()` declares `: void`; Laravel leaves the return
+      untyped — Phare is stricter, compatible (improvement, not a gap).
+  - **Phalcon leak:** **NONE in these four files.** The only Phalcon
+    coupling is *inherited*: the macros and scope receive a
+    `Phare\Eloquent\Builder`, which is structurally welded to
+    `Phalcon\Mvc\Model\Criteria` (counted once in US-B02). Do NOT
+    re-count that here. The soft-delete/global-scope layer itself
+    publishes no Phalcon types — same clean-namespace finding as A06
+    Validation.
+  - **Behavioural divergences (raw-SQL-bypass + un-qualified-column
+    defect classes):**
+    1. `SoftDeletingScope::apply()` filters on the **un-qualified**
+       `getDeletedAtColumn()` (`whereNull('deleted_at')`); Laravel uses
+       `getQualifiedDeletedAtColumn()` (`table.deleted_at`). On any
+       joined query this yields an ambiguous-column SQL error. The
+       `withoutTrashed`/`onlyTrashed` macros repeat the un-qualified
+       form (fallback literal `'deleted_at'`). Recurring class.
+    2. `SoftDeletes::restore()` and `::delete()` emit **raw SQL** via
+       `getWriteConnection()->execute('UPDATE … SET deleted_at = ? WHERE id = ?')`
+       instead of the model save/query pipeline — bypasses casts,
+       mutators, and Phalcon's update events. Same raw-SQL-bypass defect
+       class as B02 `update()` and B03 pivot ops. Phare also overrides
+       the **public** `delete()` wholesale (Laravel overrides the
+       *protected* `performDeleteOnModel()`/`runSoftDelete()` and keeps
+       the public delete pipeline intact).
+    3. `restore()` does not set `$this->exists = true` (Laravel does);
+       it patches `attributes[deleted_at]` + `parent::__set` only.
+    4. The `restore`/`forceDelete` builder macros use a **load-then-mutate**
+       pattern: `iterator_to_array(withTrashed()->get())` then a single
+       `UPDATE/DELETE … WHERE id IN (…)`. Laravel's `restore` macro is a
+       single `withTrashed()->update([deleted_at=>null])`. Phare's form
+       pulls every row into memory first and fires **no** model events on
+       the bulk path (whereas the per-row `Builder::delete()` loop fires
+       deleting/deleted/trashed for every row — the inverse of Laravel,
+       where mass `onDelete` fires none). Net: event semantics on
+       bulk soft-delete/restore diverge in both directions.
+
+- Effort: M — Smaller and cleaner than B01–B03: no structural
+  Phalcon leak to unwind here (the dependency is the already-counted
+  Builder leak), and the core flow (boot scope → register macros →
+  apply whereNull → trashed()/restore()/forceDelete()) is present and
+  wired. Closing the gap is mostly **backfill + correctness**:
+  (a) qualify the deleted-at column in `apply()` and the trashed macros
+  (1-line fixes, high value — un-blocks joined soft-delete queries);
+  (b) add the `*Quietly` / `forceDestroy` / `isForceDeleting` /
+  static-event-registrar methods (mechanical, depends on a Laravel-shaped
+  HasEvents from B01); (c) add `addGlobalScopes`/`getAllGlobalScopes`/
+  `setAllGlobalScopes` and the class-string branch + non-void return on
+  `addGlobalScope` (small); (d) introduce a real `Builder::onDelete`
+  hook so mass delete becomes a single soft-delete UPDATE with
+  Laravel-matching (no per-row event) semantics — this is the one item
+  coupled to the B02 query-builder rework; (e) the `#[ScopedBy]`/`#[Scope]`
+  attribute pipeline and `restoreOrCreate`/`createOrRestore` are
+  net-new but self-contained. Route the raw-SQL `restore`/`delete`
+  through whatever update path B02 produces so casts/events stop being
+  bypassed (shared fix with B02/B03).

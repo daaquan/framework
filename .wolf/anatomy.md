@@ -1,7 +1,12 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-19T09:19:54.576Z
-> Files: 506 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-23T02:04:30.447Z
+> Files: 508 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../tmp/
+
+- `prog-b04.md` — 2026-05-23 - US-B04 Audit Soft Deletes + Global Scopes (~795 tok)
+- `section-b04.md` — ## Soft Deletes + Global Scopes (~2192 tok)
 
 ## ./
 
@@ -49,7 +54,7 @@
 ## docs/
 
 - `audit-area-a.md` — Audit — Area A: Core Web Stack (~12604 tok)
-- `audit-area-b.md` — Audit — Area B: Database & ORM (~8582 tok)
+- `audit-area-b.md` — Audit — Area B: Database & ORM (~13471 tok)
 - `auth.md` — Authentication (~693 tok)
 - `cache.md` — Cache (~507 tok)
 - `console.md` — Console (~761 tok)
@@ -777,8 +782,8 @@
 
 ## tasks/
 
-- `prd.json` — Declares mismatch (~8717 tok)
-- `progress.txt` — Ralph Progress — Laravel 13 Parity Audit Pass (~5061 tok)
+- `prd.json` — Declares mismatch (~9094 tok)
+- `progress.txt` — Ralph Progress — Laravel 13 Parity Audit Pass (~6148 tok)
 
 ## tests/
 

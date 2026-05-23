@@ -222,3 +222,22 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 04:07 | US-B03 audit | docs/audit-area-b.md tasks/prd.json tasks/progress.txt | Relations section appended | ~9000 |
+| 04:07 | Session end: 3 writes across 3 files (audit-area-b.md, prd.json, progress.txt) | 21 reads | ~52908 tok |
+
+## Session: 2026-05-20 04:07
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-05-20 08:05
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-05-23 11:01
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:04 | Created ../../tmp/section-b04.md | — | ~2339 |
+| 11:04 | Created ../../tmp/prog-b04.md | — | ~848 |
+| 11:04 | US-B04 audit soft-deletes + global-scopes vs Laravel 13 | docs/audit-area-b.md, tasks/prd.json, tasks/progress.txt | Effort M; first Area-B Phalcon-clean namespace; un-qualified-column + raw-SQL-bypass defects flagged | ~9k |
