@@ -1,61 +1,74 @@
 {
-  "session_id": "session-2026-05-19-1809",
-  "started": "2026-05-19T09:09:31.912Z",
+  "session_id": "session-2026-05-23-1101",
+  "started": "2026-05-23T02:01:30.089Z",
   "files_read": {
-    "/opt/framework/tasks/prd.json": {
+    "/opt/framework/src/Phare/Eloquent/Concerns/SoftDeletes.php": {
       "count": 1,
-      "tokens": 8333,
-      "first_read": "2026-05-19T09:09:45.853Z"
+      "tokens": 1227,
+      "first_read": "2026-05-23T02:02:04.345Z"
     },
-    "/opt/framework/tasks/progress.txt": {
+    "/opt/framework/src/Phare/Eloquent/Concerns/HasGlobalScopes.php": {
       "count": 1,
-      "tokens": 624,
-      "first_read": "2026-05-19T09:09:51.060Z"
+      "tokens": 533,
+      "first_read": "2026-05-23T02:02:06.820Z"
+    },
+    "/opt/framework/src/Phare/Eloquent/Scope.php": {
+      "count": 1,
+      "tokens": 32,
+      "first_read": "2026-05-23T02:02:09.232Z"
+    },
+    "/opt/framework/src/Phare/Eloquent/SoftDeletingScope.php": {
+      "count": 1,
+      "tokens": 914,
+      "first_read": "2026-05-23T02:02:11.100Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Database/Eloquent/SoftDeletes.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-23T02:02:12.973Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Database/Eloquent/SoftDeletingScope.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-23T02:02:15.190Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Database/Eloquent/Scope.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-23T02:02:17.303Z"
     },
     "/opt/framework/src/Phare/Eloquent/Builder.php": {
-      "count": 1,
+      "count": 3,
       "tokens": 5563,
-      "first_read": "2026-05-19T09:10:06.520Z"
+      "first_read": "2026-05-23T02:02:32.402Z"
     },
-    "/opt/framework/src/Phare/Eloquent/BuilderInterface.php": {
+    "/opt/laravel-framework/src/Illuminate/Database/Eloquent/Concerns/HasGlobalScopes.php": {
       "count": 1,
-      "tokens": 528,
-      "first_read": "2026-05-19T09:10:09.787Z"
-    },
-    "/opt/framework/docs/audit-area-b.md": {
-      "count": 1,
-      "tokens": 2925,
-      "first_read": "2026-05-19T09:15:21.989Z"
+      "tokens": 0,
+      "first_read": "2026-05-23T02:02:40.554Z"
     }
   },
   "files_written": [
     {
-      "file": "/opt/framework/docs/audit-area-b.md",
-      "action": "edit",
-      "tokens": 6558,
-      "at": "2026-05-19T09:19:02.019Z"
+      "file": "/tmp/section-b04.md",
+      "action": "create",
+      "tokens": 2506,
+      "at": "2026-05-23T02:04:07.398Z"
     },
     {
-      "file": "/opt/framework/tasks/prd.json",
-      "action": "edit",
-      "tokens": 576,
-      "at": "2026-05-19T09:19:25.624Z"
-    },
-    {
-      "file": "/opt/framework/tasks/progress.txt",
-      "action": "edit",
-      "tokens": 1082,
-      "at": "2026-05-19T09:19:54.588Z"
+      "file": "/tmp/prog-b04.md",
+      "action": "create",
+      "tokens": 909,
+      "at": "2026-05-23T02:04:30.457Z"
     }
   ],
   "edit_counts": {
-    "docs/audit-area-b.md": 1,
-    "tasks/prd.json": 1,
-    "tasks/progress.txt": 1
+    "../../tmp/section-b04.md": 1,
+    "../../tmp/prog-b04.md": 1
   },
   "anatomy_hits": 5,
-  "anatomy_misses": 0,
-  "repeated_reads_warned": 0,
+  "anatomy_misses": 4,
+  "repeated_reads_warned": 2,
   "cerebrum_warnings": 0,
   "stop_count": 0
 }
