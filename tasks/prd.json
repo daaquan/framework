@@ -227,8 +227,8 @@
         "No framework code changed"
       ],
       "priority": 15,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-27. docs/audit-area-c.md created with ### AuthManager section. Effort L — architecture inversion + backfill. Phare AuthManager extends generic Support\\Manager; exposes only guard()/getDefaultDriver() of the Laravel Factory surface (10/14 missing: shouldUse/setDefaultDriver/viaRequest/userResolver/resolveUsersUsing/provider/hasResolvedGuards/forgetGuards/setApplication/createTokenDriver). NO Contracts\\Auth\\Factory/Guard/StatefulGuard/UserProvider in Phare. Session guard is named Phare\\Auth\\Manager (10 pub methods vs Laravel SessionGuard's ~31) — no remember-me, no basic auth, no once, no setUser/hasUser/getUser, no Timebox, no Hasher injection (raw password_verify), no Recaller cookie. NO UserProvider abstraction (no EloquentUserProvider/DatabaseUserProvider/GenericUser/CreatesUserProviders); auth.providers.*.driver is parsed but ignored — stub-defect at config level. Authenticatable contract makes getAuthIdentifierName/getAuthPasswordName static (Laravel: instance) — 6th same-name/opposite-shape porting hazard. AuthenticationException missing $guards/$redirectTo/guards()/redirectTo(). Phalcon leaks: (1) public-signature Manager::__construct(Session, Phalcon\\Config\\ConfigInterface, ...) — published-dependency leak, same shape as B05/B06 AbstractPdo leaks but on ConfigInterface; (2) public-signature union return Manager::loginUsingId(int): User|\\Phalcon\\Mvc\\ModelInterface — same shape as B03 HasRelationships factories; (3) AuthServiceProvider implements Phalcon\\Di\\ServiceProviderInterface — provider-boundary contract coupling, same as A07 BladeViewProvider. Silent-arg-drop family extends: attempt/login/loginUsingId all drop Laravel's $remember (makes the remember-me protocol unreachable). Hidden coupling: AuthManager::__call → default guard → Sanctum::setUser blows up unless default guard is SanctumGuard. Bindings: 'auth' + non-Laravel 'auth.manager'."
     },
     {
       "id": "US-C02",
