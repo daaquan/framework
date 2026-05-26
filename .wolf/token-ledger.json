@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 242190,
-    "total_reads": 81,
-    "total_writes": 24,
-    "total_sessions": 46,
-    "anatomy_hits": 72,
-    "anatomy_misses": 9,
-    "repeated_reads_blocked": 8,
-    "estimated_savings_vs_bare_cli": 68764
+    "total_tokens_estimated": 310855,
+    "total_reads": 103,
+    "total_writes": 30,
+    "total_sessions": 50,
+    "anatomy_hits": 89,
+    "anatomy_misses": 14,
+    "repeated_reads_blocked": 10,
+    "estimated_savings_vs_bare_cli": 85635
   },
   "sessions": [
     {
@@ -834,6 +834,202 @@
         "output_tokens_estimated": 530,
         "reads_count": 11,
         "writes_count": 1,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 9
+      }
+    },
+    {
+      "id": "session-2026-05-26-0907",
+      "started": "2026-05-26T00:07:43.678Z",
+      "ended": "2026-05-26T00:10:56.672Z",
+      "reads": [
+        {
+          "file": "/opt/framework/prd.json",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/progress.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 6148,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 9959,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Pagination/Paginator.php",
+          "tokens_estimated": 2404,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Pagination/LengthAwarePaginator.php",
+          "tokens_estimated": 1480,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Pagination/CursorPaginator.php",
+          "tokens_estimated": 1927,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Pagination/Cursor.php",
+          "tokens_estimated": 559,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Pagination/UrlWindow.php",
+          "tokens_estimated": 835,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-b.md",
+          "tokens_estimated": 13471,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-b.md",
+          "tokens_estimated": 3027,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 530,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 36783,
+        "output_tokens_estimated": 3557,
+        "reads_count": 10,
+        "writes_count": 2,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 8
+      }
+    },
+    {
+      "id": "session-2026-05-26-0521",
+      "started": "2026-05-26T20:21:53.085Z",
+      "ended": "2026-05-26T20:27:16.088Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 6148,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 10460,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/AuthManager.php",
+          "tokens_estimated": 1123,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 1530,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/AuthServiceProvider.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Auth/Authenticatable.php",
+          "tokens_estimated": 168,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Auth/AuthManager.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/AuthServiceProvider.php",
+          "tokens_estimated": 189,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Manager.php",
+          "tokens_estimated": 1123,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/AuthenticationException.php",
+          "tokens_estimated": 80,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Auth/SessionGuard.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Authenticatable.php",
+          "tokens_estimated": 243,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-c.md",
+          "tokens_estimated": 4716,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 744,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 1449,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 352,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 21064,
+        "output_tokens_estimated": 7261,
+        "reads_count": 12,
+        "writes_count": 4,
         "repeated_reads_blocked": 1,
         "anatomy_lookups": 9
       }
