@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 170105,
-    "total_reads": 52,
-    "total_writes": 20,
-    "total_sessions": 40,
-    "anatomy_hits": 48,
-    "anatomy_misses": 4,
-    "repeated_reads_blocked": 6,
-    "estimated_savings_vs_bare_cli": 51668
+    "total_tokens_estimated": 209848,
+    "total_reads": 70,
+    "total_writes": 23,
+    "total_sessions": 45,
+    "anatomy_hits": 63,
+    "anatomy_misses": 7,
+    "repeated_reads_blocked": 7,
+    "estimated_savings_vs_bare_cli": 60816
   },
   "sessions": [
     {
@@ -592,6 +592,162 @@
         "writes_count": 2,
         "repeated_reads_blocked": 2,
         "anatomy_lookups": 5
+      }
+    },
+    {
+      "id": "session-2026-05-23-1104",
+      "started": "2026-05-23T02:04:53.469Z",
+      "ended": "2026-05-23T02:11:29.164Z",
+      "reads": [
+        {
+          "file": "/home/daaquan/.claude/projects/-opt-framework/42327925-eb62-4631-8c82-bbf62ffb63b3/tool-results/bi6raewrd.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/Schema/Blueprint.php",
+          "tokens_estimated": 1779,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/Schema/SchemaBuilder.php",
+          "tokens_estimated": 1337,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/Schema/ColumnDefinition.php",
+          "tokens_estimated": 674,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/Schema/ForeignKeyDefinition.php",
+          "tokens_estimated": 600,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/Migration.php",
+          "tokens_estimated": 371,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/Migrator.php",
+          "tokens_estimated": 1888,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 9094,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/tmp/section-b05.md",
+          "tokens_estimated": 4197,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 408,
+          "action": "edit"
+        },
+        {
+          "file": "/tmp/prog-b05.md",
+          "tokens_estimated": 1054,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 15743,
+        "output_tokens_estimated": 5659,
+        "reads_count": 8,
+        "writes_count": 3,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 7
+      }
+    },
+    {
+      "id": "session-2026-05-26-0904",
+      "started": "2026-05-26T00:04:52.009Z",
+      "ended": "2026-05-26T00:05:30.666Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 9457,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 6148,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/tmp/claude-1001/-opt-framework/c0cdbc25-40b5-4064-964d-79f954b99b77/tasks/bjd7s2kea.output",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/Seeder.php",
+          "tokens_estimated": 775,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/Factory.php",
+          "tokens_estimated": 958,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Database/BaseFactory.php",
+          "tokens_estimated": 66,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Database/Seeder.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Commands/SeedCommand.php",
+          "tokens_estimated": 420,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Commands/MakeSeederCommand.php",
+          "tokens_estimated": 427,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Exceptions/FactoryNotFound.php",
+          "tokens_estimated": 90,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 18341,
+        "output_tokens_estimated": 0,
+        "reads_count": 10,
+        "writes_count": 0,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 8
       }
     }
   ],
