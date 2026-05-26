@@ -251,3 +251,32 @@
 | 11:10 | Edited tasks/prd.json | 5→5 lines | ~408 |
 | 11:10 | Created ../../tmp/prog-b05.md | — | ~984 |
 | 11:10 | US-B05 audit migrations+schema vs Laravel 13 | docs/audit-area-b.md, tasks/prd.json, tasks/progress.txt | Effort L; NEW dependency/param Phalcon leak (AbstractPdo via ctors/params), no Connection wrapper; Blueprint 18/~75 types, Migrator 4/22, no repo iface/events | ~9k |
+| 11:11 | Session end: 3 writes across 3 files (section-b05.md, prd.json, prog-b05.md) | 8 reads | ~21402 tok |
+
+## Session: 2026-05-23 16:44
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:16 | ralph re-run guidance: run ralph.sh from tasks/ (CWD-relative prd.json); plugin-dir prd.json stale (done=0) | tasks/prd.json | verified next=US-B06, skip works via passes flag | ~6k |
+
+## Session: 2026-05-23 19:34
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-05-26 09:00
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-05-26 09:01
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-05-26 09:04
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 09:07 | Edited tasks/prd.json | 6→6 lines | ~530 |
+| 09:07 | US-B06 audit Seeders+Factories: diffed Phare Seeder/Factory/BaseFactory vs Laravel13, appended ### Seeders + Factories | docs/audit-area-b.md, tasks/prd.json, tasks/progress.txt | Effort L; arch inversion; SeederTable AbstractPdo pub-sig leak + $db published-dep; Factory returns arrays not models | ~9k |
