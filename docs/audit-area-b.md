@@ -1233,3 +1233,171 @@
   composite/`constrained()`. Net: deep but mostly additive; no inheritance
   to unwind, but the connection-wrapper item gates true Wrapper-Rule
   compliance.
+
+---
+
+### Seeders + Factories
+
+- Current — Phare ships **three** classes plus two console commands.
+  None extend a Phalcon class, but the DB-access surface drives Phalcon PDO
+  directly (same "published dependency" shape as Migrations/Schema, B05).
+  - **`Phare\Database\Seeder`** (`abstract`): props `protected Application $app`,
+    `protected AbstractPdo $db` (resolved in ctor via `$app->make('db')`).
+    `__construct(Application $app)`. `abstract public run(): void`.
+    Helpers: `protected call(string|array $seeders): void` (loops, instantiates
+    string seeders with `new $seeder($app)`, calls `run()`),
+    `protected create(string $table, array $data): void` (raw multi-row
+    `INSERT` via `$db->execute`), `protected table(string): SeederTable`,
+    `protected wrapTable`/`wrapColumn` (backtick-quote, MySQL-only),
+    `protected factory(string $model, int $count=1): Factory`
+    (`$app->make(Factory::class)->for($model)->count($count)`).
+  - **`Phare\Database\Seeder` → bundled `class SeederTable`** (same file): ctor
+    `__construct(AbstractPdo $db, string $table)`; `insert(array): void`,
+    `truncate(): void`, `delete(): void` — all raw backtick-quoted SQL.
+  - **`Phare\Database\Factory`** (concrete, container-bound runtime service —
+    NOT a per-model base): props `Application $app`, `protected AbstractPdo $db`,
+    `string $model`, `int $count=1`, `array $states=[]`, `afterMaking`/
+    `afterCreating` callback arrays. Fluent: `for(string $model): self` (SETS
+    the target model), `count(int): self`, `state(array): self` (flat
+    `array_merge`), `afterMaking(\Closure): self`, `afterCreating(\Closure):
+    self`. Terminal: `make(array=[]): array` (returns a plain assoc array, or
+    array-of-arrays when `count>1` — never a model), `create(array=[]): array`
+    (calls `make`, then `saveInstance` = raw `INSERT`, fires afterCreating).
+    Protected: `makeInstance` (`definition ∪ states ∪ attributes`),
+    `saveInstance` (raw `INSERT`, return value discarded — no PK back-fill),
+    `getDefinition` (`new Database\Factories\{ModelBasename}Factory` →
+    `->definition()`; throws `\RuntimeException` if class missing),
+    `getFactoryClass`, `getTableName` (`strtolower(basename($model)).'s'`).
+  - **`Phare\Database\BaseFactory`** (`abstract`, the user-facing factory base):
+    `abstract definition(): array`; `protected faker(): \Faker\Generator`
+    (`Faker\Factory::create()` — fresh generator every call). Phalcon-CLEAN
+    (Faker only). This is ALL a Phare factory author gets — no state, no
+    relationship, no sequence, no configure.
+  - **Console**: `SeedCommand` (`db:seed {--class=} {--force}`) instantiates
+    `new $seederClass($app)` and calls `run()` directly (does NOT set
+    container/command); resolves bare name → `Database\Seeders\{name}`; blocks
+    in `production` without `--force`; wraps in try/catch → `error()` + exit 1.
+    `MakeSeederCommand` (`make:seeder {name}`) stubs a `Database\Seeders\*`
+    class extending `Phare\Database\Seeder`. **No `make:factory` command, no
+    `HasFactory` trait, no `Factory::new()`/`Model::factory()` entry point.**
+  - Dead code: `Phare\Console\Exceptions\FactoryNotFound::factoryDefinitionNotFound`
+    exists but is never referenced (Factory throws raw `\RuntimeException`).
+
+- Expected — Laravel 13:
+  - **`Illuminate\Database\Seeder`** (`abstract`, 8 public methods + `__invoke`):
+    `call($class, $silent=false, array $parameters=[]): $this`,
+    `callWith($class, array $parameters=[])`, `callSilent($class, $parameters=[])`,
+    `callOnce($class, $silent=false, $parameters=[])` (dedup via static
+    `$called`), `setContainer(Container): $this`, `setCommand(Command): $this`,
+    `protected resolve($class)` (container-resolves + injects
+    container/command), `__invoke(array $parameters=[]): mixed` (requires a
+    `run` method, container-`call`s it for dependency injection, honours the
+    `WithoutModelEvents` trait). `run()` is NOT abstract — discovered
+    reflectively. Console output via `TwoColumnDetail` (RUNNING/DONE + ms).
+  - **`Illuminate\Database\Eloquent\Factories\Factory`** (`abstract`, ~50
+    public/static methods) — a **per-model** definition class returning **model
+    instances**:
+    - State/attrs (8): `raw`, `state`, `prependState`, `set`, `sequence`,
+      `forEachSequence`, `crossJoinSequence`, `configure`.
+    - Make/create (12): `make`, `makeOne`, `makeMany`, `create`, `createOne`,
+      `createOneQuietly`, `createMany`, `createManyQuietly`, `createQuietly`,
+      `lazy`, `insert`, `newModel`. All return `Model`/`Collection`/`callable`.
+    - Relationships (6): `has`, `hasAttached`, `for`, `recycle`,
+      `getRandomRecycledModel`, `withoutParents`.
+    - Lifecycle (4): `afterMaking`, `afterCreating`, `withoutAfterMaking`,
+      `withoutAfterCreating`.
+    - Config/meta (5): `count`, `connection`, `getConnectionName`, `modelName`,
+      `newModel`.
+    - Static (10): `new`, `times`, `guessModelNamesUsing`, `useNamespace`,
+      `factoryForModel`, `guessFactoryNamesUsing`,
+      `expandRelationshipsByDefault`, `dontExpandRelationshipsByDefault`,
+      `resolveFactoryName`, `flushState`.
+    - `__call` forwards `state`-style magic; `withFaker()` pulls a memoised
+      `Faker\Generator` from the container.
+  - **Supporting cast**: `HasFactory` trait (`static factory($count=null,
+    $state=[])` on the Model), `Sequence`, `CrossJoinSequence`,
+    `Relationship`/`BelongsToRelationship`/`BelongsToManyRelationship`,
+    `Attributes\UseModel`, `Database\Console\Seeds\WithoutModelEvents`.
+
+- Gaps:
+  - **Missing — Seeder (≈7 of 8 public methods + plumbing):** `callWith`,
+    `callSilent`, `callOnce`+static `$called` dedup, `setContainer`,
+    `setCommand`, `resolve`, `__invoke`. Phare's `call()` is `protected`
+    (Laravel: `public`, chainable `: $this`), drops the `$silent` and
+    `$parameters` args, and does no DI / no console RUNNING-DONE output.
+    `WithoutModelEvents` trait integration absent. `run()` is forced `abstract`
+    (no reflective discovery / container `call`).
+  - **Missing — Factory (≈45 of ~50 methods) + whole architecture:** the
+    Phare `Factory` is a single runtime service that returns **arrays**, so the
+    entire Laravel model is absent — no `Model::factory()`/`HasFactory`, no
+    static `new`/`times`, no model-instance returns, no `raw`, no
+    `makeOne`/`makeMany`/`createOne*`/`createMany*`/`*Quietly`/`lazy`/`insert`,
+    no relationship factories (`has`/`hasAttached`/`for`-as-parent/`recycle`),
+    no `Sequence`/`forEachSequence`/`crossJoinSequence`, no `configure`,
+    no `connection`/`getConnectionName`, no `prependState`/`set`, no
+    `withoutAfterMaking`/`withoutAfterCreating`/`withoutParents`, no namespace
+    guessing statics, no `flushState`. `BaseFactory` exposes only
+    `definition()`+`faker()`.
+  - **Missing — tooling:** no `make:factory` command; `SeedCommand` never wires
+    container/command onto the seeder, so even the present Laravel seeder
+    plumbing would be dead; no `--database` connection option.
+  - **Type mismatch — `Factory::for()` name-clash (same-name/opposite-meaning
+    porting hazard).** Phare `for(string $model): self` SETS the target model;
+    Laravel `for($factory, $relationship=null)` attaches a parent *belongsTo*
+    relationship. Running list of this hazard: B01 `Model::create()`,
+    B02 `Builder::paginate()`, B05 `Migrator::rollback()`, now `Factory::for()`.
+  - **Type mismatch — return shapes.** Phare `make`/`create` return
+    `array` (or array-of-arrays); Laravel returns `Model`/`Collection`/`mixed`.
+    Phare `count()`/`state()`/`afterMaking()`/`afterCreating()` return `self`
+    (Laravel `static`/`$this` — close, but Phare classes are untyped against
+    Laravel's typed unions e.g. `int|iterable|null`). `state(array)` cannot
+    take a closure, so per-instance/sequenced state is impossible.
+  - **Type mismatch — Seeder `create()`/`table()`/`factory()` are non-Laravel
+    additions** (Laravel `Seeder` has no data-insertion surface at all; seeding
+    goes through models/factories). They publish a parallel raw-SQL API.
+  - **Phalcon leak — public-signature:** `SeederTable::__construct(AbstractPdo
+    $db, string $table)` publishes raw `\Phalcon\Db\Adapter\Pdo\AbstractPdo`
+    on a public constructor — a true §2 signature leak (first in this
+    subsystem).
+  - **Phalcon leak — published dependency (protected property):**
+    `Seeder::$db` and `Factory::$db` are typed `AbstractPdo`; both classes are
+    designed for extension/use, and every insert path drives Phalcon PDO
+    (`execute`) + backtick (MySQL-only) quoting directly. No Phare `Connection`
+    wrapper — identical root cause to B05 (Migrations/Schema). `BaseFactory`
+    is Phalcon-CLEAN.
+  - **Correctness — Factory never instantiates the model (raw-SQL bypass).**
+    `create()` builds a plain array and emits a raw `INSERT`; it never news the
+    Eloquent model, so casts, mutators, `creating`/`created` events,
+    timestamps, and PK back-fill are ALL skipped, and the inserted id is
+    discarded (`execute` return ignored). Same raw-SQL-bypass defect family as
+    B02 `update()`, B03 pivots/through-relations, B04 soft-delete
+    `restore()`/`delete()`.
+  - **Correctness — naive pluralization.** `Factory::getTableName()` =
+    `strtolower(basename($model)).'s'`, ignoring the model's own
+    `$table`/`getTable()`. Breaks irregulars (`Person`→`persons`,
+    `Category`→`categorys`, `Company`→`companys`, `Mouse`→`mouses`).
+  - **Correctness — `BaseFactory::faker()` calls `Faker\Factory::create()` on
+    every invocation** (new heavy generator per attribute), vs Laravel's
+    memoised container-bound faker — perf + non-reproducible-seed defect.
+  - **Correctness — no dedup / partial-seed.** Seeder `call()` has no
+    `callOnce`/`$called`, so re-entrant seeders re-insert; `SeedCommand` runs
+    outside any transaction and swallows exceptions after partial inserts.
+  - **Dead-code inconsistency** — `FactoryNotFound::factoryDefinitionNotFound`
+    is shipped but unused; `Factory::getDefinition()` throws raw
+    `\RuntimeException`.
+
+- Effort: L — Not a backfill; an **architecture inversion**. Phare's
+  factory is a runtime array-builder, whereas Laravel's is a per-model,
+  model-returning definition class driving the Eloquent persistence pipeline.
+  Reaching parity means: (1) introduce `HasFactory` + `Model::factory()` +
+  static `new`/`times` discovery; (2) re-base `BaseFactory` as the real
+  abstract `Factory` with the ~50-method state/make/create/relationship/
+  sequence surface returning **model instances** (which in turn depends on a
+  functioning `Model::create()`/save pipeline — gated by B01/B02 defects);
+  (3) add `Sequence`/`CrossJoinSequence`/relationship-factory classes;
+  (4) bring `Seeder` up to the container/command/`$called`/`__invoke`/
+  `WithoutModelEvents` surface and wire `SeedCommand` to inject them;
+  (5) add `make:factory`. The Phalcon-PDO dependency leak (`SeederTable` ctor +
+  `$db` props) rides on the same missing `Connection` wrapper as B05 — shared
+  DB-layer work, not local. Net: deep, and partly blocked on the Eloquent
+  model/builder fixes upstream.

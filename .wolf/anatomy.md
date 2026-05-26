@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-23T02:10:48.562Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-26T00:07:04.282Z
 > Files: 510 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
@@ -784,7 +784,7 @@
 
 ## tasks/
 
-- `prd.json` — Declares mismatch (~9457 tok)
+- `prd.json` — Declares mismatch (~9959 tok)
 - `progress.txt` — Ralph Progress — Laravel 13 Parity Audit Pass (~6148 tok)
 
 ## tests/

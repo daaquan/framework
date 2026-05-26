@@ -197,8 +197,8 @@
         "No framework code changed"
       ],
       "priority": 13,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-26. ### Seeders + Factories appended to docs/audit-area-b.md (+168 lines). Effort L — architecture inversion, not backfill. Phare ships Seeder (abstract, raw-SQL create/table/SeederTable helpers) + Factory (concrete container-bound RUNTIME service returning plain ARRAYS, not model instances) + BaseFactory (abstract: only definition()+faker()). NO HasFactory trait, NO Model::factory(), NO make:factory cmd, NO Sequence/relationship factories. Seeder missing ~7/8 Laravel public methods (callWith/callSilent/callOnce+$called dedup/setContainer/setCommand/resolve/__invoke + WithoutModelEvents); call() is protected/no-silent/no-params/no-DI. Factory missing ~45/50 methods (static new/times, raw, makeOne/Many, createOne/Many/*Quietly, lazy, insert, has/hasAttached/for-as-parent/recycle, sequence family, configure, connection, prependState/set, namespace statics). Phalcon leaks: PUBLIC-SIGNATURE SeederTable::__construct(AbstractPdo) (first true §2 sig leak here) + published-dependency Seeder::$db/Factory::$db typed AbstractPdo (no Connection wrapper — same root cause as B05); BaseFactory Phalcon-CLEAN. Defects: Factory.create() raw INSERT never instantiates model (skips casts/mutators/events/timestamps/PK back-fill — raw-SQL-bypass family B02/B03/B04); getTableName() naive strtolower+'s' breaks irregular plurals & ignores $table; BaseFactory.faker() new generator per call (perf+non-reproducible); no callOnce dedup / partial-seed swallow in SeedCommand; FactoryNotFound exception is dead code. NEW same-name/opposite-meaning hazard: Factory::for() SETS model vs Laravel for()=parent belongsTo relationship (running list: B01 create, B02 paginate, B05 rollback, B06 for). Blocked partly on B01/B02 model/builder fixes upstream."
     },
     {
       "id": "US-B07",
