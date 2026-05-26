@@ -277,3 +277,520 @@
     `Manager`'s login/logout/attempt), Encrypter (C04 — needed for
     Recaller cookie payload), and Config (E03 — needed to retire the
     `ConfigInterface` leak).
+
+---
+
+### Session Auth (login / logout / attempt / remember / viaRemember)
+
+C01 catalogued the **factory** side — `AuthManager` and the missing
+`Factory`/`Guard`/`StatefulGuard`/`UserProvider` contracts. This
+section drills into the **session-auth runtime**: the
+`Phare\Auth\Manager` instance that `AuthManager::createSessionDriver`
+returns, the auth flow itself (login / logout / attempt / remember /
+viaRemember), and the session integration that backs it
+(`Phare\Session\SessionManager`, `Phare\Session\SessionStoreManager`,
+`Phare\Contracts\Session\Session`).
+
+- Current — Phare:
+
+  - **`Phare\Auth\Manager`** (`src/Phare/Auth/Manager.php`, 252 LOC):
+    the only session-guard implementation. Implements **no contract**
+    (`Contracts\Auth\Guard`/`StatefulGuard` do not exist in Phare —
+    inherited from C01). Constructor takes
+    `Session $session, Phalcon\Config\ConfigInterface $config,
+    ?Phare\Events\Contracts\Dispatcher $events = null` — see Phalcon
+    leak ➊.
+  - **Public surface (10):**
+    `user(): ?User`,
+    `guest(): bool`,
+    `attempt(array $credentials = []): bool`,
+    `check(): bool`,
+    `logout(): void`,
+    `retrieveIdentifier()`,
+    `login(User $user): bool`,
+    `loginUsingId(int $id): User|\Phalcon\Mvc\ModelInterface`
+    (leak ➋),
+    `id(): int|string|null`,
+    `validate(array $credentials = []): bool`. Helpers
+    `retrieveUserById/ByIdentifier/ByCredentials`,
+    `regenerateSessionId`, `sessionKey`, `modelClass`,
+    `dispatchEvent` are protected/private.
+  - **Auth flow as wired today (login):**
+    `login($user)` → `regenerateSessionId()` (Phalcon `$session->regenerateId()`)
+    → `$session->set($this->sessionKey(), $user->getAuthIdentifier())`
+    → set `$user`, clear `loggedOut`, mark `authEventDispatched=true`,
+    dispatch `Login($user)`, **return `true`**. Note the return:
+    Laravel `SessionGuard::login(): void`; Phare returns `bool`.
+  - **Auth flow as wired today (logout):**
+    `logout()` → resolve `user()`, null `$user`, set `loggedOut=true`,
+    clear `authEventDispatched`,
+    **`$this->session->destroy()`** (destroys the ENTIRE session — see
+    Behavioural §1), dispatch `Logout($user)`. No remember-me cookie
+    cleanup, no recaller cycle, no per-device variant.
+  - **Auth flow as wired today (attempt):**
+    `attempt($credentials)` → dispatch `Attempting($credentials)`
+    (note: ctor missing `$guard` name and `$remember`; see §events) →
+    `retrieveUserByCredentials($credentials)` (loads the configured
+    model by identifier, then runs **raw `password_verify($hash,
+    $user->getAuthPassword())`** — no Hasher injection, no Timebox; see
+    Behavioural §2) → on success dispatch `Validated($user, $credentials)`
+    and return `login($user)`; on failure dispatch
+    `Failed($user, $credentials)` and return `false`.
+  - **Session key** comes from `$this->config->session_id` (a single
+    runtime-bound value set by `AuthManager::buildSessionGuardConfig`
+    to `auth.session_id` falling back to `"auth.{$guardName}"`).
+    There is **no per-class hash** equivalent to Laravel's
+    `'login_'.$this->name.'_'.sha1(static::class)` — two guards
+    pointed at the same session can race on the same key if
+    `auth.session_id` is set globally.
+  - **`Phare\Auth\Manager` has NO** `setUser`, `getUser`, `hasUser`,
+    `forgetUser`, `authenticate`, `getProvider`, `setProvider`,
+    `getName`, `getRecallerName`, `getLastAttempted`, `getSession`,
+    `getRequest`, `setRequest`, `getCookieJar`, `setCookieJar`,
+    `getDispatcher`, `setDispatcher`, `getTimebox`,
+    `setRememberDuration`, `hashPasswordForCookie`, `attempting`,
+    `viaRemember`, `attemptWhen`, `once`, `onceUsingId`, `basic`,
+    `onceBasic`, `logoutCurrentDevice`, `logoutOtherDevices` —
+    confirmed by grep.
+  - **`Phare\Auth\Events\*`:** ships
+    `Attempting`, `Authenticated`, `Failed`, `Login`, `Logout`,
+    `Validated` (6 of Laravel's 8). Missing
+    `CurrentDeviceLogout`, `OtherDeviceLogout`. Constructor shapes
+    are slimmer than Laravel's: e.g. `Attempting(array $credentials)`
+    vs Laravel `Attempting(string $guard, array $credentials,
+    bool $remember = false)`; `Login(User $user)` vs Laravel
+    `Login(string $guard, Authenticatable $user, bool $remember)`;
+    every Phare event drops the `$guard` name parameter so
+    multi-guard listeners can't disambiguate.
+
+  - **Session integration — `Phare\Session\SessionManager`**
+    (`src/Phare/Session/SessionManager.php`, 79 LOC) **`extends
+    Phalcon\Session\Manager implements Phare\Contracts\Session\Session`**.
+    Adds 6 Laravel-shaped helpers on top of Phalcon: `pull`, `put`,
+    `add`, `clear` (destroy+start), `replace`, `forget`. Everything
+    else (`get/set/remove/has/destroy/regenerateId/start/getId/setId/
+    getName/setName/getId/setHandler/getHandler/exists`) is the
+    Phalcon adapter API published verbatim. Total public surface
+    visible to a session-store consumer: **~6 added + ~12 inherited
+    Phalcon methods = 18** vs Laravel `Session\Store`'s **54 public
+    methods**.
+  - **Session integration — `Phare\Contracts\Session\Session`**:
+    `interface Session extends Phalcon\Session\ManagerInterface` —
+    declares only `pull/put/add/forget/clear/replace`. **Contract
+    leak** (leak ➌): the published Phare session contract `extends`
+    a `Phalcon\…` interface — same defect class as
+    `Contracts\Http\Kernel` (A02), `Contracts\Http\Response` (A05),
+    `Eloquent\BuilderInterface` (B02). Cross-ref running list in
+    cerebrum.
+  - **Session integration — `Phare\Session\SessionStoreManager`**
+    (`src/Phare/Session/SessionStoreManager.php`, 112 LOC): registry
+    bound to `session.manager`. **Public surface (2):**
+    `store(?string $name = null): SessionManager`,
+    `getDefaultStore(): ?string`. Resolves drivers via switch:
+    `file` → `Phalcon\Session\Adapter\Stream`, `redis` →
+    `Phalcon\Session\Adapter\Redis` (or `RedisCluster`). NO
+    `database`/`cookie`/`apc`/`memcached`/`null`/`array`/`dynamodb`
+    drivers; NO `extend(string, Closure)` for custom drivers; NO
+    `getSessionConfig`/`setDefaultDriver`/`shouldBlock`/`blockDriver`/
+    `defaultRouteBlockLockSeconds`/`defaultRouteBlockWaitSeconds`.
+  - **Provider wiring** — `Phare\Providers\SessionProvider`
+    `implements Phalcon\Di\ServiceProviderInterface` (provider-boundary
+    Phalcon coupling — same shape as A07 `BladeViewProvider`, C01
+    `AuthServiceProvider`; recorded as leak ➍, not double-counted in
+    §workload). Binds two services: `session.manager` →
+    `SessionStoreManager` (multi-store), `session` → a single
+    `SessionManager` instance built directly from
+    `config('session.driver')` (so `session` and `session.manager`
+    can return different instances; this is a wiring divergence from
+    Laravel where the `session` binding is the SessionManager itself
+    and `session.store` is the default store).
+
+- Expected — Laravel 13:
+
+  - **`Illuminate\Auth\SessionGuard implements StatefulGuard,
+    SupportsBasicAuth`** with `use GuardHelpers, Macroable`
+    (1039 LOC). Constructor:
+    `__construct(string $name, UserProvider $provider, Session
+    $session, ?Request $request = null, ?Timebox $timebox = null,
+    bool $rehashOnLogin = true, int $timeboxDuration = 200000,
+    ?string $hashKey = null)` — accepts a `UserProvider` (Phare:
+    none — the model class is read from config inside the guard),
+    a `Timebox` (Phare: none), a `Request` (Phare: none — the
+    recaller cookie path doesn't exist), and a `$hashKey` for the
+    recaller HMAC.
+  - **`SessionGuard` public surface (~31, listed in C01).** The
+    auth flow proper:
+    - `attempt(array $credentials = [], $remember = false): bool`
+      — wraps the credential-check in
+      `Timebox::call($callback, $this->timeboxDuration)`
+      (200000 µs default) to defeat user-enumeration timing
+      attacks; on success runs `rehashPasswordIfRequired` then
+      `login($user, $remember)` then `$timebox->returnEarly()`.
+    - `attemptWhen(array $credentials = [], $callbacks = null,
+      $remember = false): bool` — same flow but applies a callback
+      array allowing additional gates after credential check.
+    - `validate(array $credentials = []): bool` — Timeboxed
+      `provider->retrieveByCredentials` + `hasValidCredentials`,
+      stores `$lastAttempted`.
+    - `login(AuthenticatableContract $user, $remember = false): void`
+      — `updateSession(id)` → `session->put(getName(), id)` +
+      `session->regenerate(true)`. If `$remember`:
+      `ensureRememberTokenIsSet` →
+      `provider->updateRememberToken($user, Str::random(60))` →
+      `queueRecallerCookie($user)` which queues an HMAC-signed
+      `id|token|hashPasswordForCookie(authPassword)` cookie on the
+      cookie jar. Fires `Login($name, $user, $remember)`. Sets the
+      cached `$user` via `setUser($user)`.
+    - `loginUsingId(mixed $id, $remember = false):
+      Authenticatable|false` — accepts arbitrary id types (UUID/ULID).
+    - `once(array $credentials = []): bool`,
+      `onceUsingId(mixed $id): Authenticatable|false` — login
+      without touching the session or queuing a remember cookie.
+    - `logout(): void` — `clearUserDataFromStorage()` removes
+      `session->remove(getName())` (only the auth key — preserves
+      flash/CSRF/other session state), unqueues the recaller
+      cookie, then queues a `forget` cookie if one was sent.
+      Cycles the remember token if the user had one, dispatches
+      `Logout($name, $user)`, nulls `$user`, sets `loggedOut`.
+    - `logoutCurrentDevice(): void` — same storage clear but
+      does NOT cycle the remember token (keep this device's recaller).
+      Fires `CurrentDeviceLogout($name, $user)`.
+    - `logoutOtherDevices(string $password): ?Authenticatable` —
+      uses `Hash::check($password, user->getAuthPassword())` + force
+      `provider->rehashPasswordIfRequired(force: true)` to invalidate
+      sibling sessions (only meaningful with `AuthenticateSession`
+      middleware enabled). Fires `OtherDeviceLogout($name, $user)`.
+    - `basic(string $field = 'email', array $extraConditions = [])`
+      / `onceBasic(...)` — HTTP Basic Auth integration via
+      `Symfony\…\UnauthorizedHttpException`.
+    - `attempting(callable $callback): void` — register listener for
+      `Events\Attempting`.
+    - `viaRemember(): bool` — flag set when `user()` was resolved via
+      the recaller cookie path; lets the application require
+      stronger auth for "remembered" sessions.
+  - **`GuardHelpers` trait** (124 LOC): `authenticate()`, `hasUser()`,
+    `check()`, `guest()`, `id()`, `setUser($user)`, `forgetUser()`,
+    `getProvider()`, `setProvider(UserProvider)` — the per-guard
+    shared API.
+  - **`Auth\Recaller`** (95 LOC): tiny value object parsing the
+    `id|token|hash` cookie payload. Methods: `id()`, `token()`,
+    `hash()`, `valid()`, `segments()`. Storage path inside
+    `SessionGuard`: `recaller()` reads the cookie from `$request`,
+    `userFromRecaller(Recaller)` calls
+    `provider->retrieveByToken($id, $token)` and sets
+    `$viaRemember = ! is_null($user)`.
+  - **`Contracts\Session\Session`** (213 LOC, **26 public methods**):
+    `getName/setName/getId/setId`, `start/save`, `all/exists/has/
+    get/pull/put/flash/token/regenerateToken/remove/forget/flush/
+    invalidate/regenerate/migrate/isStarted/previousUrl/
+    setPreviousUrl/getHandler/handlerNeedsRequest/setRequestOnHandler`.
+    `Illuminate\Session\Store` (the concrete) ships **54 public**
+    including the flash family
+    (`flash/now/reflash/keep/flashInput/getOldInput/hasOldInput`),
+    the array-helpers (`only/except/missing/hasAny`), `increment`,
+    `decrement`, `push`, `remember`, `cache`, `passwordConfirmed`,
+    `previousUri/setPreviousRoute/previousRoute`, `isValidId`,
+    `setExists`, `replace`. Macroable. No `add`/`clear` (Phare-only).
+  - **`Illuminate\Session\SessionManager extends Support\Manager`**
+    (289 LOC): exposes `getDefaultDriver`, `setDefaultDriver`,
+    `getSessionConfig`, `shouldBlock`, `blockDriver`,
+    `defaultRouteBlockLockSeconds`, `defaultRouteBlockWaitSeconds`,
+    plus protected drivers `null/array/cookie/file/native/database/
+    apc/memcached/redis/dynamodb` (10 drivers) and a `buildSession`
+    factory that switches on `session.encrypt` to wrap the handler
+    in `EncryptedStore`.
+  - **Container bindings:** `session` →
+    `Illuminate\Session\SessionManager`, `session.store` → the
+    default `Store` instance, `auth` → AuthManager,
+    `auth.driver` → `Auth::guard()`. Phare binds `session` to a
+    single SessionManager instance and `session.manager` to
+    `SessionStoreManager` — the inverse of Laravel's binding shape.
+
+- Gaps:
+
+  - **Missing — `Manager` (session-guard) surface (~21/31):** the
+    full SessionGuard list — `attemptWhen`, `once`, `onceUsingId`,
+    `basic`, `onceBasic`, `logoutCurrentDevice`, `logoutOtherDevices`,
+    `attempting`, `viaRemember`, `getLastAttempted`, `getName`,
+    `getRecallerName`, `setRememberDuration`, `hashPasswordForCookie`,
+    `getCookieJar`/`setCookieJar`, `getDispatcher`/`setDispatcher`,
+    `getSession`, `getRequest`/`setRequest`, `getTimebox`. Combined
+    with the missing **`GuardHelpers` trait** surface
+    (`authenticate`, `hasUser`, `setUser`, `forgetUser`,
+    `getProvider`, `setProvider`) the guard is missing **the entire
+    user-resolver/provider/cookie/timebox/basic/once axis**.
+  - **Missing — Recaller / remember-me protocol wholesale:**
+    no `Auth\Recaller`, no `cookie` jar dependency, no
+    `recaller()`/`userFromRecaller()`/`createRecaller()`/
+    `queueRecallerCookie()`/`ensureRememberTokenIsSet()`/
+    `cycleRememberToken()`/`hashPasswordForCookie()`/
+    `getRecallerName()`/`setRememberDuration()`/`viaRemember()`.
+    Continuation of C01: `attempt/login/loginUsingId` already drop
+    the `$remember` parameter (silent-arg-drop, 3rd instance), so
+    the protocol is **structurally unreachable** even before the
+    component classes are missing. Cross-cuts US-C04 (Encrypter —
+    Laravel's cookie jar signs/encrypts recaller payloads via the
+    encrypter) and US-C03 (Hashing — `hashPasswordForCookie` uses
+    `hash_hmac`).
+  - **Missing — events (2/8):** `CurrentDeviceLogout`,
+    `OtherDeviceLogout`. Existing event ctors are slimmer than
+    Laravel's — every Phare auth event drops the `$guard` name and
+    `Attempting`/`Login` drop `$remember`. Multi-guard listeners
+    cannot disambiguate which guard fired the event without
+    rebuilding the event classes.
+  - **Missing — UserProvider abstraction in the auth flow itself:**
+    inherited from C01, but re-emphasised here because every method
+    on `Manager` (`retrieveUserById`, `retrieveUserByIdentifier`,
+    `retrieveUserByCredentials`) inlines `$class::findFirst(...)`
+    against a class name from `$this->config->model`. Closing C01's
+    `EloquentUserProvider`/`DatabaseUserProvider`/`UserProvider`
+    gap eliminates **all three** protected helpers here in one move.
+    No `retrieveByToken` / `updateRememberToken` /
+    `rehashPasswordIfRequired` even as private helpers.
+  - **Missing — `Session\Store` surface (~36/54):** the **flash
+    family** (`flash`, `now`, `reflash`, `keep`, `flashInput`,
+    `hasOldInput`, `getOldInput`, `ageFlashData`) — the entire
+    flash-data mechanism is absent. This is what `with()->withErrors()`
+    and the redirect-back-with-errors flow rely on (also called out
+    in A05 Response — no `RedirectResponse::withInput`/`withErrors`
+    — and A06 FormRequest — no redirect-back-with-errors flow).
+    Also missing: `token`/`regenerateToken` (CSRF token in session —
+    cross-cuts US-C05 CSRF), `invalidate`, `migrate`, `previousUrl`/
+    `setPreviousUrl`, `only`/`except`/`missing`/`hasAny`,
+    `increment`/`decrement`/`push`/`remember`,
+    `passwordConfirmed`, `isValidId`/`setExists`. Phare's
+    `SessionManager::clear()` does `destroy+start` — Laravel
+    semantics for "clear all data" use `flush()` instead and keep
+    the same session id.
+  - **Missing — `SessionStoreManager` driver coverage (7/10):**
+    `database`, `cookie`, `apc`, `memcached`, `null`, `array`,
+    `dynamodb`. No `extend(string, Closure)` so applications can't
+    register custom session drivers; no `EncryptedStore` wrapping
+    even when `session.encrypt` is true (NEW correctness gap:
+    Phare honours no `encrypt` setting at all — the Phalcon
+    `Redis`/`Stream` adapters provide no encryption).
+  - **Missing — request-block configuration:** no `shouldBlock`,
+    `blockDriver`, `defaultRouteBlockLockSeconds`,
+    `defaultRouteBlockWaitSeconds`. Laravel's `StartSession`
+    middleware uses these to serialise concurrent requests for the
+    same session id (a security/race-condition mitigation).
+  - **Missing — `Auth\AuthenticateSession` middleware** (the partner
+    that powers `logoutOtherDevices`'s rehash). Phare has only
+    `Auth\Middleware\Authenticate` (a thin `Auth::check()` gate)
+    and `Auth\Middleware\EnsureRole`. No
+    `Authenticate::redirectTo`/`Authenticate::shouldUseGuards`
+    introspection of the `AuthenticationException::$guards` path —
+    inherited from C01.
+
+  - **Type mismatch — `Manager::login(User): bool`** returns `bool`
+    where Laravel `SessionGuard::login(...): void` returns void.
+    Same name, opposite return shape — adds a **7th** "same-name /
+    opposite-shape" porting hazard entry (running list:
+    B01 `create`, B02 `paginate`, B05 `rollback`, B06 `for`,
+    B07 `simplePaginate`, C01 `Authenticatable::getAuthIdentifierName/
+    getAuthPasswordName` static-vs-instance, now C02 `login`
+    bool-vs-void).
+  - **Type mismatch — `Manager::attempt(array): bool`** drops the
+    `$remember` parameter; same for `login(User): bool` and
+    `loginUsingId(int): User|ModelInterface` — silent-arg-drop /
+    Phalcon-union-return (already counted in leak ➋).
+  - **Type mismatch — `Manager::loginUsingId(int $id)`**: `int`
+    narrows from Laravel `mixed`, so UUID/ULID/composite-string
+    keys cannot log in. Recurs from C01.
+  - **Type mismatch — `Manager::retrieveIdentifier(): mixed`**
+    (un-typed) — Laravel has no equivalent public method; the
+    closest is `id()` (typed `int|string|null`). Recording as an
+    extra non-Laravel public method to flag for removal, not
+    parity.
+  - **Type mismatch — `SessionManager` published surface untyped.**
+    `pull/put/add/clear/replace/forget` declare no parameter types
+    or return types (e.g. `public function put($key, $value)`). The
+    `Session` contract is similarly untyped. Laravel's `Store` is
+    fully typed and the `Contracts\Session\Session` interface uses
+    PHPDoc-typed signatures via docblocks (mostly untyped for back
+    compat too, but the concrete is typed). Record as inherited
+    type-mismatch — typing the contract is a one-shot fix.
+
+  - **Behavioural §1 — `logout()` DESTROYS the entire session.**
+    `$this->session->destroy()` (Phalcon) wipes ALL session keys
+    plus the storage entry. Laravel `clearUserDataFromStorage()`
+    calls `$session->remove($this->getName())` — only the auth key.
+    Phare's logout therefore kills the CSRF token, flash data,
+    `previousUrl`, queued cookies, anything stored under any other
+    guard, and any application-stored session value. NEW
+    correctness defect. Cross-references: this is the **logout
+    blast-radius defect** — flag for US-S01 synthesis as its own
+    category.
+  - **Behavioural §2 — credential verification is non-Timeboxed
+    and inlines `password_verify`.**
+    `Manager::retrieveUserByCredentials()` runs
+    `password_verify($credentials[$passwordField], $user->getAuthPassword())`
+    directly. No `Timebox::call(..., 200000)` wrapper, no
+    `Hasher::check`, no `rehashPasswordIfRequired`. Three security
+    deltas vs Laravel:
+      (a) user-enumeration timing attack — login response time
+          depends on whether `retrieveUserByIdentifier` returned
+          a row (short-circuit when null vs running `password_verify`
+          when not);
+      (b) hash-algorithm upgrade is impossible — no silent re-hash
+          on successful login, so an app that bumps `PASSWORD_BCRYPT`
+          to `PASSWORD_ARGON2ID` can never rotate stored hashes;
+      (c) Hasher is not pluggable — `password_verify` is hardcoded,
+          ignoring whatever `hash.driver` config the app sets. The
+          Hashing audit (US-C03) will surface this from the other
+          direction.
+    Recorded as a **security defect**, not just a parity gap.
+  - **Behavioural §3 — session key collision risk.** Phare's
+    `sessionKey()` returns `$this->config->session_id`, which
+    `buildSessionGuardConfig` sets to **`auth.session_id` if set
+    globally**, else `"auth.{$guardName}"`. If the app legacy-sets
+    `auth.session_id = 'auth.user'` (a common Phare-era convention),
+    every guard the app declares writes its user-id to the **same**
+    key. Switching guards in a multi-guard app silently overwrites
+    the previous guard's session entry. Laravel's
+    `'login_'.$name.'_'.sha1(static::class)` guarantees per-guard
+    isolation. Worth a callout in US-S01 alongside the running
+    same-name-different-meaning hazards.
+  - **Behavioural §4 — `login()` regenerates the session id but
+    does NOT migrate.** Phare calls `$session->regenerateId()`
+    only; Laravel calls `session->regenerate(true)` (the `$destroy
+    = true` form) which deletes the OLD session-handler row.
+    Without the destroy flag, the previous session blob remains
+    readable by anyone still holding the old session id — a
+    **session-fixation mitigation gap**. Same severity as §2 but
+    a separate root cause (the underlying Phalcon
+    `Phalcon\Session\Manager::regenerateId(bool $deleteOldSession
+    = true)` accepts the flag — Phare's call site omits it).
+  - **Behavioural §5 — `user()` event-dispatch idempotency.**
+    `Authenticated` fires once per request via the
+    `$authEventDispatched` latch. Laravel fires `Authenticated` on
+    every `user()` resolve path (initial id load AND recaller path
+    AND `setUser`). Phare's single-fire latch is closer to
+    correct for app code, but listeners that depend on multiple
+    dispatches per request (e.g. observability counters) will
+    silently miss events. Record as a behavioural divergence,
+    direction-of-correctness debatable, not a defect.
+  - **Behavioural §6 — `attempt` never sets `$lastAttempted`.**
+    `Manager` has no `$lastAttempted` field; calling
+    `getLastAttempted()` is impossible (the method doesn't exist).
+    Laravel exposes the last user attempted regardless of outcome
+    so a failed-login-handler can inspect the row. Inherited
+    missing-method, restated here because it changes the shape of
+    the `Attempting`/`Failed`/`Validated` event flow.
+  - **Behavioural §7 — `SessionStoreManager::store()` calls
+    `$session->start()` eagerly at resolve-time.** Laravel defers
+    session start to the `StartSession` middleware. Phare's eager
+    start means: any container `make('session.manager')`/`store()`
+    boots a session (writes a cookie, locks the handler) even in
+    contexts that have no HTTP request (queue workers, scheduler,
+    console commands). NEW behavioural defect — flag for US-S01.
+  - **Behavioural §8 — `SessionStoreManager` and `session` binding
+    return DIFFERENT instances.** `session.manager` →
+    `SessionStoreManager` builds one `SessionManager` per
+    `store($name)` call; `session` →
+    `SessionProvider::register` builds a separate single
+    `SessionManager` from `config('session.driver')`. The
+    multi-store registry never knows about the default `session`
+    instance and vice versa — calling `app('session.manager')->store()`
+    after `app('session')` has been resolved yields two parallel
+    session handlers writing to the same backing store. Wiring
+    divergence vs Laravel where `session` and the multi-store
+    manager are the same object.
+
+- Phalcon leaks (§2):
+
+  - ➊ **`Phare\Auth\Manager::__construct(Session, Phalcon\Config\ConfigInterface, ?Dispatcher)`**
+    — published-dependency leak (already counted in C01 as leak ➀
+    on the same constructor; re-listed here for completeness — the
+    auth-flow root surface still publishes a Phalcon config
+    interface). Fix shared with E03 Config (wrap as
+    `Phare\Config\Repository`).
+  - ➋ **`Phare\Auth\Manager::loginUsingId(int $id):
+    User|\Phalcon\Mvc\ModelInterface`** — public-signature union
+    return leak (already counted in C01 as leak ➁). Re-listed
+    because it's part of the auth-flow surface; not counted again
+    in §workload.
+  - ➌ **`Phare\Contracts\Session\Session extends
+    Phalcon\Session\ManagerInterface`** — **contract leak**, NEW in
+    C02. The published session contract `extends` a Phalcon
+    interface, so any consumer typing against the contract pulls
+    in the entire `Phalcon\Session\ManagerInterface` surface
+    (`getId/setId/getName/setName/start/destroy/regenerateId/exists/
+    setHandler/getHandler/setOptions/getOptions`). Same defect
+    class as A02 (`Contracts\Http\Kernel`), A05
+    (`Contracts\Http\Response`), B02 (`Eloquent\BuilderInterface`).
+    Cerebrum's contract-leak severity ranking applies — this is
+    HIGHER severity than the inheritance leak ➍ below.
+  - ➍ **`Phare\Session\SessionManager extends Phalcon\Session\Manager`**
+    — **inheritance leak**. Same shape as B01 Model / B02 Builder /
+    B03 Relation, but on the session subsystem. Every Phalcon
+    `Manager` method (`start/destroy/regenerateId/setAdapter/
+    getAdapter/exists/has/get/set/remove/getId/setId/getName/
+    setName/setOptions/getOptions/registerHandler/getHandler`) is
+    published verbatim on `Phare\Session\SessionManager`. Pair
+    with ➌ — both must be removed together to retire the Phalcon
+    coupling on the session-store side.
+  - ➎ **`Phare\Providers\SessionProvider implements
+    Phalcon\Di\ServiceProviderInterface`** — provider-boundary
+    contract coupling (recurs from A07 `BladeViewProvider`, C01
+    `AuthServiceProvider`). Recorded, not counted as a separate
+    leak class — the running list of provider-boundary leaks is
+    its own item in the synthesis.
+
+  - **Internal coupling (non-public, recorded not counted):**
+    `Manager::regenerateSessionId()` calls
+    `$this->session->regenerateId()` (Phalcon adapter call);
+    `Manager::dispatchEvent()` is event-dispatcher agnostic but
+    the bound `events` instance comes from a Phalcon-flavoured
+    provider chain. Neither is publicly typed.
+
+  - **NO inheritance leak on `Manager` itself** (extends nothing).
+    This subsystem's leak signature is **inheritance (session
+    store) + contract (session) + dependency (config) + union
+    return (loginUsingId) + provider boundary** — five forms
+    overlapping with previous areas; the only NEW one introduced
+    here is the contract leak ➌. Distinct from C01 which had no
+    inheritance/contract leak on its own AuthManager.
+
+- Effort: **L**:
+
+  - Closing the gap needs (1) splitting `Phare\Auth\Manager` into
+    a real `SessionGuard implements StatefulGuard, SupportsBasicAuth`
+    with `GuardHelpers, Macroable` (matches the C01 effort split);
+    (2) introducing `Auth\Recaller` + the cookie-jar dependency +
+    `setCookieJar/getCookieJar/queueRecallerCookie/createRecaller/
+    hashPasswordForCookie/getRecallerName/setRememberDuration/
+    viaRemember/userFromRecaller` (cross-cuts US-C04 Encrypter for
+    the cookie payload signing); (3) wiring `Support\Timebox` +
+    `rehashPasswordIfRequired` (cross-cuts US-C03 Hashing);
+    (4) replacing `$this->session->destroy()` in `logout` with
+    `session->remove($this->getName())` and cycling the remember
+    token on logout (Behavioural §1); (5) adding `attemptWhen`,
+    `once`, `onceUsingId`, `basic`, `onceBasic`,
+    `logoutCurrentDevice`, `logoutOtherDevices`, `attempting`,
+    `getLastAttempted` and the corresponding 8 events with
+    `$guard` name + `$remember` in every constructor;
+    (6) replacing `Phare\Session\SessionManager extends
+    Phalcon\Session\Manager` with a wrapper that holds a Phalcon
+    adapter as a dependency and re-exposes a typed Laravel
+    `Store`-shaped API including the flash family + token + CSRF
+    cookie token + ArrayAccess; (7) rewriting
+    `Contracts\Session\Session` to drop the
+    `Phalcon\Session\ManagerInterface` extension and publish the
+    26-method Laravel session contract; (8) expanding
+    `SessionStoreManager` to add `null/array/cookie/database/apc/
+    memcached/dynamodb` drivers, `extend(string, Closure)`,
+    `EncryptedStore` wrapping based on `session.encrypt`, plus the
+    block/`shouldBlock` API; (9) unifying the `session` and
+    `session.manager` bindings (Behavioural §8); (10) deferring
+    `$session->start()` to a `StartSession` middleware so
+    queue/console workers don't write cookies (Behavioural §7);
+    (11) fixing `login()` to use `regenerateId(deleteOldSession:
+    true)` (Behavioural §4) and per-class session key naming
+    (Behavioural §3); (12) widening `loginUsingId` to `mixed $id`
+    (Type-mismatch). Partly blocked on US-C03 Hashing (Hasher +
+    rehash), US-C04 Encrypter (recaller cookie payload),
+    US-C05 CSRF (session-token API), US-E03 Config (Phare config
+    wrapper), and the request-binding work needed to feed
+    `Request` into the guard for the recaller path.
+
