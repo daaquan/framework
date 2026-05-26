@@ -1401,3 +1401,152 @@
   `$db` props) rides on the same missing `Connection` wrapper as B05 — shared
   DB-layer work, not local. Net: deep, and partly blocked on the Eloquent
   model/builder fixes upstream.
+
+---
+
+### Pagination
+
+- 現状 (Current) — Phare ships **5 classes** in `src/Phare/Pagination/`, all
+  Phalcon-clean (zero `Phalcon\` refs anywhere). No `Phare\Contracts\Pagination\*`
+  namespace exists — none of the classes implement a published interface.
+  - **`Phare\Pagination\Paginator`** (the BASE — there is no `AbstractPaginator`):
+    `implements \Countable, \IteratorAggregate, \JsonSerializable, Arrayable,
+    Jsonable`. ctor `($items, int $perPage, ?int $currentPage = null, array
+    $options = [])`; `setItems()` slices to `perPage` and sets `$hasMore` from a
+    `count > perPage` probe (simple-paginator "fetch perPage+1" convention).
+    Surface: `url(int): string`, `appends`, `fragment`, `nextPageUrl`,
+    `previousPageUrl`, `items(): Collection`, `firstItem`, `lastItem`, `perPage`,
+    `currentPage`, `hasPages`, `hasMorePages`, `onFirstPage`, `getIterator`,
+    `isEmpty`, `isNotEmpty`, `count`, `getCollection`, `setCollection`,
+    `getOptions`, `getUrlRange`, `toArray`, `jsonSerialize`, `toJson`,
+    `__toString`, `withQueryString`, `path`, `withPath`, `setPath`, `getPageName`,
+    `setPageName`, `onEachSide`, static `make`. Resolvers present & at parity:
+    static `resolveCurrentPage`/`currentPageResolver`,
+    `resolveCurrentPath`/`currentPathResolver`,
+    `resolveQueryString`/`queryStringResolver`. Public prop `int $onEachSide = 3`.
+  - **`Phare\Pagination\LengthAwarePaginator extends Paginator`**: adds `total`,
+    `lastPage`, override `hasMorePages`/`firstItem`/`lastItem`, `through(callable)`,
+    `render(?string $view=null, array $data=[]): string`, `links(...)` (alias →
+    render), `simplePaginate(): string` (renders `simpleView`), protected
+    `defaultView`/`simpleView`/`linkCollection`, override `getUrlRange`/`toArray`,
+    static `make` (reads `$options['total']`).
+  - **`Phare\Pagination\CursorPaginator`** (standalone — NO shared base, NO
+    `AbstractCursorPaginator`): `implements \Countable, \IteratorAggregate,
+    \JsonSerializable, Arrayable, Jsonable`. ctor `($items, int $perPage,
+    ?Cursor $cursor=null, array $options=[])`. Surface: `items(): array`,
+    `through`, `perPage`, `hasMorePages`, `hasPages`, `onFirstPage`, `onLastPage`,
+    `getIterator`, `count`, `getOptions`, `path`, `appends`, `withQueryString`,
+    `fragment`, `url(?Cursor)`, `previousCursor`, `nextCursor`,
+    `previousPageUrl`, `nextPageUrl`, `getCursorForItem`, `getParametersForItem`,
+    `toArray`, `jsonSerialize`, `toJson`, `toPrettyJson`. The query/fragment
+    helpers (`appends`/`fragment`/`withQueryString`/`addQuery`/`buildFragment`)
+    are **copy-pasted** from `Paginator`, not shared.
+  - **`Phare\Pagination\Cursor implements Arrayable`** — near-parity (see below).
+  - **`Phare\Pagination\UrlWindow`** — structural near-parity with Laravel's, but
+    **orphaned** (see Defects); ctor/`make` take the concrete
+    `LengthAwarePaginator`, not a contract.
+
+- 期待 (Expected) — Laravel 13 `Illuminate\Pagination`:
+  - `AbstractPaginator` (53 public, incl. ArrayAccess `offset*`, `toHtml`,
+    `__call` ForwardsCalls→collection, `escapeWhenCastingToString`, view plumbing
+    `viewFactory`/`viewFactoryResolver`/`defaultView`/`defaultSimpleView` +
+    `useTailwind`/`useBootstrap`/`useBootstrapThree|Four|Five`,
+    `loadMorph`/`loadMorphCount`) + `Tappable`/`TransformsToResourceCollection`/
+    `Macroable`, `implements CanBeEscapedWhenCastToString, Htmlable, Stringable`.
+  - `Paginator extends AbstractPaginator implements Arrayable, ArrayAccess,
+    Countable, IteratorAggregate, Jsonable, JsonSerializable, PaginatorContract` —
+    adds `links`/`render`/`hasMorePagesWhen`/`hasMorePages`/`nextPageUrl`/`toArray`/
+    `jsonSerialize`/`toJson`/`toPrettyJson`.
+  - `LengthAwarePaginator … implements …, LengthAwarePaginatorContract` — adds
+    `total`/`lastPage`/`linkCollection`/`elements` (windowed links via `UrlWindow`).
+  - `AbstractCursorPaginator` (39 public) + `CursorPaginator … implements …,
+    PaginatorContract` — incl. `cursor()`, `getCursorName`/`setCursorName`,
+    static `resolveCurrentCursor`/`currentCursorResolver`, `render`/`links`,
+    `isEmpty`/`isNotEmpty`, `getCollection`/`setCollection`, ArrayAccess, `__call`.
+  - 3 contracts `Contracts\Pagination\{Paginator(17),LengthAwarePaginator(3),
+    CursorPaginator(17)}`, `PaginationServiceProvider`, `PaginationState`, and
+    shipped Blade view templates (`resources/views/*` — tailwind/bootstrap/simple).
+
+- 差分 (Gaps):
+  - **Orphaned subsystem (headline — NEW defect class).** Nothing in the ORM
+    produces a paginator. `Eloquent\Builder::paginate($page, $limit):
+    BuilderInterface` only sets `params['limit'] = {number, offset}` and returns
+    `$this` (the Builder) — it never constructs a `LengthAwarePaginator` (already
+    flagged in B02 as inverted-args + non-paginator return). There is **no**
+    `Builder::simplePaginate` or `Builder::cursorPaginate` at all, and **no**
+    `new LengthAwarePaginator/Paginator/CursorPaginator` anywhere under
+    `src/Phare/Eloquent/`. The only consumer is `Http\Resources\ResourceCollection`
+    (`instanceof LengthAwarePaginator|Paginator` checks) — so a paginator only
+    exists if hand-constructed. The whole namespace is shipped-but-unproduced.
+  - **Missing — base `Paginator` (vs `AbstractPaginator` + simple `Paginator`):**
+    `links()`/`render()`/`hasMorePagesWhen()` (Laravel's SIMPLE paginator renders;
+    Phare's base cannot — only `LengthAwarePaginator` got render), `onLastPage`,
+    `through` (base lacks it; only on LengthAware+Cursor), ArrayAccess
+    `offsetExists/Get/Set/Unset`, `toHtml`/`Htmlable`, `__call` ForwardsCalls→
+    collection, `escapeWhenCastingToString`/`CanBeEscapedWhenCastToString`,
+    `loadMorph`/`loadMorphCount`, static `viewFactory`/`viewFactoryResolver`/
+    `defaultView($view)`/`defaultSimpleView($view)`/`useTailwind`/`useBootstrap`/
+    `useBootstrapThree|Four|Five`, `Tappable`/`Macroable`/
+    `TransformsToResourceCollection`.
+  - **Missing — `CursorPaginator`:** `render`/`links` (no rendering whatsoever),
+    `cursor()`, `getCursorName`/`setCursorName`, static `resolveCurrentCursor`/
+    `currentCursorResolver` (so it CANNOT read the incoming cursor from the
+    request — `$cursor` must be passed manually), `withPath`/`setPath`,
+    `isEmpty`/`isNotEmpty`, `getCollection`/`setCollection`, `viewFactory`,
+    `loadMorph`/`loadMorphCount`, ArrayAccess, `__call`, `__toString`. `$parameters`
+    (cursor columns) defaults to `[]` and is only settable via `$options` —
+    Laravel derives it from the query's `orders`, which is unavailable here.
+  - **Type mismatch / divergence:**
+    - No `Contracts\Pagination\*` — Phare publishes no interface; its classes
+      satisfy much of the `Paginator` contract by method NAME but declare none.
+      (Recurring no-contracts pattern: Validation A06, View A07.)
+    - **Collapsed abstract layer** — `Paginator` IS the base (no
+      `AbstractPaginator`), and `CursorPaginator` has NO shared base at all, so the
+      page- and cursor-paginator query/fragment helpers are copy-pasted →
+      divergence risk. (Collapsed-layer pattern, cf. B03 `MorphMany extends HasMany`.)
+    - `items()` return type differs by class: `Paginator::items(): Collection` vs
+      `CursorPaginator::items(): array`; Laravel's `items()` is always `array`
+      (`$this->items->all()`). Inconsistent within Phare AND vs Laravel.
+    - `LengthAwarePaginator::simplePaginate(): string` is a NON-Laravel method —
+      in Laravel `simplePaginate` is a *Builder* method that returns a `Paginator`,
+      not a paginator method that returns HTML. Same-name/different-layer hazard.
+    - `toArray()` schema drift: base `Paginator::toArray` emits a non-Laravel
+      `current_page_url` key; Laravel's simple-paginator array has no such key.
+  - **Defects (beyond parity):**
+    - **No view integration.** `render()`/`links()` ignore `$view`/`$data` and
+      return hardcoded inline HTML (`<div class="pagination">…`); there is no view
+      factory, no Tailwind/Bootstrap presets, no `PaginationServiceProvider`, no
+      Blade templates. The simple `Paginator` and `CursorPaginator` cannot render
+      at all. (Stub/hardcoded-output family, cf. A05 `Response::view`,
+      A07 `View::render`.)
+    - **Unbounded link list.** `LengthAwarePaginator::linkCollection()` and
+      `defaultView()` iterate `range(1, lastPage())` directly — every page becomes
+      an anchor, so a 10k-page set emits 10k links/array entries. The shipped
+      `UrlWindow` (which does `onEachSide` windowing with `first/slider/last`) is
+      **never called** by the paginator — a second orphaned piece. Laravel uses
+      `elements()`→`UrlWindow` to window links with `…` separators.
+  - **Phalcon leak (§2):** **NONE.** Zero `Phalcon\` references in any of the 5
+    files — Wrapper Rule PASSES. This is the **first fully Phalcon-clean Area-B
+    subsystem in both its own namespace AND its inheritance**: unlike B04 (clean
+    namespace but rode the B02 `Builder` leak), the paginators never touch
+    `Builder`/`Model`/`AbstractPdo` at all. (B05/B06 had `AbstractPdo`
+    published-dependency leaks; this has none.) `Cursor` is the closest-to-parity
+    file in the subsystem (matches Laravel `parameter`/`parameters`/`pointsTo*`/
+    `toArray`/`encode`/`fromEncoded` 1:1) — the B-area analogue of B05's
+    `ForeignKeyDefinition`.
+
+- 工数感 (Effort: **L**). Misleading at the class level — the *data* API is
+  ~70% present and the code is Phalcon-clean — but the subsystem is **unwired end
+  to end**, so closing it is cross-cutting, not local: (1) wire
+  `Builder::paginate`/add `simplePaginate`/`cursorPaginate` to actually COUNT,
+  fetch `perPage(+1)`, and CONSTRUCT+return the paginators (Laravel signature
+  `paginate($perPage, $columns, $pageName, $page)`, not the inverted `($page,
+  $limit)` → Builder) — blocked on a functioning B02 query builder; (2) give
+  `CursorPaginator` a `resolveCurrentCursor` and derive `$parameters` from the
+  query orders (needs builder order introspection); (3) real link rendering —
+  publish a `PaginationServiceProvider` + view templates and route
+  `render()`/`links()` through the view factory (blocked on the A07 view stack,
+  itself stubbed) and wire the existing `UrlWindow` for windowed links;
+  (4) add `Contracts\Pagination\*`, ArrayAccess, `__call`/ForwardsCalls,
+  `loadMorph*`, and a shared abstract base to kill the cursor/page copy-paste.
+  Net: shippable classes, but dead until B02 + A07 land — hence L.

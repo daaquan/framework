@@ -135,15 +135,15 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 6→6 lines (2 removed)",
+      "fix": "Rewrote 6→6 lines (2 removed) | Also: \"passes\": false,; \"notes\": \"\"",
       "tags": [
         "auto-detected",
         "refactor",
         "json"
       ],
       "related_bugs": [],
-      "occurrences": 1,
-      "last_seen": "2026-05-26T00:07:04.333Z"
+      "occurrences": 2,
+      "last_seen": "2026-05-26T00:10:13.336Z"
     }
   ]
 }
