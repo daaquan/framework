@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-27T15:41:49.269Z
-> Files: 512 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-27T15:48:12.053Z
+> Files: 513 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -58,6 +58,7 @@
 - `audit-area-a.md` — Audit — Area A: Core Web Stack (~12604 tok)
 - `audit-area-b.md` — Audit — Area B: Database & ORM (~24754 tok)
 - `audit-area-c.md` — Audit — Area C: Auth, Sessions & Security (~38777 tok)
+- `audit-area-d.md` — Audit — Area D: Async & Extras (Queue, Events, Broadcasting, Notifications, Mail, Scheduler) (~6372 tok)
 - `auth.md` — Authentication (~693 tok)
 - `cache.md` — Cache (~507 tok)
 - `completion-criteria.md` — Phare — Completion Criteria (Laravel 13 Parity Milestone) (~2062 tok)
@@ -786,8 +787,8 @@
 
 ## tasks/
 
-- `prd.json` — Declares mismatch (~16335 tok)
-- `progress.txt` — Ralph Progress — Laravel 13 Parity Audit Pass (~27220 tok)
+- `prd.json` — Declares mismatch (~16941 tok)
+- `progress.txt` — Ralph Progress — Laravel 13 Parity Audit Pass (~29308 tok)
 
 ## tests/
 
