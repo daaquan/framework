@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 442778,
-    "total_reads": 151,
-    "total_writes": 38,
-    "total_sessions": 73,
-    "anatomy_hits": 121,
-    "anatomy_misses": 30,
-    "repeated_reads_blocked": 15,
-    "estimated_savings_vs_bare_cli": 148244
+    "total_tokens_estimated": 507276,
+    "total_reads": 164,
+    "total_writes": 42,
+    "total_sessions": 74,
+    "anatomy_hits": 130,
+    "anatomy_misses": 34,
+    "repeated_reads_blocked": 17,
+    "estimated_savings_vs_bare_cli": 182664
   },
   "sessions": [
     {
@@ -1410,6 +1410,121 @@
         "writes_count": 0,
         "repeated_reads_blocked": 1,
         "anatomy_lookups": 8
+      }
+    },
+    {
+      "id": "session-2026-05-27-1056",
+      "started": "2026-05-27T01:56:07.333Z",
+      "ended": "2026-05-27T02:02:28.996Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 12430,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 1473,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Encryption/Encrypter.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Encryption/Encrypter.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Encryption/EncryptionServiceProvider.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/EncryptException.php",
+          "tokens_estimated": 26,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/DecryptException.php",
+          "tokens_estimated": 26,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 438,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 4075,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Eloquent/Concerns/HasAttributes.php",
+          "tokens_estimated": 5811,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/tmp/claude-1001/-opt-framework/efd3d6bf-ed7c-420c-a925-372278e68ff4/tasks/bv3ca28a1.output",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-c.md",
+          "tokens_estimated": 16310,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 14709,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-c.md",
+          "tokens_estimated": 6981,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 828,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 797,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 594,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 55298,
+        "output_tokens_estimated": 9200,
+        "reads_count": 13,
+        "writes_count": 4,
+        "repeated_reads_blocked": 2,
+        "anatomy_lookups": 9
       }
     }
   ],
