@@ -794,3 +794,336 @@ viaRemember), and the session integration that backs it
     wrapper), and the request-binding work needed to feed
     `Request` into the guard for the recaller path.
 
+---
+
+### Hashing
+
+- 現状 (Current) — Phare:
+  `src/Phare/Hashing/` ships 6 files — `HasherInterface`,
+  `HashManager extends Phare\Support\Manager`, `BcryptHasher
+  implements HasherInterface`, `ArgonHasher implements
+  HasherInterface`, `Argon2iHasher extends ArgonHasher`,
+  `Argon2idHasher extends ArgonHasher`. The service provider lives
+  outside the subsystem at `src/Phare/Providers/HashServiceProvider.php`
+  and `implements Phalcon\Di\ServiceProviderInterface`. Container
+  attribute `src/Phare/Container/Attributes/Hash.php` resolves
+  `make('hash')` or `make('hash.manager')->driver($driver)`.
+
+  - **Container bindings (2):** `'hash.manager'` (HashManager
+    singleton, ctor receives the string default driver resolved
+    from `config('hashing.driver')` with `'bcrypt'` fallback inside
+    the provider closure) and `'hash'` (alias singleton resolving
+    back to `'hash.manager'`). NO `'hash.driver'` binding.
+  - **`HasherInterface` public surface (4):**
+    `make(string $value, array $options = []): string`,
+    `check(string $value, string $hashedValue, array $options = []): bool`,
+    `needsRehash(string $hashedValue, array $options = []): bool`,
+    `info(string $hashedValue): array`. Lives at
+    `Phare\Hashing\HasherInterface` — NOT under
+    `src/Phare/Contracts/Hashing/` (the directory does not exist).
+  - **`HashManager` public surface (8 own + 7 inherited from
+    `Support\Manager`):**
+    - Own: `__construct(string|ContainerContract|null $defaultDriver = null)`,
+      `getDefaultDriver(): string`, `setDefaultDriver(string): void`,
+      `make(string, array): string`, `check(string, string, array): bool`,
+      `needsRehash(string, array): bool`, `info(string): array`,
+      `extend(string $driver, Closure|HasherInterface $hasher): static`
+      (signature WIDENS Laravel's `extend(string, Closure)` to
+      accept a ready hasher instance — porting hazard).
+    - Protected driver factories: `createBcryptDriver(): HasherInterface`,
+      `createArgonDriver(): HasherInterface`,
+      `createArgon2iDriver(): HasherInterface`,
+      `createArgon2idDriver(): HasherInterface` — **4 factories vs
+      Laravel's 3**.
+    - Inherited from `Support\Manager`: `driver(?string): mixed`,
+      `extend(string, Closure)` (overridden), `getDrivers()`,
+      `getContainer()`, `setContainer()`, `forgetDrivers()`, `__call()`.
+  - **`BcryptHasher`:** `__construct(array $options = [])`,
+    `make`, `check`, `needsRehash`, `info`, `setRounds(int): void`.
+    `$rounds = 10` (DEFAULT). No `$verifyAlgorithm`, no `$limit`,
+    no `verifyConfiguration`, no `isUsingCorrectAlgorithm`, no
+    `isUsingValidOptions`, no `cost()` helper.
+  - **`ArgonHasher`:** `__construct(array $options = [])`,
+    `make`, `check`, `needsRehash`, `info`; protected
+    `algorithm(): string` (defaults to `PASSWORD_ARGON2I`). Fields
+    `$memory = 1024, $time = 2, $threads = 2`. No `$verifyAlgorithm`,
+    no `verifyConfiguration`, no `setMemory/setTime/setThreads`, no
+    sodium-provider thread-count override.
+  - **`Argon2iHasher` / `Argon2idHasher`:** each is a 1-method override
+    of `algorithm()`. `Argon2idHasher` does NOT override `check()` —
+    inherits the base `password_verify` directly (no algorithm-verify
+    branch).
+  - **Helper:** `Support\helpers.php` has NO global `hash()` /
+    `bcrypt()` helper. The `hash()` line in the file is a comment
+    above a `function_exists('hash')` guard around PHP's built-in.
+    No `Phare\Support\Facades\Hash` facade either.
+
+- 期待 (Expected) — Laravel 13
+  `/opt/laravel-framework/src/Illuminate/Hashing/` +
+  `Contracts/Hashing/Hasher.php`:
+  - **`Contracts\Hashing\Hasher` (4 methods):** `info($hashedValue)`,
+    `make(#[\SensitiveParameter] $value, array $options = [])`,
+    `check(#[\SensitiveParameter] $value, $hashedValue, array $options = [])`,
+    `needsRehash($hashedValue, array $options = [])`. Every password
+    parameter is annotated `#[\SensitiveParameter]` so the value is
+    redacted from stack traces / exception messages.
+  - **`AbstractHasher`** (no contract on its own, just a base class):
+    public `info` (default `password_get_info`) + public `check`
+    (default `password_verify` with null/empty guard).
+  - **`HashManager extends Manager implements Hasher` (12 public):**
+    `createBcryptDriver`, `createArgonDriver`, `createArgon2idDriver`
+    (factories are PUBLIC), `info`, `make`, `check`, `needsRehash`,
+    `isHashed(#[\SensitiveParameter] $value): bool`,
+    `getDefaultDriver`, `verifyConfiguration($value)` (internal,
+    delegates to driver). NO `createArgon2iDriver` — the single
+    `createArgonDriver` IS the argon2i factory.
+    `getDefaultDriver` reads `$this->config->get('hashing.driver',
+    'bcrypt')` on every call (not cached in a field).
+  - **`BcryptHasher extends AbstractHasher implements Hasher`:**
+    `__construct(array $options = [])`, `make`, `check`, `needsRehash`,
+    `verifyConfiguration`, `setRounds($rounds)`. Fields `$rounds = 12`
+    (DEFAULT), `$verifyAlgorithm = false`, `$limit = null`. Protected
+    `isUsingCorrectAlgorithm`, `isUsingValidOptions`, `cost`.
+    `make()` throws `InvalidArgumentException` when
+    `strlen($value) > $this->limit`.
+  - **`ArgonHasher extends AbstractHasher implements Hasher`:**
+    `__construct`, `make`, `check`, `needsRehash`, `verifyConfiguration`,
+    `setMemory(int)`, `setTime(int)`, `setThreads(int)`. Field
+    `$verifyAlgorithm`. Protected `algorithm`, `memory`, `time`,
+    `threads`, `isUsingCorrectAlgorithm`, `isUsingValidOptions`.
+    `threads()` returns `1` when `defined('PASSWORD_ARGON2_PROVIDER')
+    && PASSWORD_ARGON2_PROVIDER === 'sodium'` regardless of options
+    — handles libsodium's single-thread Argon implementation.
+  - **`Argon2IdHasher extends ArgonHasher`:** overrides `check()`
+    (re-checks algorithm match before falling through to
+    `password_verify`), `algorithm()` (`PASSWORD_ARGON2ID`),
+    `isUsingCorrectAlgorithm`.
+  - **`HashServiceProvider extends ServiceProvider implements
+    DeferrableProvider`:** binds `'hash'` (HashManager singleton) AND
+    `'hash.driver'` (singleton resolving the default driver of
+    `$app['hash']`); `provides()` returns both keys. Deferred — only
+    boots when one of the keys is resolved.
+  - **`Foundation/helpers.php`** ships `bcrypt(#[\SensitiveParameter]
+    $value, $rounds = []): string` and `Hash::make()` via the Hash
+    facade. The Hash facade `__callStatic`s the manager.
+
+- 差分 (Gaps):
+
+  - **Missing — entire `verifyConfiguration` / algorithm-verify
+    machinery.** No `BcryptHasher::verifyConfiguration /
+    isUsingCorrectAlgorithm / isUsingValidOptions`, no
+    `ArgonHasher` equivalents, no `HashManager::verifyConfiguration`,
+    no `$verifyAlgorithm` field on either hasher. Loss of two
+    capabilities: (1) the per-driver guard against verifying a hash
+    of a different algorithm (e.g. an old argon2i hash being checked
+    by the bcrypt driver), and (2) the `verifyConfiguration` startup
+    check that catches "your config asked for cost=14 but a hash
+    in the DB encoded cost=15" (downgrade-attack-window check).
+  - **Missing — `HashManager::isHashed`.** Used by Laravel's mutator
+    system (`Attributes\Hashed` cast) to short-circuit re-hashing
+    when the value is already a hash. Phare's `HashManager` has no
+    `isHashed`; downstream code wanting that check must call
+    `info()` and inspect `algo`/`algoName` directly.
+  - **Missing — bcrypt `$limit` + InvalidArgumentException.** Laravel
+    `BcryptHasher::make` throws when `strlen($value) > $this->limit`
+    (bcrypt silently truncates at 72 bytes — the `limit` option is
+    the explicit guardrail). Phare has no `$limit` field, never
+    enforces a max length — silently relies on the underlying
+    bcrypt truncation. Functional+security defect: passwords past
+    byte 72 are not actually used but no error is raised.
+  - **Missing — sodium-provider thread-count override.** Laravel
+    `ArgonHasher::threads()` returns `1` when running on the sodium
+    Argon backend (libsodium's Argon supports only `threads = 1`).
+    Phare passes whatever was configured (default `2`) to
+    `password_hash`; on a sodium build that silently flips behaviour
+    — `needsRehash` will then report `true` forever because the
+    stored hash records `threads=1` but the configured cost is
+    `threads=2`. **Correctness defect — silent infinite-rehash loop.**
+  - **Missing — `Hasher` contract publication.** No
+    `src/Phare/Contracts/Hashing/` directory; `HasherInterface`
+    lives **inside the `Phare\Hashing\` namespace**, not under
+    `Phare\Contracts\Hashing\Hasher`. `HashManager` does NOT
+    implement `HasherInterface`. Same no-contracts pattern logged
+    for A06/A07/B06/B07/C01/C02 — recorded as inherited type-mismatch,
+    not re-narrated.
+  - **Missing — `#[\SensitiveParameter]` on every password
+    parameter.** Laravel annotates `$value` on `HasherInterface::make`,
+    `check`, `isHashed`, `HashManager::make`, `check`, `isHashed`,
+    `BcryptHasher::make`, `check`, `ArgonHasher::make`, `check`,
+    `Argon2IdHasher::check`. Phare has zero `#[\SensitiveParameter]`
+    annotations in this subsystem. **Security defect** (plaintext
+    passwords appear in stack traces / dumped exception messages /
+    error-handler payloads). Cheap to fix (one-attribute-per-param),
+    so flag as a security defect with effort S.
+  - **Missing — `'hash.driver'` container binding.** Laravel binds
+    both `'hash'` (manager) AND `'hash.driver'` (the default driver
+    instance). Phare binds only `'hash.manager'` + `'hash'` (alias
+    to manager). Code expecting `app('hash.driver')` to return a
+    `HasherInterface` gets a `BindingResolutionException`.
+  - **Missing — `DeferrableProvider`.** Laravel's HashServiceProvider
+    `implements DeferrableProvider` + `provides()`. Phare's
+    HashServiceProvider is non-deferred and always boots; on every
+    boot it instantiates `HashManager` regardless of whether any
+    code asks for it. Parity gap shared with the broader US-E02
+    deferred-provider gap.
+  - **Missing — global helper `bcrypt()` + `Hash` facade.** Laravel
+    ships `bcrypt($value, $rounds = [])` in `Foundation/helpers.php`
+    + `Illuminate\Support\Facades\Hash`. Phare's `Support/helpers.php`
+    has no `bcrypt()` global; resolution requires `app('hash')->make()`.
+    No `Phare\Support\Facades\Hash` either (cross-references US-E05).
+  - **Missing — default `config/hashing.php`.** No `config/hashing.php`
+    ships in the framework. `config('hashing.driver')` therefore
+    returns `null` unless an app supplies one; the provider closure's
+    `?? 'bcrypt'` fallback masks the missing file but `'hashing.bcrypt'`
+    / `'hashing.argon'` cost-tuning keys cannot be configured at all.
+
+  - **Type mismatch — BcryptHasher default rounds 10 vs Laravel 12.**
+    Phare `protected int $rounds = 10`; Laravel `protected $rounds
+    = 12`. Concrete impact: a fresh Phare app's stored bcrypt hashes
+    are ~4× weaker (cost 2¹⁰ vs 2¹²) by default. Recorded as a
+    **security defect**, not just a type-mismatch. Stacks
+    multiplicatively with C02 §2 (no Hasher injection, no
+    `rehashPasswordIfRequired`) — even if the default were corrected,
+    existing hashes could never be rotated upward.
+  - **Type mismatch — `HashManager::extend(string, Closure|HasherInterface)`
+    widens Laravel's `extend(string, Closure)`.** Phare accepts a
+    pre-built hasher instance (legacy API) OR a Closure factory.
+    Two effects: (a) calling code that passes a closure works in
+    both; (b) calling code that passes a hasher INSTANCE works in
+    Phare but throws a `TypeError` in Laravel. Porting hazard
+    in the **Phare→Laravel direction**. Same widening pattern as
+    A02 union returns / B03 union returns.
+  - **Type mismatch — Phare manager constructor is
+    `string|ContainerContract|null` vs Laravel `Manager(Container)`.**
+    Phare's HashManager allows construction without a container,
+    using a hard-coded default driver string. Useful for tests,
+    but the resulting manager has no `config`, and any `extend()`
+    creator referencing `$this->config` would NPE. Type boundary
+    widened in Phare.
+  - **Type mismatch — return type on factory methods.**
+    Phare's `createBcryptDriver(): HasherInterface` is typed; Laravel
+    leaves the factories untyped and returns the concrete `BcryptHasher`
+    in PHPDoc. Phare is stricter here — recorded as a forward-compatible
+    type-mismatch (not a defect).
+  - **Type mismatch — `getDefaultDriver` caches default in a field.**
+    Phare reads `config('hashing.driver')` only inside the
+    HashServiceProvider closure and inside the no-container ctor
+    branch — once frozen on the manager instance via `$defaultDriver`,
+    a runtime `config(['hashing.driver' => 'argon'])` change has
+    no effect. Laravel re-reads config on every call. Behavioural
+    divergence, small effort.
+
+  - **Behavioural §1 — driver name `argon` vs `argon2i`
+    duplication (NEW behavioural defect).** Phare ships BOTH
+    `createArgonDriver` (returns `ArgonHasher` whose `algorithm()`
+    defaults to `PASSWORD_ARGON2I`) AND `createArgon2iDriver`
+    (returns `Argon2iHasher extends ArgonHasher` whose `algorithm()`
+    ALSO returns `PASSWORD_ARGON2I`). Configuration
+    `hashing.driver = 'argon'` and `hashing.driver = 'argon2i'`
+    resolve to functionally identical hashers under different class
+    names; verifying a hash made with one against the other works
+    (both call `password_verify`). Laravel has only
+    `createArgonDriver` (= argon2i) and `createArgon2idDriver` (=
+    argon2id). Phare's extra `argon2i` driver-name has no parity
+    counterpart and risks confusion. Flag for US-S01 under "name
+    divergence / dead driver".
+  - **Behavioural §2 — driver factories ignore the hashing config
+    (silent-config-dropthrough).** Laravel `createBcryptDriver` does
+    `new BcryptHasher($this->config->get('hashing.bcrypt') ?? [])`;
+    Phare `createBcryptDriver` does `new BcryptHasher()` — the
+    ctor options array is hard-coded `[]`. Effect: `hashing.bcrypt.rounds`,
+    `hashing.argon.memory`, `hashing.argon.time`, `hashing.argon.threads`,
+    `hashing.bcrypt.verify`, `hashing.argon.verify`, `hashing.bcrypt.limit`
+    config keys are SILENTLY IGNORED. The only way to change Phare
+    bcrypt rounds is `$hasher->setRounds(...)` at runtime.
+    **Correctness defect — silent config dropthrough.** Same defect
+    family as B03 silent-arg-drop (BelongsToMany attach `$touch`).
+  - **Behavioural §3 — `check()` ignores the `verify` config flag.**
+    Laravel's `BcryptHasher::check()` raises if the stored hash is
+    not bcrypt while `$verifyAlgorithm = true`. Phare has no
+    `$verifyAlgorithm`, so an Argon hash silently `password_verify`s
+    against a bcrypt-driver `check()` (returning false) without
+    raising — apps that intended to fail-loud on algorithm drift
+    silently fail-quiet.
+  - **Behavioural §4 — bcrypt 72-byte truncation is undetectable.**
+    With no `$limit`, a password longer than 72 bytes is silently
+    truncated by bcrypt — the prefix forms the actual key. Two
+    users with identical first 72 chars but different suffixes
+    verify against each other's hashes. Security/UX defect.
+  - **Behavioural §5 — `info()` array shape parity.** Phare just
+    forwards `password_get_info`, identical to Laravel. The only
+    cost-of-parity issue is that callers comparing to Laravel-fixture
+    output should expect identical shapes. Not-a-gap.
+
+  - **Type mismatch (no-contracts) — inherited.** No
+    `Phare\Contracts\Hashing\Hasher`; consumers cannot type-hint the
+    contract. Same pattern as A06 / A07 / B06 / B07 / C01 / C02.
+    Inherited.
+
+- Phalcon leaks (§2):
+
+  - ➀ **`Phare\Providers\HashServiceProvider implements
+    Phalcon\Di\ServiceProviderInterface`** — provider-boundary
+    contract coupling. Same shape as A07 `BladeViewProvider`, C01
+    `AuthServiceProvider`, C02 `SessionProvider`. Recorded; counted
+    under the running provider-boundary leak family in S01.
+  - ➁ **`HashServiceProvider::register(Application|DiInterface $app): void`**
+    — published-dependency leak: the public method signature declares
+    `Phalcon\Di\DiInterface` as an accepted type. Same shape as
+    B05 schema (AbstractPdo), B06 seeders (AbstractPdo), C01 manager
+    (ConfigInterface). Recorded; counted under the published-dependency
+    leak family in S01.
+
+  - **Confirmed CLEAN inside `src/Phare/Hashing/`** — zero Phalcon
+    references in `HashManager`, `HasherInterface`, `BcryptHasher`,
+    `ArgonHasher`, `Argon2iHasher`, `Argon2idHasher`. The leak
+    surface for Hashing lives entirely in the **out-of-namespace
+    provider** (`src/Phare/Providers/HashServiceProvider.php`).
+    Pattern note: when a subsystem's namespace is Phalcon-clean,
+    open `src/Phare/Providers/<Subsystem>ServiceProvider.php` —
+    that is where the published Phalcon dependency typically hides
+    (recurs A07 BladeViewProvider, C01 AuthServiceProvider, C02
+    SessionProvider, and now C03 HashServiceProvider).
+
+- 工数感 (Effort: **M**):
+
+  - Smallest-surface Area-C subsystem so far (6 source files in the
+    namespace, 8 public manager methods, 4 hasher methods on the
+    contract). But closing the gap touches every file and is
+    **security-critical**, so M not S:
+    (1) publish `Phare\Contracts\Hashing\Hasher` with the 4-method
+        Laravel-shape signatures and `#[\SensitiveParameter]` on
+        every `$value` param; make `HashManager` and every concrete
+        hasher implement it;
+    (2) bump `BcryptHasher::$rounds` default to `12` (security);
+    (3) add `$verifyAlgorithm` + `$limit` to `BcryptHasher`, plus
+        `verifyConfiguration / isUsingCorrectAlgorithm /
+        isUsingValidOptions`;
+    (4) add `$verifyAlgorithm` + sodium-provider threads override
+        + `setMemory/setTime/setThreads` + `verifyConfiguration`
+        family to `ArgonHasher`;
+    (5) override `check()` in `Argon2idHasher` to match Laravel's
+        algorithm-verify branch;
+    (6) decide whether to **retire** Phare's redundant
+        `Argon2iHasher` + `createArgon2iDriver` (collapse to
+        `createArgonDriver` = argon2i) OR keep with a documented
+        rationale (§7 candidate — flag for S01);
+    (7) wire `HashManager` to pass `config('hashing.bcrypt')` /
+        `config('hashing.argon')` arrays into each driver factory
+        ctor (closes Behavioural §2 silent-config-dropthrough);
+    (8) add `HashManager::isHashed` + `verifyConfiguration`;
+    (9) drop the `Closure|HasherInterface` widening on
+        `HashManager::extend`, accept Closure only (Laravel parity);
+    (10) rewrite `HashServiceProvider` to extend
+         `Phare\Support\ServiceProvider implements DeferrableProvider`
+         (cross-cuts US-E02), drop `Phalcon\Di\ServiceProviderInterface`,
+         add `'hash.driver'` binding, add `provides()`;
+    (11) add `bcrypt()` global helper to `Support\helpers.php` +
+         `Phare\Support\Facades\Hash` (cross-cuts US-E05/E06);
+    (12) ship a default `config/hashing.php` (cost defaults, verify
+         flags, bcrypt limit). Blocked partly on US-E02 (Phare
+         ServiceProvider base) and US-E03 (Config wrapper for the
+         `verifyConfiguration` startup hook). Cross-cuts US-C02 §2
+         (the `rehashPasswordIfRequired` hook on the session guard
+         requires the Hasher contract published here).
+
