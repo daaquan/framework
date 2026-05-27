@@ -1,12 +1,122 @@
 {
-  "session_id": "session-2026-05-27-1111",
-  "started": "2026-05-27T02:11:59.947Z",
-  "files_read": {},
-  "files_written": [],
-  "edit_counts": {},
-  "anatomy_hits": 0,
-  "anatomy_misses": 0,
-  "repeated_reads_warned": 0,
+  "session_id": "session-2026-05-27-2019",
+  "started": "2026-05-27T11:19:16.124Z",
+  "files_read": {
+    "/opt/framework/tasks/prd.json": {
+      "count": 1,
+      "tokens": 14005,
+      "first_read": "2026-05-27T11:19:29.984Z"
+    },
+    "/opt/framework/tasks/progress.txt": {
+      "count": 2,
+      "tokens": 19995,
+      "first_read": "2026-05-27T11:19:34.401Z"
+    },
+    "/opt/framework/src/Phare/RateLimit/RateLimiter.php": {
+      "count": 1,
+      "tokens": 848,
+      "first_read": "2026-05-27T11:19:57.403Z"
+    },
+    "/opt/framework/src/Phare/RateLimit/Limit.php": {
+      "count": 1,
+      "tokens": 324,
+      "first_read": "2026-05-27T11:19:57.901Z"
+    },
+    "/opt/framework/src/Phare/RateLimit/TooManyRequestsException.php": {
+      "count": 1,
+      "tokens": 120,
+      "first_read": "2026-05-27T11:19:58.389Z"
+    },
+    "/opt/framework/src/Phare/Middleware/ThrottleRequests.php": {
+      "count": 1,
+      "tokens": 1145,
+      "first_read": "2026-05-27T11:19:58.920Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Cache/RateLimiter.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T11:20:11.849Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T11:20:12.404Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Routing/Middleware/ThrottleRequestsWithRedis.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T11:20:18.527Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Cache/RateLimiting/Limit.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T11:20:21.789Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Cache/RateLimiting/GlobalLimit.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T11:20:22.314Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Cache/RateLimiting/Unlimited.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T11:20:22.813Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Http/Exceptions/ThrottleRequestsException.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T11:20:23.293Z"
+    },
+    "/opt/laravel-framework/src/Illuminate/Routing/Exceptions/MissingRateLimiterException.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T11:20:23.936Z"
+    },
+    "/opt/framework/src/Phare/Providers/RouteServiceProvider.php": {
+      "count": 1,
+      "tokens": 215,
+      "first_read": "2026-05-27T11:20:39.021Z"
+    },
+    "/opt/framework/docs/audit-area-c.md": {
+      "count": 2,
+      "tokens": 27428,
+      "first_read": "2026-05-27T11:20:39.835Z"
+    }
+  },
+  "files_written": [
+    {
+      "file": "/opt/framework/docs/audit-area-c.md",
+      "action": "edit",
+      "tokens": 6630,
+      "at": "2026-05-27T11:24:10.600Z"
+    },
+    {
+      "file": "/opt/framework/tasks/prd.json",
+      "action": "edit",
+      "tokens": 1701,
+      "at": "2026-05-27T11:24:53.272Z"
+    },
+    {
+      "file": "/opt/framework/tasks/progress.txt",
+      "action": "edit",
+      "tokens": 1945,
+      "at": "2026-05-27T11:25:41.345Z"
+    },
+    {
+      "file": "/opt/framework/tasks/progress.txt",
+      "action": "edit",
+      "tokens": 3231,
+      "at": "2026-05-27T11:26:52.798Z"
+    }
+  ],
+  "edit_counts": {
+    "docs/audit-area-c.md": 1,
+    "tasks/prd.json": 1,
+    "tasks/progress.txt": 2
+  },
+  "anatomy_hits": 8,
+  "anatomy_misses": 8,
+  "repeated_reads_warned": 2,
   "cerebrum_warnings": 0,
-  "stop_count": 0
+  "stop_count": 1
 }
