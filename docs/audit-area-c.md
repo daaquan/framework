@@ -2338,3 +2338,293 @@ viaRemember), and the session integration that backs it
   audit is outside Areas A–E and would land in a future Area F
   if Cache is in-scope).
 
+### Password Reset
+
+- 現状 (Current) — Phare:
+  ONE file total. `src/Phare/Auth/Passwords/PasswordBroker.php`
+  — 88 LOC, 3 own public methods. No `PasswordBrokerManager`, no
+  `DatabaseTokenRepository`, no `TokenRepositoryInterface`, no
+  `Contracts\Auth\PasswordBroker`, no `CanResetPassword` trait,
+  no `ResetPassword` notification, no `PasswordResetServiceProvider`.
+  Subsystem-namespace is **NOT Phalcon-clean** (first Area-C
+  subsystem since C01 to fail at namespace level): the ctor imports
+  `Phalcon\Di\Di;` and calls `Di::getDefault()` as a static
+  service-locator inside `__construct`, then resolves dbManager →
+  PDO directly. `class PasswordBroker` (no `implements`, no
+  `extends`). Ctor `__construct(int $expireMinutes = 60)` — takes
+  ONLY the expiry; the DB connection is service-located, NOT
+  injected. Public methods (3):
+  `createToken(object $user): string`,
+  `validateToken(string $email, string $token): bool`,
+  `deleteToken(string $email): void`.
+  - `createToken(object $user)` reads `$user->email` as a raw
+    property access (no trait method, no `getEmailForPasswordReset()`
+    call). Generates `bin2hex(random_bytes(32))` (64-char hex).
+    Deletes any existing row for the email, then INSERTs the token
+    **VERBATIM AS PLAINTEXT** into `password_reset_tokens (email,
+    token, created_at)`. No `Hash::make($token)` step, no
+    `Contracts\Hashing\Hasher` dependency.
+  - `validateToken(string $email, string $token)` SELECTs `token,
+    created_at`, `hash_equals($row['token'], $token)`, then
+    `strtotime($row['created_at']) + ($expireMinutes * 60) >=
+    time()`. Returns bool. Does NOT delete on success, does NOT
+    rate-limit, does NOT fire an event, does NOT throw on failure.
+  - `deleteToken(string $email)` — single DELETE by email. No
+    `deleteExpired()` companion, no maintenance cron hook.
+  - Hardcoded table name `password_reset_tokens` everywhere
+    (4 SQL strings). Hardcoded connection name `'db'` via
+    `$dbManager->getConnectionService('db')`. Hardcoded default
+    `$expireMinutes = 60`. NO `config/auth.php` `passwords`
+    block read anywhere.
+  - **Wiring:** zero. `grep -rn "PasswordBroker\|password\.broker\|sendResetLink\|ResetPassword" src/Phare/Providers/ tests/` returns
+    nothing. The class is never bound in any provider, never
+    constructed by any other Phare class, and has zero test
+    coverage. Pure orphan subsystem (same "orphaned/unwired"
+    defect class as B07 Pagination — second confirmed instance).
+
+- 期待 (Expected) — Laravel 13 reference:
+  Eight+ files across `Illuminate\Auth\Passwords\` +
+  `Illuminate\Contracts\Auth\` + `Illuminate\Auth\Notifications\`:
+  - `Illuminate\Auth\Passwords\PasswordBroker implements
+    Contracts\Auth\PasswordBroker` (~340 LOC). Constants from the
+    contract: `RESET_LINK_SENT`, `PASSWORD_RESET`, `INVALID_USER`,
+    `INVALID_TOKEN`, `RESET_THROTTLED`. Public methods (8):
+    `sendResetLink(array $credentials, ?Closure $callback = null): string`,
+    `reset(array $credentials, Closure $callback): mixed`,
+    `createToken(CanResetPassword $user): string`,
+    `deleteToken(CanResetPassword $user): void`,
+    `tokenExists(CanResetPassword $user, string $token): bool`,
+    `getRepository(): TokenRepositoryInterface`,
+    `getUser(array $credentials): ?CanResetPassword`,
+    `validator(Closure $callback): void`. Ctor:
+    `__construct(TokenRepositoryInterface $tokens, UserProvider $users,
+    ?Dispatcher $dispatcher = null)` — **typed** ctor injection of
+    TokenRepository + UserProvider + Events Dispatcher.
+  - `Illuminate\Auth\Passwords\PasswordBrokerManager implements
+    Contracts\Auth\PasswordBrokerFactory` — multi-broker factory:
+    `broker(?string $name = null): PasswordBroker`, `resolve($name)`,
+    `createTokenRepository(array $config)`, `getDefaultDriver()`,
+    `setDefaultDriver(string $name)`. Mirrors AuthManager shape.
+  - `Illuminate\Auth\Passwords\DatabaseTokenRepository implements
+    TokenRepositoryInterface` — `create(CanResetPassword $user)`,
+    `exists($user, $token)`, `recentlyCreatedToken(CanResetPassword
+    $user): bool` (THROTTLE — default 60s), `delete($user)`,
+    `deleteExpired(): void`, `tokenExpired($createdAt)`,
+    `tokenRecentlyCreated($createdAt)`, `getTable`, `getConnection`,
+    `getHasher`, `getHashKey`. **Tokens are HASHED** via
+    `Contracts\Hashing\Hasher::make($token)` at insert,
+    `Hash::check($plain, $row->token)` at exists().
+  - `Illuminate\Auth\Passwords\TokenRepositoryInterface` — public
+    contract (6 methods: create/exists/recentlyCreatedToken/delete/
+    deleteExpired plus `getHasher`).
+  - `Illuminate\Contracts\Auth\PasswordBroker` + `PasswordBrokerFactory`
+    — contracts (2nd contract NEVER published by Phare).
+  - `Illuminate\Contracts\Auth\CanResetPassword` interface + the
+    `Illuminate\Auth\Passwords\CanResetPassword` trait — two
+    public methods: `getEmailForPasswordReset()`,
+    `sendPasswordResetNotification(string $token)`.
+  - `Illuminate\Auth\Notifications\ResetPassword` notification —
+    `toMail($notifiable)` builds a `Notifications\Messages\MailMessage`
+    with a SIGNED `password.reset` route URL (TTL = `passwords.<broker>.expire`
+    minutes). Static `createUrlUsing(?Closure)` /
+    `toMailUsing(?Closure)` customisation hooks.
+  - `Illuminate\Auth\Passwords\PasswordResetServiceProvider extends
+    ServiceProvider implements DeferrableProvider` — registers
+    `'auth.password'` singleton (the PasswordBrokerManager) and
+    `'auth.password.broker'` (default broker). `provides(): array`
+    returns both.
+  - `config/auth.php` passwords block: `provider`, `table`,
+    `expire` (minutes), `throttle` (seconds), per-broker.
+  - Events: `Illuminate\Auth\Events\PasswordReset` fired by `reset()`
+    on success.
+
+- 差分 (Gaps):
+
+  **Phalcon\ leaks (1 new leak shape — subsystem-namespace fails):**
+  - ➀ **NEW DEFECT CLASS for US-S01 — Phalcon-DI-facade-as-service-locator
+    (6th leak class for the audit).** PasswordBroker imports
+    `Phalcon\Di\Di;` and calls `Di::getDefault()` inside `__construct`.
+    This is the FIRST Area-C subsystem since C01 where the
+    SUBSYSTEM NAMESPACE itself fails the Phalcon-clean check
+    (C02/C03/C04/C05/C06 all clean at namespace level). Distinct
+    from the C06 §3 "service-locator-over-DI" defect (C06 typed
+    `Phare\Contracts\Foundation\Application` as the bag — at
+    least the Application is a Phare type). Here the bag IS
+    a raw Phalcon class, called statically, with no Phare wrapper
+    in between. Repository-wide: this exact `use Phalcon\Di\Di;`
+    + `Di::getDefault()` pattern occurs in **7** files
+    (`Auth/Passwords/PasswordBroker.php`, `Testing/TestCase.php`,
+    `Support/helpers.php`, `Container/Container.php`,
+    `Eloquent/Concerns/HasEvents.php`,
+    `Eloquent/Concerns/HasAttributes.php`,
+    `Console/Config.php`) — only the PasswordBroker instance
+    falls inside Areas A–E and is counted here; the other 6 are
+    out-of-scope but worth a US-S01 footnote because removing
+    them is a prerequisite for any Phalcon-DI removal.
+
+  **Missing / type mismatches:**
+
+  - **TOKEN STORED PLAINTEXT — CRITICAL security defect (NEW
+    Area-C security-family entry, joins C03 default-rounds, C03
+    `#[\SensitiveParameter]` absence, C03 infinite-rehash, C04
+    key-rotation, C04 default-cipher, C05 wire-incompat).**
+    Phare INSERTs the raw bin2hex token VERBATIM into
+    `password_reset_tokens.token`. A read-only DB compromise
+    (backup leak, replica access, SQL injection on any other
+    table) yields working reset tokens for every user with an
+    outstanding reset. Laravel's `DatabaseTokenRepository::create`
+    calls `Contracts\Hashing\Hasher::make($token)` before INSERT
+    and `Hash::check($plain, $row->token)` at validate time, so
+    DB compromise yields opaque bcrypt hashes. **Severity: blocks
+    any production use of PasswordBroker.** Compounded by C03
+    hashing defects: even if Phare added Hash::make here, the
+    bcrypt rounds default is 10 (vs Laravel 12) — but plaintext
+    is the dominant problem.
+  - **Token throttling absent (security defect, second instance
+    of the "no rate-limit on credential surface" family).** No
+    `recentlyCreatedToken` check, no `RESET_THROTTLED` status,
+    no `throttle` config key, no `Limit::perMinute` integration.
+    `createToken()` DELETEs the previous row and INSERTs a fresh
+    one on every call — an attacker harvesting emails can flood
+    the password-reset notification queue at unlimited rate (DoS
+    + email-reputation damage). Same security-shape as C06
+    ThrottleRequests' missing `MissingRateLimiterException`
+    flow but for credential issuance instead of generic routes.
+  - **Wholesale missing — orchestration surface (~14 absent
+    methods).** Phare ships 3 public methods; Laravel ships 8
+    on the broker + the manager + the repository. Specifically
+    missing on Phare's broker: `sendResetLink($credentials,
+    ?Closure $callback = null)` (the entire user-lookup +
+    notification dispatch flow), `reset($credentials, Closure
+    $callback)` (the entire commit flow that takes a closure,
+    persists the new password via the callback, fires
+    `Auth\Events\PasswordReset`, and DELETEs the token on
+    success), `tokenExists($user, $token)` (alias for validate
+    with the right shape), `getRepository()`, `getUser($credentials)`,
+    `validator(Closure)`. Phare's `validateToken` returns bool
+    only — Laravel's `reset()` returns one of the 5 status
+    constants. NEW for US-S01: same "ship the data layer but
+    skip the orchestration" defect as the B07 Pagination
+    orphan but on a security-critical surface.
+  - **`createToken` same-name/opposite-shape porting hazard
+    (12th instance for US-S01).** Phare `createToken(object
+    $user): string` accepts **any object** with a public
+    `->email` property; Laravel `createToken(CanResetPassword
+    $user): string` types the contract interface and calls
+    `$user->getEmailForPasswordReset()`. (a) Phare accepts a
+    DTO/stdClass — Laravel requires the model implement the
+    contract. (b) Phare bypasses the `getEmailForPasswordReset()`
+    indirection — any model whose login key isn't literally
+    `$user->email` (e.g. `username`, `login`, computed
+    `primary_email`) silently fails the lookup. Running
+    same-name/opposite-shape list now 12 entries (B01/B02/
+    B05/B06/B07/C01/C02/C03/C04/C05/C06/**C07**).
+  - **`validateToken` same-name/opposite-shape (13th instance).**
+    Phare `validateToken(string $email, string $token): bool`
+    takes **two strings**; Laravel `tokenExists(CanResetPassword
+    $user, string $token): bool` takes **the user model**.
+    Effect: Phare's validate path NEVER touches the user
+    provider — a stale email row in `password_reset_tokens`
+    keeps validating even if the user was deleted from `users`.
+    Laravel re-resolves the user from the provider, breaking
+    the link on user deletion. Same family as C02's
+    `viaRemember` shape divergence — security-relevant in
+    the C04/C05/C07 cluster.
+  - **Silent-config-dropthrough family — 7th instance** (C03
+    hashing config, C04 cipher config, plus C03 driver factories
+    × 2, C05 csrf-cookie config, C06 throttle config; now
+    **C07 passwords config**). NO read of `config('auth.passwords.users.expire')`,
+    `config('auth.passwords.users.throttle')`,
+    `config('auth.passwords.users.table')`,
+    `config('auth.passwords.users.connection')`. The ctor
+    sig says `int $expireMinutes = 60` and that's the entire
+    config surface. Laravel reads all four from the
+    per-broker `users` (or `customer`, etc.) sub-block.
+  - **Silent-arg-drop family — 7th instance** (B02 `update`,
+    B03 pivots × 2, C01 `$remember`, C03 driver config, C05
+    `$encrypter`, C06 `$amount`; now **C07 hasher
+    dependency**). `PasswordBroker::__construct(int
+    $expireMinutes = 60)` drops both the `TokenRepositoryInterface`
+    AND the `UserProvider` AND the `Dispatcher` arguments
+    Laravel's ctor declares. The "hasher dropped" sub-case
+    is the most severe because it directly enables the
+    plaintext-storage defect above.
+  - **Wrapper-Rule connection-name hardcoding (NEW correctness
+    defect, same family as C03 connection naming).** Phare
+    hard-codes `$dbManager->getConnectionService('db')` —
+    on a multi-DB app where `users` lives in a non-`'db'`
+    connection (e.g. `mysql_users`), every reset attempt
+    SILENTLY hits the wrong connection (or throws on a
+    missing `password_reset_tokens` table). Laravel's
+    `DatabaseTokenRepository` accepts `$connection` from the
+    config block and calls `$db->connection($this->connection)`.
+  - **Contracts gap — 11th no-contracts subsystem in the
+    audit** (A06/A07/B06/B07/C01/C02/C03/C04/C05/C06/**C07**).
+    No `Phare\Contracts\Auth\PasswordBroker`,
+    `PasswordBrokerFactory`, `TokenRepositoryInterface`,
+    `CanResetPassword`. Status constants `RESET_LINK_SENT`/
+    `PASSWORD_RESET`/`INVALID_USER`/`INVALID_TOKEN`/
+    `RESET_THROTTLED` simply do not exist — any port that
+    expects these (`PasswordController` returning `back()->with('status',
+    Password::RESET_LINK_SENT)`) silently dies on a missing
+    constant.
+  - **No notification integration.** Missing `CanResetPassword`
+    trait (`getEmailForPasswordReset` / `sendPasswordResetNotification`),
+    missing `ResetPassword` notification class, missing signed-URL
+    route registration. A port that scaffolds `$user->sendPasswordResetNotification($token)`
+    hits a non-existent method on the User model. Composes with
+    A07 (no Blade `@can`/`@route`) and C04 (no encrypter for
+    signed-URL signatures) to block the full reset flow even
+    if PasswordBroker were patched.
+  - **No `PasswordResetServiceProvider`** (continues C05's
+    "no provider" mini-streak after C06 also had no provider —
+    pattern: subsystems shipped late/incomplete tend to lack
+    providers entirely; subsystems shipped as Phalcon-clean
+    wrappers tend to have providers but with provider-boundary
+    leaks). No `'auth.password'` / `'auth.password.broker'` /
+    `'auth.password.tokens'` bindings → `app('auth.password')`
+    throws on resolve.
+  - **No event firing.** Laravel's `reset()` fires
+    `Auth\Events\PasswordReset` post-commit. Phare has no
+    `reset()` to begin with, but even the `deleteToken`
+    completion event is silent. Composes with the C01-flagged
+    missing event taxonomy (Login/Logout events on AuthManager).
+  - **No `deleteExpired()` maintenance hook.** Laravel ships
+    `php artisan auth:clear-resets` (the
+    `ClearResetsCommand` calls `deleteExpired()` on every
+    broker). Phare has no command and no method — stale tokens
+    accumulate forever. Composes with E02 console-command audit
+    (the artisan parity gap).
+
+  **Same-name-different-shape running list now: 13 entries
+  (B01/B02/B05/B06/B07/C01/C02/C03/C04/C05/C06/C07×2).**
+  **Silent-arg-drop family: 7 instances.**
+  **Silent-config-dropthrough family: 7 instances.**
+  **No-contracts streak: 11 consecutive subsystems.**
+  **Orphaned/unwired subsystem: 2nd instance after B07.**
+  **Phalcon-DI-facade-as-service-locator: NEW 6th leak class.**
+
+- 工数感 (Effort): **L.** Smallest subsystem-file-count in
+  Area-C (1 file, 88 LOC, 3 methods) but the missing surface
+  is the largest of Area-C so far: a full 8-class subsystem
+  + 2 contracts + 1 trait + 1 notification + 1 provider need
+  to be rebuilt from scratch, AND the existing file has a
+  CRITICAL security defect (plaintext token storage) that
+  blocks production use today. Port path: (1) introduce
+  `Contracts\Auth\{PasswordBroker,PasswordBrokerFactory,
+  CanResetPassword}` + `Auth\Passwords\TokenRepositoryInterface`
+  with the 5 status constants; (2) write
+  `DatabaseTokenRepository` that calls
+  `Contracts\Hashing\Hasher::make()` at insert (depends on the
+  C03 Hashing port shipping `Hash` facade + binding); (3) write
+  the broker with `sendResetLink`/`reset` orchestration (depends
+  on C04 Encrypter for signed URLs + a Mail/Notification subsystem
+  not yet audited — likely Area D); (4) write `CanResetPassword`
+  trait + `ResetPassword` notification; (5) write
+  `PasswordResetServiceProvider` + `'auth.password*'` bindings;
+  (6) keep the legacy `PasswordBroker` class only as a
+  deprecation shim if any downstream app uses it. Dependencies
+  on un-audited subsystems (Notifications, Mail, Events
+  dispatcher) raise the effort to L despite the tiny existing
+  footprint.
+

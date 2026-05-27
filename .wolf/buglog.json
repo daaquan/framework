@@ -304,6 +304,38 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-27T11:24:53.275Z"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-05-27T15:29:32.678Z",
+      "error_message": "Significant refactor of ",
+      "file": "tasks/prd.json",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 13→13 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-27T15:29:32.678Z"
+    },
+    {
+      "id": "bug-021",
+      "timestamp": "2026-05-27T15:30:40.548Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "tasks/progress.txt",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "txt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-27T15:30:40.548Z"
     }
   ]
 }
