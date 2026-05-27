@@ -2628,3 +2628,117 @@ viaRemember), and the session integration that backs it
   dispatcher) raise the effort to L despite the tiny existing
   footprint.
 
+### Sanctum / Passkeys (scope decision)
+
+This subsection records the **scope decision** required by US-C08
+(per `docs/completion-criteria.md` §3 + §7). It is NOT a full audit.
+
+- 現状 (Current) — Phare:
+  Two subsystems exist under `src/Phare/Auth/`:
+  - **`src/Phare/Auth/Sanctum/`** (6 files + Middleware/):
+    `Sanctum.php` (104 LOC, 9 static methods: `usePersonalAccessTokenModel`,
+    `personalAccessTokenModel`, `actingAs`, `createToken`,
+    `generateTokenString` (protected), `findToken`, `hasValidToken`,
+    `ignoreMigrations`, `defaultTokenExpiration`. Token storage uses
+    `hash('sha256', $plainText)` — NOT plaintext; severity below
+    C07 PasswordBroker), `SanctumGuard.php` (86 LOC, 7 pub:
+    `__construct`/`user`/`validate`/`check`/`guest`/`id`/`setUser`
+    — `setUser` is a no-op stub on the API guard),
+    `PersonalAccessToken.php` model + `NewAccessToken.php` value
+    object, `HasApiTokens.php` trait, `SanctumServiceProvider.php`
+    provider, `Middleware/` directory.
+  - **`src/Phare/Auth/Passkeys/`** (7 files):
+    `ChallengeStore.php` (interface), `InMemoryChallengeStore.php`
+    (default impl), `PasskeyAssertionVerifier.php` (interface),
+    `PasskeyAuthenticator.php` (72 LOC — `begin`/`verify`),
+    `PasskeyCredentialRepository.php` (interface),
+    `PasskeyRegistrar.php`, `PasskeyRegistrationVerifier.php` (interface).
+    Subsystem-namespace is Phalcon-clean (zero `Phalcon\*` refs).
+
+- 期待 (Expected) — Laravel 13 reference:
+  - **`/opt/laravel-framework/src/Illuminate/Auth/` (the §3 reference
+    path for Area C) ships NEITHER subsystem.** Laravel Sanctum is
+    the separate `laravel/sanctum` composer package
+    (`vendor/laravel/sanctum/src/`); it is an official Laravel
+    package but not part of Illuminate. Laravel core ships **no**
+    passkey/WebAuthn subsystem at all (third-party packages
+    exist — e.g. `webauthn/webauthn-lib` — but none under
+    `laravel/*`).
+  - **`§3 Parity Scope` explicitly bounds the reference to
+    Illuminate.** Sanctum and passkeys therefore have no
+    in-scope reference to diff against under the C-area rubric.
+
+- 差分 (Gaps): none recorded here — this section defers the
+  diff per the §7 decision below. One Phalcon leak is noted
+  inline for US-S01 traceability:
+  - **`SanctumGuard::__construct(Phalcon\Http\RequestInterface $request, ...)` —
+    constructor-injected raw `Phalcon\Http\RequestInterface`.**
+    This is a NEW Wrapper-Rule violation (constructor-level
+    Phalcon-type publication on a public class). Distinct from
+    the A03 contract-leak shape because the leak is on a
+    concrete class ctor, not on a contract method. Logged for
+    US-S01 §7-adjacent visibility — porting Sanctum (whether
+    inside or outside the milestone) must remove this. Passkeys
+    namespace is Phalcon-clean by inspection.
+
+- **Decision: BOTH MOVE TO §7 (out of scope for this parity
+  milestone).** Rationale recorded below; a follow-up edit to
+  `docs/completion-criteria.md` §7 enumerates the two
+  subsystems as deferred items.
+
+- Rationale:
+  1. **§3 reference-source constraint.** `completion-criteria.md`
+     §3 binds the measured Laravel subset to
+     `/opt/laravel-framework/src/Illuminate/`. Neither
+     `laravel/sanctum` nor any passkey subsystem ships in
+     Illuminate. The Wrapper-Rule + 1:1-diff methodology that
+     governs Areas A-E cannot be applied without an
+     in-tree reference.
+  2. **Sanctum is an out-of-tree official package.** A future
+     parity pass could declare a "Phare-Sanctum vs laravel/sanctum"
+     diff as a separate milestone (proposed: "Area F — Official
+     Laravel packages"). For this milestone, treat Phare's Sanctum
+     as a Phare-original implementation and audit nothing.
+  3. **Passkeys are Phare-original.** No Laravel core or
+     official-package reference exists. No diff is meaningful;
+     audit effort would be pure code review, which is outside the
+     "parity audit" remit.
+  4. **Existing implementation is non-trivial but consistent
+     with the rest of Phare auth.** Phare's Sanctum mirrors
+     `laravel/sanctum`'s public shape (`Sanctum::actingAs`,
+     `Sanctum::createToken`, `HasApiTokens` trait,
+     `PersonalAccessToken` model, sha256-hashed token storage).
+     A future port would be a "package adoption" task, not a
+     parity-gap rebuild — different operating model from C01-C07.
+
+- Forward-visibility (US-S01 inputs, recorded but not counted
+  in the parity §1-§6 inventory):
+  - `SanctumGuard` ctor publishes `Phalcon\Http\RequestInterface`
+    — same Wrapper-Rule break as A03/A04/C05/C06, but on a §7
+    subsystem so it does not change the parity totals.
+  - Phare Sanctum uses sha256 token hashing (better than C07
+    PasswordBroker's plaintext); HOWEVER, sha256 is unsalted and
+    NOT a password-hashing function — a constant-time comparison
+    via `hash_equals` is in place, but timing-equivalence does
+    not protect against rainbow-table attack on the (token, hash)
+    pairs at rest. Laravel sanctum stores sha256 too — same
+    upstream shape — so this is informational, not a defect
+    relative to laravel/sanctum.
+  - `Sanctum::generateTokenString()` concatenates
+    `config('app.key') . time() . bin2hex(random_bytes(32))` —
+    the `config('app.key')` prefix is redundant (the random
+    32-byte suffix already supplies the entropy). The plaintext
+    holder cannot recover the key (the output is hashed before
+    storage and never returned unhashed), but the intent diverges
+    from laravel/sanctum's plain `Str::random(40)`. Log for §7
+    cleanup-pass visibility only.
+  - Passkeys: subsystem looks structurally complete but is
+    completely unbound — `grep -rn 'PasskeyAuthenticator\|PasskeyRegistrar' src/Phare/Providers/`
+    returns nothing. Orphan status matches B07 / C07 pattern
+    but is out of parity scope.
+
+- 工数感 (Effort): **0 (decision-only).** No audit work
+  performed; ~80 LOC of audit narrative recorded as a scope
+  decision and a forward-visibility log for US-S01.
+
+

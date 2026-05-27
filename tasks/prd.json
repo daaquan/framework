@@ -333,8 +333,8 @@
         "No framework code changed"
       ],
       "priority": 22,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Decided 2026-05-28. Confirmed BOTH subsystems present in Phare: Auth/Sanctum/ (6 files + Middleware/, 9 static methods on Sanctum; SanctumGuard 7 pub; PersonalAccessToken model; HasApiTokens trait; provider) and Auth/Passkeys/ (7 files: ChallengeStore + InMemoryChallengeStore + PasskeyAssertionVerifier + PasskeyAuthenticator + PasskeyCredentialRepository + PasskeyRegistrar + PasskeyRegistrationVerifier). DECISION: BOTH MOVED TO §7. Rationale: (1) completion-criteria §3 binds reference path to /opt/laravel-framework/src/Illuminate/ — Illuminate ships NEITHER subsystem; laravel/sanctum is an out-of-tree official package, passkeys are not a Laravel primitive at all. (2) 1:1 diff methodology cannot apply without an in-tree reference. (3) Phare's Sanctum mirrors laravel/sanctum public shape (actingAs/createToken/HasApiTokens/sha256-hashed PersonalAccessToken) — a future 'Area F — Official Laravel packages' milestone could diff it; out of this parity pass. Recorded ### Sanctum / Passkeys section (~125 lines) in docs/audit-area-c.md and added both subsystems to docs/completion-criteria.md §7. Forward-visibility for US-S01: SanctumGuard ctor publishes raw Phalcon\\Http\\RequestInterface (Wrapper-Rule break, §7-adjacent, NOT counted in parity totals). Passkeys orphan (zero providers/callers, 3rd unwired subsystem after B07/C07). Effort 0 (decision-only)."
     },
     {
       "id": "US-D01",

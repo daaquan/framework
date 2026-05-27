@@ -21,6 +21,26 @@
       "count": 2,
       "tokens": 24336,
       "first_read": "2026-05-27T15:29:36.127Z"
+    },
+    "/opt/framework/docs/completion-criteria.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-27T15:38:59.144Z"
+    },
+    "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php": {
+      "count": 1,
+      "tokens": 768,
+      "first_read": "2026-05-27T15:39:17.160Z"
+    },
+    "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php": {
+      "count": 1,
+      "tokens": 478,
+      "first_read": "2026-05-27T15:39:24.970Z"
+    },
+    "/opt/framework/src/Phare/Auth/Passkeys/PasskeyAuthenticator.php": {
+      "count": 1,
+      "tokens": 581,
+      "first_read": "2026-05-27T15:39:27.997Z"
     }
   },
   "files_written": [
@@ -41,15 +61,40 @@
       "action": "edit",
       "tokens": 2166,
       "at": "2026-05-27T15:30:40.546Z"
+    },
+    {
+      "file": "/opt/framework/docs/audit-area-c.md",
+      "action": "edit",
+      "tokens": 1766,
+      "at": "2026-05-27T15:40:48.674Z"
+    },
+    {
+      "file": "/opt/framework/docs/completion-criteria.md",
+      "action": "edit",
+      "tokens": 237,
+      "at": "2026-05-27T15:40:58.278Z"
+    },
+    {
+      "file": "/opt/framework/tasks/prd.json",
+      "action": "edit",
+      "tokens": 602,
+      "at": "2026-05-27T15:41:14.504Z"
+    },
+    {
+      "file": "/opt/framework/tasks/progress.txt",
+      "action": "edit",
+      "tokens": 1365,
+      "at": "2026-05-27T15:41:49.282Z"
     }
   ],
   "edit_counts": {
-    "docs/audit-area-c.md": 1,
-    "tasks/prd.json": 1,
-    "tasks/progress.txt": 1
+    "docs/audit-area-c.md": 2,
+    "tasks/prd.json": 2,
+    "tasks/progress.txt": 2,
+    "docs/completion-criteria.md": 1
   },
-  "anatomy_hits": 4,
-  "anatomy_misses": 0,
+  "anatomy_hits": 7,
+  "anatomy_misses": 1,
   "repeated_reads_warned": 3,
   "cerebrum_warnings": 0,
   "stop_count": 0
