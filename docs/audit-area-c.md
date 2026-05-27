@@ -1933,3 +1933,408 @@ viaRemember), and the session integration that backs it
     in the audit corpus yet — same NEW-subsystem block flagged
     in C02 for Recaller.
 
+---
+
+### Rate Limiting
+
+- 現状 (Current) — Phare:
+  Four files total. Subsystem namespace `src/Phare/RateLimit/` is
+  **Phalcon-clean** by inheritance + namespace (zero `Phalcon\*`
+  references); leaks concentrate in the out-of-namespace middleware
+  `src/Phare/Middleware/ThrottleRequests.php`. No
+  `Providers/RateLimitServiceProvider.php` exists — `RateLimiter` is
+  container-auto-resolved via type-hinted ctor (continues the C05
+  "no provider" pattern: A07/C01/C02/C03/C04 streak broken at C05,
+  continues into C06).
+  - **`Phare\RateLimit\RateLimiter`** (138 LOC, 11 own public + 1
+    protected `getCache`). Ctor `__construct(Phare\Contracts\Foundation\Application $app)`
+    — takes the Application bag, then service-locates the cache via
+    `$this->app->make('cache')`. **NO** `Contracts\Cache\Repository`
+    constructor injection. Public methods (11):
+    `for(string $name, \Closure $callback): static`,
+    `attempt(string $key, int $maxAttempts, int $decayMinutes = 1, ?\Closure $callback = null): mixed`,
+    `tooManyAttempts(string $key, int $maxAttempts): bool`,
+    `hit(string $key, int $decaySeconds = 60): int`,
+    `attempts(string $key): int`,
+    `resetAttempts(string $key): bool`,
+    `remaining(string $key, int $maxAttempts): int`,
+    `retriesLeft(string $key, int $maxAttempts): int`,
+    `clear(string $key): void`,
+    `availableIn(string $key): int`,
+    `cleanRateLimiterKey(string $key): string`,
+    `limiter(string $name): ?\Closure`,
+    `limit(int $maxAttempts): Limit` (a Phare-only factory method
+    not on Laravel's RateLimiter). No `InteractsWithTime` trait;
+    `currentTime()` / `availableAt()` reimplemented inline as
+    protected helpers.
+  - **`Phare\RateLimit\Limit`** (60 LOC). Public fields:
+    `$maxAttempts: int`, `$decayMinutes: int`, `$key: string`,
+    `$responseCallback: ?\Closure`. Ctor
+    `__construct(int $maxAttempts = 60, int $decayMinutes = 1)`.
+    Six methods total: static `perMinute($maxAttempts)`,
+    `perMinutes($decayMinutes, $maxAttempts)`,
+    `perHour($maxAttempts)`, `perDay($maxAttempts)`, `none()`;
+    instance `by(string $key): static`,
+    `response(\Closure $callback): static`. No `perSecond`, no
+    `after()`, no `fallbackKey()`, no `$afterCallback` field.
+  - **`Phare\RateLimit\TooManyRequestsException`** —
+    `extends \RuntimeException` (NOT Laravel's
+    `Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException`).
+    Hardcoded `parent::__construct($message, 429, $previous)` in
+    its own ctor (continues C05 hardcoded-status-code-in-exception
+    pattern: `TokenMismatchException` `$code = 419`). One own
+    method: `getRetryAfter(): int`.
+  - **`Phare\Middleware\ThrottleRequests`** — `implements
+    Phare\Contracts\Http\Middleware`. Ctor
+    `__construct(Application $app, RateLimiter $limiter)` —
+    takes Application bag PLUS RateLimiter (RateLimiter is
+    redundant since Application could resolve it, but the
+    middleware never actually uses `$this->app`). Public surface
+    is one method: `handle(Phalcon\Http\RequestInterface $request,
+    \Closure $next, int $maxAttempts = 60, int $decayMinutes = 1,
+    string $prefix = ''): Phalcon\Http\ResponseInterface`.
+    Protected helpers `handleRequestUsingNamedLimiter`,
+    `handleRequest`, `resolveRequestSignature`,
+    `resolveMaxAttempts`, `calculateRemainingAttempts`,
+    `getTimeUntilNextRetry`, `addHeaders` — all of them type
+    parameters/returns on raw `Phalcon\Http\Request` /
+    `Phalcon\Http\Response`. No `static using($name)`, no
+    `static with($maxAttempts, $decayMinutes, $prefix)`, no
+    `static shouldHashKeys(bool)`, no
+    `protected static $shouldHashKeys` flag, no `InteractsWithTime`.
+  - **Wiring:** no `'rate-limiter'` / `'cache.limiter'` /
+    `'rate-limit'` binding in any provider. No
+    `RouteServiceProvider::configureRateLimiting()`. No
+    `RateLimiter::for(...)` invocation anywhere in `src/` — the
+    named-limiter feature is plumbed but never exercised by the
+    framework itself.
+
+- 期待 (Expected) — Laravel 13 reference:
+  Five files. `Illuminate\Cache\RateLimiter` (322 LOC, 15 public
+  methods incl. ctor, uses `InteractsWithTime` trait, ctor takes
+  `Illuminate\Contracts\Cache\Repository` — **typed** constructor
+  injection). `Illuminate\Routing\Middleware\ThrottleRequests`
+  (355 LOC, 5 public — `__construct`, `handle`, static `using`,
+  static `with`, static `shouldHashKeys`; plus the
+  `protected static $shouldHashKeys = true` flag). `ThrottleRequestsWithRedis`
+  extends `ThrottleRequests` (160 LOC, ctor takes
+  `Contracts\Redis\Factory`, overrides
+  `handleRequest`/`tooManyAttempts`/`hit`/`calculateRemainingAttempts`/`getTimeUntilNextRetry`,
+  uses `Redis\Limiters\DurationLimiter`). Three value objects
+  under `Cache\RateLimiting\` —
+  `Limit` (177 LOC, 6 statics — `perSecond`/`perMinute`/`perMinutes`/`perHour`/`perDay`/`none`
+  — plus `by`/`after`/`response`/`fallbackKey`,
+  `$decaySeconds: int`, `$afterCallback: ?callable`,
+  `$responseCallback: callable`), `GlobalLimit extends Limit`
+  (key forced to `''`), `Unlimited extends GlobalLimit`
+  (PHP_INT_MAX, middleware short-circuits on `instanceof`).
+  Two exceptions — `Http\Exceptions\ThrottleRequestsException
+  extends Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException`
+  (ctor passes `null` retry-after via Symfony,
+  attached headers `Retry-After` + `X-RateLimit-Reset`);
+  `Routing\Exceptions\MissingRateLimiterException extends \Exception`
+  with `static forLimiter($limiter)` /
+  `static forLimiterAndUser($limiter, $model)` factories.
+
+- 差分 (Gaps):
+
+  **Phalcon\ leaks (3 leak shapes counted, 1 inherited from A03):**
+  - ➀ **Inherited contract leak (NOT a new instance — counted at A03).**
+    `ThrottleRequests::handle(Phalcon\Http\RequestInterface,
+    \Closure, …): Phalcon\Http\ResponseInterface`. The `Phalcon\*`
+    types come from `Phare\Contracts\Http\Middleware`, already
+    recorded as a contract leak in US-A03. Per the C05 dedupe
+    rule ("inherited contract-leak does NOT count as a new
+    leak"), do not re-itemise for US-S01.
+  - ➁ **Signature-level on protected methods (signature-level
+    leak, second confirmed Area-C instance after C05).** Every
+    protected helper in `ThrottleRequests` (`handleRequestUsingNamedLimiter`,
+    `handleRequest`, `resolveRequestSignature`,
+    `resolveMaxAttempts`, `addHeaders`) types its params/returns
+    on raw `Phalcon\Http\Request`/`Phalcon\Http\Response`. A
+    subclass overriding any of these inherits the Phalcon
+    coupling. Severity is below public-surface leak but above
+    pure-internal (B02 `eagerLoadRelations` private-param)
+    because subclass authors see the leak in their override
+    signatures.
+  - ➂ **NEW DEFECT CLASS for US-S01 — Service-locator-over-DI
+    (NOT a Phalcon-leak by type, but a Wrapper-Rule-adjacent
+    coupling).** `RateLimiter::__construct(Application $app)`
+    + `$this->app->make('cache')` and
+    `ThrottleRequests::__construct(Application $app, RateLimiter)`
+    type the **bag-of-services** (`Application`) instead of the
+    concrete dependency (`Contracts\Cache\Repository`). Laravel
+    `RateLimiter::__construct(Cache $cache)` types the dependency
+    directly. Effect: (a) cache dependency is invisible at
+    type-check; (b) unit-testing requires booting the container
+    not stubbing a Repository; (c) `app->make('cache')` could
+    silently return a Phalcon class if the binding changed (the
+    binding currently returns a Phare cache; this is a latent
+    DI-slot leak risk, not a confirmed leak today). Same shape
+    as a half-step toward the C04 DI-slot-leak — flag for
+    US-S01 as a new "service-locator-over-DI" defect class.
+
+  **Missing / type mismatches:**
+
+  - **`RateLimiter::attempt()` — same-name/opposite-shape porting
+    hazard (11th instance for US-S01).** Phare
+    `attempt($key, $maxAttempts, $decayMinutes=1, ?\Closure $callback=null): mixed`
+    THROWS `TooManyRequestsException` on rejection. Laravel
+    `attempt($key, $maxAttempts, Closure $callback, $decaySeconds=60): mixed`
+    RETURNS FALSE on rejection. Two opposite control-flow
+    contracts. Plus: arg order differs (Phare puts `$callback`
+    LAST and optional; Laravel puts it 3rd and REQUIRED). Plus:
+    arg names diverge — **silent 60× unit divergence** (see next
+    defect). Running same-name/opposite-shape list now 11 entries
+    (B01 create / B02 paginate / B05 rollback / B06 for / B07
+    simplePaginate / C01 Authenticatable static-vs-instance /
+    C02 login / C03 extend / C04 generateKey / C05 except /
+    **C06 attempt**).
+  - **NEW DEFECT CLASS for US-S01 — silent unit-divergence.**
+    Phare `RateLimiter::attempt($key, $maxAttempts, int
+    $decayMinutes=1, ...)` interprets the 3rd arg as MINUTES;
+    Laravel `attempt($key, $maxAttempts, Closure, int
+    $decaySeconds=60)` interprets the 4th arg as SECONDS. Phare
+    `Limit::$decayMinutes` vs Laravel `Limit::$decaySeconds` —
+    same divergence on the value object. Phare
+    `ThrottleRequests::handle(..., int $decayMinutes=1)` and the
+    `handleRequest` loop `$this->limiter->hit($limit->key,
+    $limit->decayMinutes * 60)` MULTIPLY by 60; Laravel's
+    `decaySeconds` does not. A literal call
+    `$limiter->attempt('foo', 5, 60, $cb)` means "60 minutes"
+    in Phare and "60 seconds" in Laravel — a 60× silent
+    divergence undetectable without integration tests. Same
+    family as C03 silent-config-dropthrough but on TIME UNITS,
+    not config values. Watch for this pattern on session
+    timeouts, queue retry-after, password-reset token TTLs.
+  - **`RateLimiter` missing methods (~6 vs Laravel 15).** No
+    `increment($key, $decaySeconds, $amount=1)`, no
+    `decrement($key, $decaySeconds, $amount=1)`, no
+    `withoutSerializationOrCompression(callable)` Redis hook —
+    Phare `hit()` is hardcoded `amount=1` (silent-arg-drop family,
+    6th instance after B02 `update`/B03 pivots/C01
+    `$remember`/C03 silent-config-dropthrough/C05
+    `$encrypter`/**C06 `$amount`**). Phare `limiter($name)`
+    returns the raw `?\Closure` from `$this->limiters` — Laravel
+    wraps the result in a duplicate-key fallback closure that
+    rewrites `$limit->key = $limit->fallbackKey()` when multiple
+    Limit objects share a key (uses the missing
+    `Limit::fallbackKey()` method). With duplicate keys, Phare
+    silently double-hits the same cache entry. No `\UnitEnum`
+    support on `for($name)` and `limiter($name)` (Phare typed
+    `string $name`, Laravel `\UnitEnum|string` — Phare cannot
+    accept an enum as a limiter name).
+  - **`tooManyAttempts` un-cleaned key (NEW correctness defect,
+    same family as B04 un-qualified-column).** Phare reads
+    `hasKey($key . ':timer')` where `hasKey` calls
+    `$this->getCache()->has($key)` — the raw key is passed
+    through without `cleanRateLimiterKey()` first. Laravel:
+    `if ($this->cache->has($this->cleanRateLimiterKey($key).':timer'))`.
+    Effect: if a key contains HTML entities (e.g. user-controlled
+    email with `&amp;`), `tooManyAttempts` looks up a DIFFERENT
+    cache key than `hit()` writes to, so the timer lookup misses,
+    the `>= $maxAttempts` branch silently calls `resetAttempts`,
+    and lockout never engages. Identical bug shape exists in
+    Phare `attempts($key)`, `resetAttempts($key)`, `remaining($key,
+    ...)`, `clear($key)`, `availableIn($key)` — none of them
+    pre-clean the key, but `hit()` writes via
+    `$cache->add($key . ':timer', ...)` against the un-cleaned
+    key too, so writes and reads are MUTUALLY consistent at the
+    raw-key layer. Only `cleanRateLimiterKey()` itself is parity
+    — every consumer of it is missing.
+  - **`ThrottleRequests` missing methods (~5 vs Laravel + class
+    extension).**
+    - No `static using($name): string` — used in route
+      definitions: `Route::middleware(ThrottleRequests::using('api'))`.
+      Phare requires hardcoded `'throttle:api'` strings.
+    - No `static with($maxAttempts=60, $decayMinutes=1, $prefix='')`
+      — used as `Route::middleware(ThrottleRequests::with(60, 1))`.
+    - No `static shouldHashKeys(bool)` + no
+      `static $shouldHashKeys = true` flag. Effect: named-limiter
+      keys are NEVER hashed at all. Laravel's
+      `handleRequestUsingNamedLimiter` does `self::$shouldHashKeys
+      ? md5($limiterName.$limit->key) : $limiterName.':'.$limit->key`.
+      Phare's version just sets `$limit->key = $prefix . $limit->key`
+      or `$prefix . $this->resolveRequestSignature($request)` —
+      no namespace prefix on the limiter name at all, so two named
+      limiters with the same `Limit::by(...)` value will collide.
+      Plus the raw user-controlled identifier ends up in the cache
+      key for named limiters (PII-in-cache-key risk).
+    - No `Unlimited` short-circuit. Laravel:
+      `if ($limiterResponse instanceof Unlimited) return $next($request);`.
+      Phare's `Limit::none()` returns a plain `Limit(PHP_INT_MAX)`
+      — the middleware still pretends to throttle (calls
+      `tooManyAttempts` on `PHP_INT_MAX`, calls `hit`, sets
+      headers), wasting cache RTs.
+    - No `afterCallback` plumbing. Laravel `Limit::after($cb)`
+      sets `$afterCallback`; middleware loops twice — first
+      checks `tooManyAttempts`, then ONLY `hit()`s if
+      `! $limit->afterCallback`, runs `$next`, then in second
+      loop calls `$limit->afterCallback($response)` and hits
+      based on the boolean returned. Phare drops this entire
+      axis — `hit()` always fires BEFORE `$next($request)` and
+      cannot conditionally consume quota based on response. Use
+      case "only count failed login attempts as throttled" is
+      structurally unreachable.
+    - No response-callback dispatch in error path. Phare's
+      `Limit::response($callback)` setter EXISTS but is read
+      NOWHERE in `Middleware\ThrottleRequests::handleRequest`.
+      Laravel `buildException` dispatches
+      `$responseCallback($request, $headers)` via
+      `HttpResponseException` for custom 429 bodies.
+      Confirmed dead-shipped-API (stub-defect family — A04
+      Request::route, A05 Response::view, A06 validator
+      exists/unique, A07 View::render, B01 castAttribute, B03
+      Relation::getRelationExistenceQuery, B05 Migrator::runDown,
+      C03 silent-config-dropthrough — now **C06
+      Limit::response()**).
+    - `addHeaders` always overrides. Laravel returns `[]` when
+      the response already has `X-RateLimit-Remaining` less than
+      the new value — Phare doesn't check, so downstream
+      middleware that sets a tighter `X-RateLimit-Remaining`
+      gets overwritten.
+  - **`resolveMaxAttempts` divergence.** Phare reads
+    `$request->get('authenticated_user')['rate_limit']` —
+    `$request->get(...)` is Phalcon's `GET ∪ POST` input bag, NOT
+    Laravel's `Request::user()` model accessor. Effect: Phare
+    treats a POST-body field literally named `authenticated_user`
+    as the source-of-truth — trivially client-spoofable, AND
+    unreachable from the actual Auth\Manager. Laravel parses
+    `'60|120'` (guest|user, `explode('|')` on `request->user()`
+    presence) AND `$user->hasAttribute($attr)` for per-model
+    rate limits; AND throws `MissingRateLimiterException` if
+    nothing is numeric.
+  - **`resolveRequestSignature` divergence.** Phare:
+    `if ($user = $request->get('user')) { return sha1($user); }
+    return sha1($request->getClientAddress().'|'.$request->getURI());`
+    — uses Phalcon input bag for user (same spoofability as
+    above), uses `getClientAddress()` (Phalcon-only) + full URI
+    (changes per query-string, so the cache key explodes
+    cardinality on requests with random query params). Laravel:
+    `request->user()->getAuthIdentifier()` (authoritative auth
+    layer) or `route->getDomain().'|'.request->ip()` (route is
+    optional). Phare can never throw "Unable to generate request
+    signature" — silently always returns sha1 of something.
+  - **Missing exceptions.** `Illuminate\Http\Exceptions\ThrottleRequestsException
+    extends Symfony\…\TooManyRequestsHttpException` is absent —
+    Phare has `RateLimit\TooManyRequestsException extends
+    \RuntimeException`, hardcoded `$code = 429` in its ctor (same
+    pattern as C05 `TokenMismatchException` hardcoding 419,
+    flagged in US-S01 as "hardcoded HTTP status codes inside
+    Exception classes"). `Routing\Exceptions\MissingRateLimiterException`
+    is absent — Phare throws raw `\RuntimeException("Rate
+    limiter [{$limiterName}] is not defined.")` from
+    `handleRequestUsingNamedLimiter`. Effect: error handlers
+    can't distinguish "limiter undefined" from any other
+    runtime error (same defect class as B01 firstOrFail
+    throwing Phalcon's `Mvc\Model\Exception` not Laravel's
+    `ModelNotFoundException`).
+  - **`Retry-After` header dropped on 429.** Phare's
+    `TooManyRequestsException` stores `$retryAfter` and exposes
+    `getRetryAfter()` — but `Middleware\ThrottleRequests`
+    constructs the exception via `throw new TooManyRequestsException('Too
+    many attempts', $this->getTimeUntilNextRetry($limit->key))`
+    and then **DOES NOTHING WITH IT** at the middleware boundary.
+    No `Retry-After` response header, no `X-RateLimit-Reset`
+    header (Phare only sets these in `addHeaders` when
+    `$retryAfter` param is non-null — but `addHeaders` is only
+    called on the SUCCESS path with `$retryAfter` defaulting
+    null). Laravel's `buildException` calls `getHeaders(...,
+    $retryAfter)` BEFORE throwing and the resulting
+    `TooManyRequestsHttpException` carries the headers through
+    the exception handler. Effect: a Phare 429 response has no
+    way for clients to know when to retry — unless a project's
+    exception handler reads `$e->getRetryAfter()` manually,
+    which Phare doesn't ship.
+  - **`Limit` value-object gaps (4 missing methods, 1 missing
+    field, 1 missing subclass tree).** No `perSecond($maxAttempts,
+    $decaySeconds=1)`, no `after(callable)`, no `fallbackKey()`,
+    no `$afterCallback` field. `none()` returns plain
+    `Limit(PHP_INT_MAX)` not the `Unlimited` subclass. No
+    `GlobalLimit` (key forced to `''`), no `Unlimited` (PHP_INT_MAX
+    + middleware short-circuit). `response()` accepts `\Closure`
+    only (Laravel: `callable`) — porting hazard for code that
+    passes a `[$obj, 'method']` callable.
+  - **`Middleware\ThrottleRequests` named-limiter return-type
+    handling (correctness defect).** Phare's
+    `handleRequestUsingNamedLimiter` calls
+    `call_user_func($limiterCallback, $request)` then wraps in
+    array if non-array. Laravel checks the result for
+    `instanceof Response` (returns it directly as the limiter's
+    chosen 429 body) AND `instanceof Unlimited` (short-circuit).
+    Phare has neither check — if a limiter returns a Response,
+    Phare tries to access `$response->key` and `$response->maxAttempts`
+    on it, fatal-error-ing in the request lifecycle.
+  - **`ThrottleRequestsWithRedis` missing entirely.** No
+    Redis-aware variant ships. `DurationLimiter` is absent.
+    Effect: high-concurrency apps with a Redis cache backend
+    cannot use atomic LUA-based rate limiting; the
+    `cache->add`/`cache->increment` two-step in `RateLimiter::hit`
+    is non-atomic across concurrent requests (the C04 silent
+    write-skew family — two parallel requests can both pass
+    `tooManyAttempts` and both `hit`, over-counting then
+    under-locking; or both miss the `add` and tie on
+    `$hits == 1`).
+  - **No-contracts pattern continues (10th subsystem).** No
+    `Phare\Contracts\Cache\RateLimiter` interface. RateLimiter
+    publishes no contract. Same as A06/A07/B06/B07/C01/C02/C03/C04/C05
+    — record as inherited, do not re-narrate.
+  - **No provider, no binding.** No
+    `Providers/RateLimitServiceProvider.php`. No `'cache.limiter'`
+    / `'rate-limiter'` binding. Laravel binds `RateLimiter` as
+    a container singleton in `CacheServiceProvider` and aliases
+    it. Phare relies on type-hinted constructor injection (which
+    auto-resolves a NEW RateLimiter per resolution — `for()`-
+    registered limiters are LOST across resolutions since
+    `$this->limiters` is instance state). Same "no provider"
+    pattern as C05.
+  - **`RateLimiter::limit(int)` is a Phare-only factory.** No
+    Laravel counterpart. It just `new Limit($maxAttempts)` —
+    duplicates `Limit::perMinute($maxAttempts)`. Dead surface
+    in the porting direction (Laravel→Phare); on the
+    Phare→Laravel direction, app code calling it breaks.
+  - **`tooManyAttempts` reset-on-no-timer side effect (NEW for
+    US-S01 — silent-reset defect).** Phare matches Laravel here:
+    `if (attempts >= max) { if (!hasKey(timer)) resetAttempts(); }`.
+    Both behave the same — but Phare's MISSING
+    `cleanRateLimiterKey` in `hasKey` (above) effectively
+    GUARANTEES this reset fires on every >= max check for any
+    key with HTML entities. Combined effect: `tooManyAttempts`
+    not only returns false (no lockout), but ALSO resets the
+    counter — the bug is "fail-open AND wipe history". Worse
+    than B04's un-qualified-column (which just errors loudly on
+    joins).
+
+- 工数感 (Effort: **M**):
+  Small surface (3 RateLimit files ~210 LOC + 1 middleware
+  ~135 LOC), but five families of work: (1) typed-DI rewire of
+  RateLimiter ctor (`Contracts\Cache\Repository` injection),
+  (2) unit-correction `$decaySeconds` across RateLimiter +
+  Limit + ThrottleRequests (silent 60× divergence — mechanical
+  but app-breaking), (3) backfill missing API (`increment`/
+  `decrement`/`withoutSerializationOrCompression`/`Unlimited`/
+  `GlobalLimit`/`fallbackKey`/`after`/`perSecond`/
+  `ThrottleRequests::using`/`with`/`shouldHashKeys` +
+  `afterCallback` plumbing + `responseCallback` dispatch + duplicate-key
+  wrap on `limiter()`), (4) Phare-shaped `ThrottleRequestsException`
+  + `MissingRateLimiterException` (Symfony-extending +
+  static-factory shaped), (5) `ThrottleRequestsWithRedis` is a
+  whole atomic-Redis path (likely blocked on US-D01 Queue audit
+  for `DurationLimiter` equivalent). Plus correctness fix:
+  `cleanRateLimiterKey` pre-call across `tooManyAttempts`,
+  `attempts`, `resetAttempts`, `remaining`, `clear`, `availableIn`,
+  `hit` write side. Cross-cuts US-A03 (Middleware contract leak
+  is the source of leak ➀), US-A04 (Phare Request lacks
+  `user()`/`route()` — `resolveRequestSignature` cannot be
+  ported without a Laravel-shaped Request), US-C01 (Auth
+  guard's `user()->getAuthIdentifier()` is the correct
+  identifier source — currently Phare reads input-bag), US-D01
+  (queue Redis path shares DurationLimiter), and US-S01
+  synthesis (3 NEW defect classes: service-locator-over-DI,
+  silent-unit-divergence, silent-reset). Blocked partly on:
+  US-C01 (`request->user()` shape), US-A04 (Request::route()
+  is currently a stub returning null — flagged in A04), and a
+  proper `Contracts\Cache\Repository` shape (Phare cache contract
+  audit is outside Areas A–E and would land in a future Area F
+  if Cache is in-scope).
+
