@@ -318,8 +318,8 @@
         "No framework code changed"
       ],
       "priority": 21,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. ### Password Reset appended to docs/audit-area-c.md (~200 lines). Effort L. ONE file in Phare (PasswordBroker 88 LOC, 3 methods) vs Laravel's 8-class subsystem + contracts + trait + notification + provider. Subsystem-namespace NOT Phalcon-clean (first since C01) — direct `use Phalcon\\Di\\Di;` + `Di::getDefault()` static service-locator in ctor. NEW 6th leak class for US-S01: Phalcon-DI-facade-as-service-locator (recurs in 7 framework files total). CRITICAL security defect: tokens stored PLAINTEXT (no Hasher::make() at INSERT; bin2hex written verbatim). DB compromise = working reset tokens for every user. Throttling absent (no recentlyCreatedToken / RESET_THROTTLED — DoS + email-flood). Missing wholesale: sendResetLink, reset() orchestration, PasswordBrokerManager, DatabaseTokenRepository, TokenRepositoryInterface, PasswordBroker contract + 5 status constants, CanResetPassword trait, ResetPassword notification, PasswordResetServiceProvider, PasswordReset event. Orphan: zero providers/tests/callers (2nd 'orphaned/unwired' subsystem after B07). Same-name/opposite-shape now 13 entries (createToken `object $user` vs `CanResetPassword`; validateToken `string $email,string $token` vs `tokenExists(CanResetPassword,$token)`). Silent-arg-drop 7th instance (hasher+repo+provider+dispatcher dropped from ctor). Silent-config-dropthrough 7th (expire/throttle/table/connection all hardcoded). 11th no-contracts subsystem. Hardcoded conn name 'db' breaks multi-DB."
     },
     {
       "id": "US-C08",
