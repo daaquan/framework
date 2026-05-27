@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 571868,
-    "total_reads": 170,
-    "total_writes": 46,
-    "total_sessions": 92,
-    "anatomy_hits": 135,
-    "anatomy_misses": 35,
-    "repeated_reads_blocked": 19,
-    "estimated_savings_vs_bare_cli": 223078
+    "total_tokens_estimated": 649455,
+    "total_reads": 186,
+    "total_writes": 50,
+    "total_sessions": 103,
+    "anatomy_hits": 143,
+    "anatomy_misses": 43,
+    "repeated_reads_blocked": 21,
+    "estimated_savings_vs_bare_cli": 272101
   },
   "sessions": [
     {
@@ -1598,6 +1598,139 @@
         "writes_count": 4,
         "repeated_reads_blocked": 2,
         "anatomy_lookups": 5
+      }
+    },
+    {
+      "id": "session-2026-05-27-2019",
+      "started": "2026-05-27T11:19:16.124Z",
+      "ended": "2026-05-27T11:28:00.660Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 14005,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 19995,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/RateLimit/RateLimiter.php",
+          "tokens_estimated": 848,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/RateLimit/Limit.php",
+          "tokens_estimated": 324,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/RateLimit/TooManyRequestsException.php",
+          "tokens_estimated": 120,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Middleware/ThrottleRequests.php",
+          "tokens_estimated": 1145,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Cache/RateLimiter.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Routing/Middleware/ThrottleRequestsWithRedis.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Cache/RateLimiting/Limit.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Cache/RateLimiting/GlobalLimit.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Cache/RateLimiting/Unlimited.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Http/Exceptions/ThrottleRequestsException.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Routing/Exceptions/MissingRateLimiterException.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/RouteServiceProvider.php",
+          "tokens_estimated": 215,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-c.md",
+          "tokens_estimated": 27428,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-c.md",
+          "tokens_estimated": 6630,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 1701,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 1945,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 3231,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 64080,
+        "output_tokens_estimated": 13507,
+        "reads_count": 16,
+        "writes_count": 4,
+        "repeated_reads_blocked": 2,
+        "anatomy_lookups": 8
       }
     }
   ],
