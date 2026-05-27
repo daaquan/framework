@@ -1552,3 +1552,384 @@ viaRemember), and the session integration that backs it
     encrypted cookie), US-A07 (`@encrypted` Blade directive),
     US-E05 (Crypt facade).
 
+---
+
+### CSRF Middleware
+
+- Current — Phare:
+  CSRF middleware IS present. Three small files form the whole
+  subsystem, plus a third tokenizer hidden inside the vendored
+  Blade engine.
+  - `src/Phare/Middleware/VerifyCsrfToken.php` (114 LOC) —
+    `implements Phare\Contracts\Http\Middleware`. Public surface
+    is 2 methods: `__construct(Application $app)` and
+    `handle(Phalcon\Http\RequestInterface $request, \Closure $next): Phalcon\Http\ResponseInterface`
+    + the public `addExcept(array $routes): static` setter.
+    Internal protected: `shouldSkip`, `isReading`, `tokensMatch`,
+    `getTokenFromRequest`, `inExceptArray`, `normalizePath`.
+    Reads/writes the token via a second class (`Csrf`) — does
+    NOT call the session store directly.
+  - `src/Phare/Middleware/TokenMismatchException.php` (10 LOC) —
+    `extends \Exception` with fixed `$message = 'CSRF token mismatch.'`
+    and `$code = 419`. NO `$guards`/`$redirectTo` (analogous to
+    `AuthenticationException` in C01).
+  - `src/Phare/Security/Csrf.php` (116 LOC) — standalone helper
+    bound nowhere (resolved through container auto-wiring via
+    `$app->make(Csrf::class)`). Public methods (6):
+    `__construct(Application $app)`, `generateToken(): string`,
+    `getToken(): string`, `verifyToken(string $token): bool`,
+    `clearToken(): void`, `getTokenName(): string` (returns
+    `'_token'`), `field(): string`, `metaTag(): string`. Stores
+    the token in session key `'_csrf_token'` (mismatch with the
+    form-input name `'_token'` returned by `getTokenName()`).
+    Uses `bin2hex(random_bytes(20))` for a 40-char token (Laravel
+    `Session\Store::regenerateToken()` uses `Str::random(40)`).
+  - `src/Phare/View/BladeOne.php` (vendored EFTEC v4.9, lines
+    72/1590-1631) — a SEPARATE CSRF subsystem inside the Blade
+    engine: `public $csrf_token`, `getCsrfToken($fullToken,
+    $tokenId='_token')`, `regenerateToken($tokenId='_token')`.
+    Writes raw `$_SESSION[$tokenId] = $token.'|'.$ipClient`.
+    Bypasses BOTH `Phare\Security\Csrf` AND `app('session')`
+    entirely.
+  - **Wiring:** `VerifyCsrfToken` is NOT registered in
+    `Foundation\Http\Kernel`'s default `$middlewares`/
+    `$middlewareGroups['web']` (both empty by default). Apps
+    must add it manually. `Phare\Security\Csrf` is NOT bound in
+    any `Providers/` file (zero `Csrf::class` or `'csrf'` slot
+    hits under `src/Phare/Providers/`).
+  - Subsystem namespace `src/Phare/Middleware/` and
+    `src/Phare/Security/` are Phalcon-CLEAN by `extends`
+    (TokenMismatchException extends `\Exception`, Csrf extends
+    nothing, VerifyCsrfToken implements only `Phare\Contracts\Http\Middleware`).
+    BUT `VerifyCsrfToken::handle()` publishes raw
+    `Phalcon\Http\RequestInterface` (param) and
+    `Phalcon\Http\ResponseInterface` (return) — signature-level
+    leak (same shape as A02 Kernel, inherited from the
+    `Contracts\Http\Middleware` contract whose own
+    `handle(RequestInterface, \Closure): ResponseInterface` is
+    typed Phalcon — see A03 finding).
+
+- Expected — Laravel 13:
+  `Illuminate\Foundation\Http\Middleware\PreventRequestForgery`
+  (321 LOC, 14 public methods including statics) is the canonical
+  class. `VerifyCsrfToken` and `ValidateCsrfToken` are both
+  empty `@deprecated` subclasses kept for back-compat.
+  - **Public surface (14):** `__construct(Application $app, Encrypter $encrypter)`,
+    `handle($request, Closure $next)`, `shouldAddXsrfTokenCookie(): bool`,
+    `getExcludedPaths(): array` (from `ExcludesPaths` trait),
+    static `except($uris): void`, static `allowSameSite($allow=true): void`,
+    static `useOriginOnly($originOnly=true): void`, static
+    `serialized(): bool`, static `flushState(): void`,
+    plus 5 protected (`isReading`, `runningUnitTests`,
+    `hasValidOrigin`, `tokensMatch`, `getTokenFromRequest`,
+    `addCookieToResponse`, `newCookie`).
+  - Trait composition: `use ExcludesPaths, InteractsWithTime`.
+    `ExcludesPaths::inExceptArray` checks `$request->fullUrlIs()`
+    OR `$request->is()` — full URL glob + path glob. Globally
+    ignored paths live on `static $neverVerify = []` — class-wide,
+    survives middleware re-instantiation, opt-in via static
+    `PreventRequestForgery::except(['/api/*'])`.
+  - `handle()` short-circuits in this exact order:
+    `isReading($request) || runningUnitTests() ||
+    inExceptArray($request) || hasValidOrigin($request) ||
+    tokensMatch($request)`. Origin check (Sec-Fetch-Site) added
+    in L13.x — `same-origin` ALWAYS passes; `same-site` passes
+    only if `static $allowSameSite=true`; if `static $originOnly`
+    is set and Sec-Fetch-Site is anything else, throws
+    `Http\Exceptions\OriginMismatchException` (a SEPARATE
+    exception from `TokenMismatchException`).
+  - `tokensMatch()` reads CSRF from session via
+    `$request->session()->token()` — i.e. `Session\Store::token()`
+    (auto-generated/rotated by `Store::start()` /
+    `regenerateToken()`). Token CSRF rotation happens in
+    `Session\Store::migrate(true)` / `regenerate(true)` which
+    both call `regenerateToken()`. The middleware uses
+    `hash_equals` (constant-time compare).
+  - `getTokenFromRequest()` reads `_token` input OR
+    `X-CSRF-TOKEN` header, with the third path being
+    `X-XSRF-TOKEN` header decrypted via the **injected
+    Encrypter** + `CookieValuePrefix::remove(...)`. On
+    `DecryptException` falls back to `''`. Laravel apps can
+    therefore send the CSRF token as an ENCRYPTED cookie
+    (`XSRF-TOKEN` set on the response by `addCookieToResponse`)
+    that JavaScript reads and re-sends as `X-XSRF-TOKEN`.
+  - `addCookieToResponse()` sets the `XSRF-TOKEN` Symfony Cookie
+    on the response (path/domain/secure/same_site/partitioned
+    from `config('session')`, lifetime `60*lifetime`, NOT
+    HttpOnly so JS can read). Suppressed by
+    `static::$originOnly`. The injected `Encrypter` is used
+    here too: when `EncryptCookies::serialized('XSRF-TOKEN')`
+    is true, the cookie payload is encrypted-serialized.
+  - `TokenMismatchException` lives at `Illuminate\Session\TokenMismatchException`
+    and is an EMPTY `extends Exception` — Laravel does NOT set
+    `$code = 419`; the HTTP status comes from
+    `Foundation\Exceptions\Handler::renderHttpException()` /
+    a dedicated render case (`instanceof TokenMismatchException`
+    → 419 Page Expired).
+
+- Gaps — three buckets:
+
+  **Missing (whole features absent):**
+  (1) Encrypter integration — `VerifyCsrfToken::__construct`
+      takes ONE arg (`Application`), Laravel takes TWO
+      (`Application`, `Encrypter`). Silent-arg-drop family
+      (after C01 `$remember`, B03 `$touch`, C03 silent-config-
+      dropthrough). Downstream: NO decrypt of `X-XSRF-TOKEN`
+      header → Phare middleware reads the X-XSRF-TOKEN header
+      AS PLAINTEXT (`$request->getHeader('X-XSRF-TOKEN')`),
+      which is **wire-incompatible** with Laravel SPA / Axios
+      clients that send the encrypted cookie back as the
+      header.
+  (2) XSRF-TOKEN cookie write-back — NO `addCookieToResponse`,
+      NO `shouldAddXsrfTokenCookie`, NO `newCookie`. The
+      response-side cookie protocol is unreachable. Phare apps
+      cannot drive an Axios/SPA front-end the Laravel way.
+      (Cross-cuts: NO `Phare\Cookie\*` subsystem at all — same
+      gap noted in C02 for the Recaller cookie.)
+  (3) Origin verification — NO `hasValidOrigin`, NO
+      `Sec-Fetch-Site` handling, NO
+      `OriginMismatchException`. Phare ships only the legacy
+      token-only check; the L13 origin-as-alternative path is
+      missing.
+  (4) `static useOriginOnly(...)` / `static allowSameSite(...)`
+      / `static $originOnly` / `static $allowSameSite` / `static
+      $neverVerify` — every static API is missing. App can only
+      configure exclusions per-instance via `addExcept()`, which
+      means tests cannot global-ignore.
+  (5) `static flushState()` — no test reset hook.
+  (6) `static serialized()` — no `EncryptCookies::serialized
+      ('XSRF-TOKEN')` toggle (and no `EncryptCookies`/cookie-
+      encryption subsystem exists, so the toggle has nothing
+      to pair with).
+  (7) `runningUnitTests()` skip — Phare's `Application::runningUnitTests`
+      and `Application::runningInConsole` ARE present (per A01
+      audit), but the middleware never consults them. Tests
+      cannot bypass without a manual `addExcept`.
+  (8) `ExcludesPaths` trait — Laravel composes shared
+      excludes-path logic with `Maintenance` middleware via the
+      trait; Phare reimplements in
+      `VerifyCsrfToken::inExceptArray` locally. (Same defect
+      shape as A03's `Routing\RouteMiddlewareResolver`
+      duplicating `Kernel::resolveRouteMiddlewareAlias`.)
+  (9) Token rotation — `Csrf::generateToken()` is only called
+      from `getToken()` when the session key is missing.
+      `Session\Store::regenerateToken()` does not exist on
+      Phare's session (C02 §coverage 18/54). NO call site
+      rotates the CSRF token on login, on `regenerate()`,
+      or on any other event. Once minted, the token lives
+      forever in session. **Token-rotation unreachable** —
+      same defect class as C04 §1 (key-rotation unreachable),
+      C03 (e) infinite-rehash loop (config-vs-runtime
+      mismatch), C02 §4 (deleteOldSession default). Logout
+      DOES clear it transitively because `Manager::logout`
+      destroys the entire session (C02 §1 logout
+      blast-radius) — but that side-effect is the wrong reason.
+  (10) Timebox/timing-safe compare — Phare uses
+       `hash_equals` (good) but no `Timebox` wrapper.
+       Marginal: hash_equals is already constant-time;
+       Timebox in Laravel SessionGuard equalizes the OUTER
+       round-trip latency rather than the compare itself.
+       Same blocked-on-Timebox flag as C02 §2.
+  (11) `Contracts\Security\Csrf` / `Contracts\Csrf\Token`
+       interface — none exists. No-contracts pattern continues
+       (A06 Validation, A07 View, B06 Factories, B07
+       Pagination, C01 Auth, C02 GuardHelpers, C03 Hashing,
+       C04 Encryption, now C05 CSRF — 9th subsystem in a row).
+  (12) `XSRF-TOKEN`/`X-XSRF-TOKEN` cookie+header round-trip —
+       see (1)/(2). Without it, the third path in
+       `getTokenFromRequest` is structurally absent.
+  (13) `addExcept` is INSTANCE-only (Laravel's `except` is
+       static + class-wide). Apps that boot the middleware
+       multiple times — or compose route-group middleware —
+       lose any addExcept() state. Same per-instance-vs-
+       static divergence as C02 §3 (session-key isolation).
+  (14) `BladeOne::regenerateToken` writes the wire format
+       `$token.'|'.$ipClient` into `$_SESSION[$tokenId]`
+       directly. **Triple-stack:** Phare\Security\Csrf reads
+       `$_SESSION['_csrf_token']` (plain token), BladeOne reads
+       `$_SESSION['_token']` (token+ip), Laravel uses
+       `Session\Store::token()` → session key `_token` (plain
+       token). Three writers, three formats, one session — IF
+       a Phare app enables BladeOne's `@csrf` directive AND
+       uses Phare\Security\Csrf via Blade `field()`, the two
+       store under different keys and a form roundtrip can
+       false-fail. (Extends the dual-stack defect class from
+       A07/C04 — first **triple-stack** instance recorded.)
+
+  **Type mismatch / Phare-vs-Laravel signature drift:**
+  - `VerifyCsrfToken::__construct(Application $app)` 1 arg vs
+    `PreventRequestForgery::__construct(Application $app,
+    Encrypter $encrypter)` 2 args — silent-arg-drop (see
+    Missing (1)).
+  - `handle(RequestInterface, \Closure): ResponseInterface`
+    — Phalcon types on both sides; Laravel `handle($request,
+    Closure $next)` is untyped and returns `mixed`. Phare
+    signature is also stricter on `$next` (must return a
+    `ResponseInterface`).
+  - `addExcept(array): static` vs static `except($uris): void`
+    — same NAME family, opposite binding (instance vs static),
+    opposite return shape, opposite scope (per-instance vs
+    static `$neverVerify`). **10th** same-name/opposite-shape
+    porting hazard (running list now: B01 create, B02
+    paginate, B05 rollback, B06 for, B07 simplePaginate, C01
+    Authenticatable static names, C02 Manager::login, C03
+    HashManager::extend, C04 generateKey, now C05
+    addExcept/except).
+  - `TokenMismatchException` in `Phare\Middleware`
+    namespace vs Laravel `Illuminate\Session` — namespace
+    divergence flagged before (B01 firstOrFail ⇒ Phalcon
+    Exception not ModelNotFoundException; C01
+    AuthenticationException is namespaced-correct but
+    feature-poor). Phare's also hard-codes `$code = 419`;
+    Laravel encodes 419 via the exception handler, not the
+    exception itself. Phare apps that compare on
+    exception class will be looking under the wrong
+    namespace.
+  - `Csrf::getTokenName()` returns `'_token'` (form-input
+    name) but `Csrf::storeToken` writes session key
+    `'_csrf_token'`. Internal name inconsistency; Laravel
+    uses `_token` on both sides (`Session\Store::token()`
+    reads/writes session key `_token`).
+  - `Csrf` class implements NO contract — see Missing (11).
+
+  **Phalcon leaks:**
+  ➀ **Signature-level leak (concrete):**
+    `VerifyCsrfToken::handle(Phalcon\Http\RequestInterface $request,
+    \Closure $next): Phalcon\Http\ResponseInterface`.
+    Two Phalcon types on a single public signature, same
+    shape as A02 Kernel and A05 Response. NOT a new leak
+    CLASS — it's inherited from the
+    `Contracts\Http\Middleware`/`MiddlewareContract`
+    contract leak already recorded in A03 (`Phare\Contracts\Http\Middleware::handle`
+    publishes the same Phalcon pair).
+  ➁ **Trickle-down: NO Phalcon\Mvc\Application here.**
+    Unlike the kernel/route registry, the CSRF middleware
+    does not consume `Phalcon\Mvc\Application` /
+    `Phalcon\Mvc\Micro` directly.
+  ➂ **`Phare\Security\Csrf` IS namespace + inheritance
+    Phalcon-clean** — zero `Phalcon\` references in its
+    file. Only `Phare\Contracts\Foundation\Application` is
+    imported.
+  ➃ **TokenMismatchException** is `extends \Exception` —
+    fully Phalcon-clean.
+  ➄ **Provider-boundary leak NOT applicable here** — there
+    is no `Providers/CsrfServiceProvider.php` / `SecurityServiceProvider.php`.
+    The middleware and Csrf class are container-auto-resolved
+    (constructor injection). This breaks the
+    A07/C01/C02/C03/C04 streak (5 consecutive subsystems with
+    that exact leak shape). Worth flagging in US-S01 — when
+    a subsystem has NO provider, the provider-boundary leak
+    class is structurally inapplicable.
+  ➅ **DI-slot leak NOT applicable here** — no `singleton('csrf', ...)`
+    or `singleton(Csrf::class, ...)` in any provider. Csrf
+    is purely auto-resolved.
+  ➆ **Helper-return-type leak NOT applicable here** —
+    `Phare\Support\helpers.php` has NO `csrf()` /
+    `csrf_token()` / `csrf_field()` helpers (these exist in
+    Laravel `Foundation/helpers.php`). Missing helpers are
+    flagged under (15) below.
+
+  **Defects (correctness/behavioural):**
+  - §1 **CSRF token rotation unreachable** — see Missing (9).
+    Most severe. APP_KEY rotation / privilege change / login
+    do not rotate the token. Same family as C04 §1.
+  - §2 **Wire-incompatibility with Laravel SPAs** — see
+    Missing (1)/(2). Phare middleware reads `X-XSRF-TOKEN`
+    as plaintext where Laravel sends it encrypted. Any
+    Laravel-shaped frontend will silently 419.
+  - §3 **Triple-stack divergence** — see Missing (14).
+  - §4 **Three `make('session')` calls per request** —
+    `VerifyCsrfToken::tokensMatch` →
+    `Csrf::verifyToken` → `Csrf::getSessionToken` →
+    `$this->app->make('session')`; plus
+    `Csrf::getToken` and `Csrf::clearToken` each call
+    `make('session')` separately. With the C02 §8 wiring
+    divergence (`session` vs `session.manager` resolve to
+    different SessionManager instances), the middleware
+    can read from one session graph while a downstream
+    component writes to the other.
+  - §5 **`runningUnitTests` skip absent** — see Missing (7).
+    Phare tests that send POSTs cannot opt into the
+    runtime-tests bypass; they must clutter test bootstrap
+    with `addExcept()` calls.
+  - §6 **`Csrf::getToken` mints lazily inside a getter** —
+    side-effect on read. Laravel's
+    `Session\Store::token()` returns `$this->get('_token')`
+    and Store mints during `start()`. Phare's getter writes.
+    Concurrent requests for the same fresh session can race
+    on `storeToken`.
+  - §7 **`addExcept` collisions** — instance state, so two
+    Kernel boots (Web + Console, or test isolation) each
+    rebuild the list independently. No way to declare
+    excludes from config.
+  - §8 **`tokensMatch` does not verify the session is
+    started** — `Csrf::getSessionToken` calls
+    `$session->get` which on `Phare\Session\SessionManager`
+    (extends `Phalcon\Session\Manager`) will silently start
+    the session if not already started, but the eager
+    `SessionStoreManager::store()` (C02 §7) already
+    arranges that — so the order-of-startup matters. Mark
+    coupling.
+  - §9 **`field()`/`metaTag()` are emitter-side stubs** —
+    OK if rendered from Blade explicitly, but no Blade
+    directive (`@csrf`/`@csrf_meta`) wires to them. Laravel's
+    `@csrf` directive compiles to `csrf_field()`. A07
+    audit already recorded `@csrf` as a missing BladeOne
+    compile method.
+
+  **Helpers — Missing (15):**
+  - No `csrf_token()`, `csrf_field()` global helpers (Laravel
+    `Foundation/helpers.php`). They would be the natural
+    invocation surface for `@csrf` / forms. Flag for US-E06.
+
+- Effort: **M**.
+  - The middleware skeleton + a clean Csrf helper are already
+    in place — the boilerplate is the cheap part.
+  - The expensive part is what's MISSING and cross-cuts other
+    subsystems:
+    (a) Encrypter injection + `X-XSRF-TOKEN` decrypt path —
+        blocked on C04 (Encrypter must wire through the
+        container as `Phare\Encryption\Encrypter`, not Phalcon
+        Crypt, so payload format matches Laravel);
+    (b) `XSRF-TOKEN` cookie write-back + the entire response
+        cookie subsystem — blocked on a non-existent
+        `Phare\Cookie\*` package (same gap noted in C02 for
+        the Recaller cookie + `CookieJar::setCookie`);
+    (c) Session integration — `Session\Store::token()` /
+        `regenerateToken()` are absent (C02 coverage
+        18/54). Adding `token`/`regenerateToken` on
+        `Phare\Session\SessionManager` is a 2-method addition,
+        but it must replace the parallel `Phare\Security\Csrf`
+        store path — i.e. delete a class. Architecturally
+        Laravel has NO `Csrf` helper class — the token is a
+        property of the session, not a separate service.
+    (d) Origin verification (Sec-Fetch-Site) +
+        `OriginMismatchException` — local, no cross-cut.
+    (e) Statics (`except`/`allowSameSite`/`useOriginOnly`/
+        `flushState`) + `ExcludesPaths` trait extraction —
+        local, no cross-cut.
+    (f) BladeOne triple-stack — Stack 3 is part of a vendored
+        engine. Either pin a BladeOne fork that suppresses
+        its built-in `getCsrfToken`/`regenerateToken`, or
+        accept the divergence and disable BladeOne's `@csrf`
+        directive. Same family as A07 Stack 1 vs Stack 2.
+    (g) Token-rotation surface — needs (c) to land first
+        (the rotation must live on Session\Store, not on Csrf).
+  - Phalcon leak count for §2 synthesis: 1 signature-level
+    leak (➀, inherited via Contracts\Http\Middleware → already
+    counted in A03). Subsystem-namespace clean (Csrf +
+    TokenMismatchException + VerifyCsrfToken own bodies).
+  - Cross-cuts: US-C04 (Encrypter binding + X-XSRF-TOKEN
+    decrypt + payload format), US-C02 (Session\Store::token /
+    regenerateToken — currently missing in coverage 18/54;
+    plus the `session` vs `session.manager` wiring), US-A03
+    (Middleware contract leak already recorded — Phalcon types
+    inherited by VerifyCsrfToken::handle), US-A07 (BladeOne
+    Stack-3 CSRF state + missing `@csrf` Blade directive),
+    US-E06 (global helpers `csrf_token()`/`csrf_field()`).
+  - Blocked partly on: US-C04 (encrypter), US-C02 (Session\Store
+    coverage + token/regenerateToken), and on a NEW
+    `Phare\Cookie\*` subsystem that does not exist anywhere
+    in the audit corpus yet — same NEW-subsystem block flagged
+    in C02 for Recaller.
+
