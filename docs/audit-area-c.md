@@ -1127,3 +1127,428 @@ viaRemember), and the session integration that backs it
          (the `rehashPasswordIfRequired` hook on the session guard
          requires the Hasher contract published here).
 
+### Encrypter
+
+- 現状 (Current) — Phare:
+  `src/Phare/Encryption/` ships 3 files — `Encrypter` (concrete,
+  implements NO interface), `EncryptException extends \RuntimeException`,
+  `DecryptException extends \RuntimeException`. The service provider
+  lives outside the subsystem at
+  `src/Phare/Providers/EncrypterProvider.php` and
+  `implements Phalcon\Di\ServiceProviderInterface`. There is NO
+  `src/Phare/Contracts/Encryption/` directory.
+
+  - **Container bindings (3):** `'random'` → singleton
+    `Phalcon\Encryption\Security\Random`; `'security'` → singleton
+    `Phalcon\Encryption\Security` with `setWorkFactor(12)` + `setDI`;
+    `'encrypter'` → singleton `Phalcon\Encryption\Crypt` (Phalcon's
+    crypt class, NOT `Phare\Encryption\Encrypter`). The Phare-namespace
+    `Encrypter` is **NEVER bound to the container** — the container
+    slot `'encrypter'` resolves to a Phalcon class.
+  - **`Phare\Encryption\Encrypter` public surface (9):**
+    - `__construct(string $key, string $cipher = 'aes-256-cbc')`
+      (default cipher diverges from Laravel `'aes-128-cbc'`).
+    - `encrypt(mixed $value, bool $serialize = true): string`
+    - `decrypt(string $payload, bool $unserialize = true): mixed`
+    - `encryptString(string $value): string`
+    - `decryptString(string $payload): string`
+    - `generateKey(string $cipher = 'aes-256-cbc'): string` —
+      **instance method** returning raw bytes (NOT static, NOT base64).
+    - `generateKeyString(string $cipher = 'aes-256-cbc'): string` —
+      static, returns `base64_encode(random_bytes(...))`. Phare-only
+      method with no Laravel counterpart.
+    - `getKey(): string`
+    - `getCipher(): string` — Phare-only getter, no Laravel
+      counterpart.
+  - **Internal helpers:** `validateKey`, `isAEAD`, `createMac(string
+    $iv, string $encrypted): string`, `validateMac(array $payload)`,
+    `getJsonPayload(string): array`, `validPayload(array): bool`.
+  - **Supported ciphers:** identical 4-cipher table to Laravel
+    (`aes-128-cbc`, `aes-256-cbc`, `aes-128-gcm`, `aes-256-gcm`).
+  - **Consumers of Phare\Encryption\Encrypter:** exactly ONE —
+    `src/Phare/Eloquent/Concerns/HasAttributes::resolveAttributeEncrypter()`
+    (`new Encrypter(...)` directly for the `encrypted` cast on
+    Eloquent attributes). No facade, no helper, no provider wires it.
+  - **Helpers in `Phare\Support\helpers.php`:**
+    `encrypter(): Crypt` (return type is `Phalcon\Encryption\Crypt` —
+    helper PUBLISHES the Phalcon class in its return type);
+    `encrypt(string $value, ?string $key = null): string` →
+    `encrypter()->encryptBase64($value, $key)`;
+    `decrypt(string $value, ?string $key = null): string` →
+    `encrypter()->decryptBase64($value, $key)`;
+    `bcrypt(string, ?string): string` → `security()->hash(...)`
+    (already covered by US-C03 — flagged here because it pivots off
+    the Phalcon `security` slot wired in this same provider);
+    `hash(string, ?string): string` → `encrypter()->encryptBase64`
+    (mis-named — `hash()` is not a hash, it's an encrypted ciphertext;
+    Laravel has no such helper).
+  - **PRD path note:** the AC `src/Phare/Encryption/` is correct;
+    no Encrypter wrapper hides under `Phare\Crypt`, `Phare\Security`,
+    or `Phare\Auth`.
+
+- 期待 (Expected) — Laravel 13 reference
+  `src/Illuminate/Encryption/`:
+  - **Encrypter (concrete) implements `Contracts\Encryption\Encrypter`
+    AND `Contracts\Encryption\StringEncrypter`** (Phare publishes
+    neither; first leak shape — no-contracts, same family as A06/A07/
+    B06/B07/C01/C02/C03).
+  - **`Contracts\Encryption\Encrypter` (5 methods):**
+    `encrypt(#[\SensitiveParameter] $value, $serialize = true)`,
+    `decrypt($payload, $unserialize = true)`, `getKey()`,
+    `getAllKeys()`, `getPreviousKeys()`.
+  - **`Contracts\Encryption\StringEncrypter` (2 methods):**
+    `encryptString(#[\SensitiveParameter] $value)`,
+    `decryptString($payload)`.
+  - **`Encrypter` concrete public surface (12) — ALL `$key`/`$value`/
+    `$payload` params carry `#[\SensitiveParameter]`:**
+    - `__construct($key, $cipher = 'aes-128-cbc')` — 128-CBC default.
+    - `static supported($key, $cipher): bool` — public probe (Phare
+      has it as protected `validateKey` and throws instead).
+    - `static generateKey($cipher): string` — **STATIC**, returns raw
+      bytes (Phare has BOTH `generateKey` non-static and
+      `generateKeyString` static — opposite of Laravel's shape).
+    - `encrypt(#[\SensitiveParameter] $value, $serialize = true)`
+    - `encryptString(#[\SensitiveParameter] $value)`
+    - `decrypt($payload, $unserialize = true)` — **iterates over
+      `getAllKeys()`** for key-rotation decrypt fallback.
+    - `decryptString($payload)`
+    - `static appearsEncrypted($value): bool` — Phare missing.
+    - `getKey()`, `getAllKeys()`, `getPreviousKeys()`,
+      `previousKeys(array $keys): $this` — entire key-rotation API
+      (Phare missing all 4).
+  - **Wire-format additions on Laravel:**
+    (a) `encrypt()` always emits BOTH `mac` and `tag` fields (mac
+        is `''` for AEAD ciphers, tag is `''` for non-AEAD); JSON
+        is encoded with `JSON_UNESCAPED_SLASHES`.
+    (b) `validPayload()` validates that `base64_decode($payload['iv'])`
+        has length exactly `openssl_cipher_iv_length(strtolower(
+        $this->cipher))` — Phare omits this length check; truncated
+        / oversized IVs are accepted silently.
+    (c) `validPayload()` also accepts payloads where `tag` is absent
+        as long as the rest is well-formed.
+    (d) `ensureTagIsValid($tag)` enforces AEAD tag length = 16 bytes
+        and refuses non-AEAD payloads that contain a tag — Phare
+        does neither check.
+    (e) `decrypt()` walks `getAllKeys()` so previous keys can still
+        decrypt legacy ciphertext.
+    (f) cipher comparisons all run through `strtolower(...)` so
+        `'AES-256-CBC'` is accepted.
+  - **`EncryptionServiceProvider`:** binds `'encrypter'` to
+    `new Encrypter($this->parseKey($config), $config['cipher'])` then
+    `->previousKeys([...])`. `parseKey()` strips a `base64:` prefix
+    and `base64_decode`s the rest. Throws `MissingAppKeyException` if
+    `config('app.key')` is empty. Also signs `SerializableClosure`
+    with the same key when that package is present.
+  - **`MissingAppKeyException`:** dedicated exception (Phare missing).
+  - **Helper surface:** `encrypt($value, $serialize = true)`,
+    `decrypt($payload, $unserialize = true)` route through the
+    `'encrypter'` slot — both return Laravel's `Encrypter` payload
+    shape (not Phalcon `Crypt::encryptBase64`). NO `encrypter()`
+    helper in Laravel 13.
+
+- 差分 (Gaps):
+
+  Phalcon leaks:
+  - ➀ **Provider-boundary contract-coupling leak** (recurs A07/
+    C01/C02/C03 — fifth instance): `Phare\Providers\EncrypterProvider
+    implements Phalcon\Di\ServiceProviderInterface`. The subsystem
+    namespace itself is Phalcon-clean by inheritance and namespace;
+    the leak lives in the provider exactly where the recurring
+    pattern predicts.
+  - ➁ **Published-dependency leak** (recurs B05 AbstractPdo, B06
+    AbstractPdo, C01 ConfigInterface, C03 DiInterface — fifth
+    instance):
+    `EncrypterProvider::register(Application|DiInterface $app): void`
+    publishes `\Phalcon\Di\DiInterface` in the public union.
+  - ➂ **Container-slot leak (NEW shape for C04 — distinct from §1/§2).**
+    The `'encrypter'` container slot is bound to
+    `Phalcon\Encryption\Crypt` (not `Phare\Encryption\Encrypter`).
+    Every consumer that does `app('encrypter')` or `make('encrypter')`
+    receives the raw Phalcon class with Phalcon's `encryptBase64` /
+    `decryptBase64` shape (NOT Laravel's `encrypt`/`decrypt` payload
+    shape). This is the DUAL-STACK pattern from A07 (BladeView
+    Stack 2 vs the Phare View stack) repeating verbatim:
+    Stack 1 = `Phare\Encryption\Encrypter` (Phalcon-clean class,
+    not wired); Stack 2 = `Phalcon\Encryption\Crypt` (wired into
+    `'encrypter'`, drives the helpers). Stack 1 is essentially dead
+    except for the encrypted-cast call site in
+    `Eloquent\Concerns\HasAttributes::resolveAttributeEncrypter()`.
+    Record as the **DI-slot leak** family alongside §1/§2.
+  - ➃ **Helper-return-type leak (NEW shape for C04).**
+    `Phare\Support\helpers.php::encrypter(): Crypt` — global helper
+    publishes `Phalcon\Encryption\Crypt` in its return type. First
+    helper-level signature leak recorded in the audit (distinct from
+    a binding leak because it is the helper, not the container, that
+    publishes the type).
+  - ➄ **Provider-internal calls** (informational, not a new leak
+    class): the closure body of the `'encrypter'` binding instantiates
+    `new Crypt()->setKey($key)->setCipher(...)` — drives Phalcon
+    Crypt's fluent API. Same shape as A07 BladeView Stack 2.
+  - The `Phare\Encryption\Encrypter` class itself, `EncryptException`,
+    `DecryptException` are **Phalcon-clean by namespace AND
+    inheritance** — same shape as A07 Stack 1 / C03 Hashing
+    namespace.
+
+  Missing (vs Laravel `Contracts\Encryption\Encrypter` +
+  `StringEncrypter` + concrete `Encrypter` + provider):
+  - **Contracts:** no `Phare\Contracts\Encryption\Encrypter`, no
+    `Phare\Contracts\Encryption\StringEncrypter`, no
+    `Phare\Contracts\Encryption\EncryptException`/`DecryptException`.
+    Continues the no-contracts pattern (A06/A07/B06/B07/C01/C02/C03).
+  - **Key rotation (entire surface — 4 public methods + internal
+    plumbing):** `$previousKeys` field, `previousKeys(array $keys): $this`,
+    `getAllKeys(): array`, `getPreviousKeys(): array`, and the
+    `foreach ($this->getAllKeys() as $key)` loop inside `decrypt()`
+    that tries each key. Key rotation is **unreachable** in Phare —
+    a key change is a hard cut-over that strands every existing
+    ciphertext. Flag as a new defect class for S01: **key-rotation
+    unreachable** (distinct from logout-blast-radius and infinite-
+    rehash-loop, all C-area runtime-only defects).
+  - **Static probe:** `static supported($key, $cipher): bool` — no
+    pre-construction key/cipher validation; callers must `try { new
+    Encrypter(...) } catch (\InvalidArgumentException)`.
+  - **Static detector:** `static appearsEncrypted($value): bool` —
+    payload-shape probe used by the `encrypted` cast machinery
+    (Laravel's `HasAttributes` consults it).
+  - **`ensureTagIsValid()` AEAD-tag length check** (16 bytes) and
+    refusal of non-AEAD payloads carrying a `tag` — Phare's AEAD
+    branch never validates tag length, so a truncated AEAD payload
+    can reach OpenSSL with a malformed tag.
+  - **IV length check in `validPayload()`** — `strlen(base64_decode(
+    $payload['iv'])) === openssl_cipher_iv_length(...)`. Phare
+    accepts any string for `iv` and only fails when OpenSSL itself
+    rejects, producing an unspecific `DecryptException`.
+  - **`MissingAppKeyException`** dedicated exception (Phare throws
+    `\InvalidArgumentException` from `validateKey()`, but the missing-
+    key case is currently silently routed to the same exception with
+    a length message — the more specific signal is gone).
+  - **`#[\SensitiveParameter]`** on every `$key` / `$value` /
+    `$payload` / `$iv` parameter — Phare has ZERO occurrences in
+    `Encrypter.php`. Same security-defect family as C03 (a):
+    plaintext values + the AES key leak into stack traces, crash
+    reports, and error-handler frames.
+  - **`Encrypter::__construct(#[\SensitiveParameter] $key, $cipher
+    = 'aes-128-cbc')`** — Phare's default cipher is `'aes-256-cbc'`,
+    which is **stronger** but **wire-incompatible** with a Laravel
+    app that did not explicitly set `app.cipher` (a default-key
+    install on each side produces non-interchangeable ciphertext).
+    Record as a porting hazard.
+  - **`strtolower($cipher)` everywhere Laravel does it** — Phare's
+    `validateKey()` and `isAEAD()` lookups are case-sensitive on
+    `$cipher`. `'AES-256-CBC'` (a common copy-paste from docs) is
+    rejected by Phare but accepted by Laravel.
+  - **JSON_UNESCAPED_SLASHES flag** on the payload `json_encode` —
+    Phare's encrypt() omits it; the cosmetic difference is benign
+    for OpenSSL but the resulting payload differs byte-for-byte from
+    a Laravel-produced one for the same plaintext + iv + key, which
+    means any logged-ciphertext comparison across stacks fails even
+    when the underlying data is equal.
+  - **`json_encode` failure check after encode** — Laravel re-checks
+    `json_last_error()` after `json_encode()` and throws
+    `EncryptException('Could not encrypt the data.')`. Phare skips
+    this; on JSON encode failure Phare's `base64_encode` is fed
+    `false`, which silently produces an empty payload. Defect.
+  - **`Encrypter` does NOT implement `EncrypterContract` or
+    `StringEncrypter`** — declared type checks (`instanceof
+    EncrypterContract`) elsewhere in any port would fail.
+  - **Service provider:** no Phare wrapper exists; the provider
+    binds the Phalcon class directly. Missing: `'encrypter'` →
+    `Phare\Encryption\Encrypter` binding, `parseKey()` with the
+    `base64:` prefix handling, `previousKeys` config wiring,
+    `MissingAppKeyException` on empty key, `SerializableClosure`
+    signing hook (also touches Q01 Queue serialisation).
+  - **Helpers:** Laravel has no `encrypter()` helper; the Phare
+    `encrypter()` helper is gratuitous AND publishes a Phalcon type
+    (➃). Also missing: an `encrypted` Blade directive (cross-cuts
+    A07) and the `Crypt` facade (cross-cuts US-E05).
+
+  Type mismatch:
+  - Phare public surface is fully type-hinted (`string`, `mixed`,
+    `bool`); Laravel's is untyped on most params. Record as
+    inverted-from-the-usual direction: porting Laravel → Phare
+    tightens types (safe direction), Phare → Laravel signature
+    parity would require removing the type hints (no real cost).
+    NOTE: this is the FIRST audit section where Phare's stricter
+    typing is the porting hazard rather than the asset — because
+    `static generateKey($cipher)` in Laravel returns raw bytes vs
+    Phare's INSTANCE `generateKey(...)` returning raw bytes PLUS a
+    static `generateKeyString(...)` returning base64. The same
+    function name `generateKey` resolves to **instance vs static**
+    across the two stacks.
+  - `getCipher(): string` — Phare-only getter with no Laravel
+    counterpart; `getKey()` exists in both, `getCipher` is a
+    one-way extension.
+  - `extend` / driver factories: N/A — Encrypter is a single class,
+    not a Manager. No `EncrypterManager` (no multi-cipher manager
+    surface). Laravel also has none — not a gap, but worth noting
+    that the encrypter has no driver indirection in either stack.
+
+  Behavioural defects (NEW classes for US-S01 synthesis where flagged):
+  - §1 **Key-rotation unreachable** (NEW C-area defect class):
+    no `$previousKeys` plumbing in `Phare\Encryption\Encrypter`
+    AND the `'encrypter'` slot resolves to Phalcon `Crypt`, which
+    has no previous-keys API either. A `APP_KEY` rotation in
+    production strands every existing encrypted cell, encrypted
+    cookie, and `Encryptable` queue payload. Distinct from C02's
+    logout-blast-radius (those are auth-side) and C03's infinite-
+    rehash (hash-side).
+  - §2 **Dual-stack drift**: encrypted-cast attributes (`HasAttributes`)
+    are encrypted by `Phare\Encryption\Encrypter` (Stack 1, AES-256-CBC
+    by default, Laravel-shape payload), while everything routed
+    through `encrypter()`/`encrypt()`/`decrypt()` helpers is
+    encrypted by `Phalcon\Encryption\Crypt` (Stack 2, `encryptBase64`
+    shape). The two stacks produce **incompatible ciphertext** —
+    a cell written by the cast cannot be decrypted by the helper
+    and vice versa. Recurs the A07 dual-stack drift exactly.
+  - §3 **Helper `hash($value, $key)` returns encrypted ciphertext,
+    not a hash** — `return encrypter()->encryptBase64($value, $key);`.
+    Misnamed at the boundary (PHP also has a built-in `hash()`);
+    callers reasoning about a hash get an encrypted blob that
+    cannot be compared in constant time AND requires the key to
+    "verify". Recurs the silent-config-dropthrough family (C03 §2)
+    as a NAMING defect — pattern note: any helper whose body reaches
+    for `encrypter()` should be re-grepped for this shape.
+  - §4 **`encrypt()` JSON-encode failure path silently produces an
+    empty payload** — no `json_last_error()` re-check between
+    `json_encode(...)` and `base64_encode(...)`. The downstream
+    `decrypt` raises a payload-shape error, not an encrypt error,
+    which buries the root cause. Stub-defect family (recurs A05
+    `view()` debug stub, B02 raw-SQL bypass, etc., but on the
+    error-handling axis).
+  - §5 **AEAD tag-length not validated**: no `ensureTagIsValid`.
+    A truncated or oversized AEAD `tag` is passed straight to
+    OpenSSL and fails with a generic `Could not decrypt` rather
+    than a specific tag-shape `DecryptException`. Security-defect
+    family extends from C03 (a: missing `#[\SensitiveParameter]`,
+    d: bcrypt 72-byte limit).
+  - §6 **IV byte-length not validated**: no
+    `strlen(base64_decode($iv)) === openssl_cipher_iv_length(...)`
+    in `validPayload`. Caller-supplied payload with a 12-byte IV
+    on AES-CBC silently routes to `openssl_decrypt` which clamps/
+    pads — undefined-behaviour surface. Same security family.
+  - §7 **`#[\SensitiveParameter]` absent** on `__construct($key)`,
+    `encrypt($value)`, `encryptString($value)`, `validateKey($key,
+    $cipher)`, `createMac($iv, $encrypted)`, `decrypt($payload)` —
+    plaintext + key leak into stack traces. Direct continuation of
+    C03 (a).
+  - §8 **`generateKey` shape mismatch — STATIC vs INSTANCE**:
+    Phare's instance `generateKey(...)` collides with Laravel's
+    static `generateKey($cipher)`. Calling
+    `Phare\Encryption\Encrypter::generateKey('aes-256-cbc')`
+    statically raises a non-static-method warning under PHP 8.x.
+    Add to the running list of same-name/opposite-shape porting
+    hazards — running list now: B01 `Model::create`, B02
+    `Builder::paginate`, B05 `Migrator::rollback`, B06
+    `Factory::for`, B07 `LengthAwarePaginator::simplePaginate`,
+    C01 `Authenticatable::getAuthIdentifierName`/`getAuthPasswordName`,
+    C02 `Manager::login`, C03 `HashManager::extend`, and now
+    **C04 `Encrypter::generateKey` (instance vs static)**.
+  - §9 **Cipher case-sensitive**: `'AES-256-CBC'` rejected by
+    `validateKey()`; Laravel accepts. Porting hazard.
+  - §10 **Provider closure swallows malformed `app.key`**:
+    `[$method, $encoded] = explode(':', $appKey);` — if `app.key`
+    has no `:` separator (a raw key with no `base64:` prefix), this
+    raises a destructure warning and assigns `null` to `$encoded`,
+    which then `substr($encoded, ...)` returns `false`, fed to
+    `base64_decode(false)` → empty string → `setKey('')` → Phalcon
+    crypt throws at first use with a generic error. Distinct from
+    Laravel's explicit `MissingAppKeyException` path.
+  - §11 **`encrypter` slot does NOT call `previousKeys()`** — even
+    if the Phare\Encryption\Encrypter were bound here, the provider
+    closure has no `->previousKeys($config['previous_keys'] ?? [])`
+    line. Wiring gap.
+  - §12 **`SerializableClosure` signing not wired**: the provider
+    does not call `SerializableClosure::setSecretKey($key)`. Queue
+    serialisation (US-D01) cannot rely on signed closures here.
+    Cross-cuts US-D01.
+
+  Cross-area cuts (record for US-S01):
+  - US-C02 §3 + §4 (Session): the recaller cookie (currently
+    missing) needs `Encrypter::encrypt(...)` for the
+    `{id}|{token}|{password}` payload — blocked on this story
+    introducing the Phare encrypter binding.
+  - US-C05 (CSRF): encrypted cookies for the CSRF token flow need
+    the same binding.
+  - US-D01 (Queue): `SerializableClosure::setSecretKey` (provider
+    body) is the queue-side hook for signed closure payloads.
+  - US-E02 (Service providers): `EncrypterProvider` rewrite is
+    blocked on a Phare ServiceProvider base + DeferrableProvider
+    contract.
+  - US-E03 (Config): `parseKey()` + `MissingAppKeyException` need
+    the Phare Config wrapper to read `app.key` / `app.cipher` /
+    `app.previous_keys`.
+  - US-E05 (Facades): no `Crypt` facade.
+  - US-A07 (Blade): no `@encrypted` directive — re-grep at A07 follow-up.
+
+- 工数感 (Effort: **M**):
+
+  - Larger surface than C03 (Hashing) by API breadth (12 vs 8 public
+    methods) but the concrete class is already ~95% Laravel-shaped
+    — the bulk of the work is **wiring**, not rewriting:
+    (1) publish `Phare\Contracts\Encryption\Encrypter` (5 methods)
+        and `Phare\Contracts\Encryption\StringEncrypter` (2 methods)
+        with `#[\SensitiveParameter]` on every `$key`/`$value`/
+        `$payload` parameter; make `Phare\Encryption\Encrypter`
+        implement BOTH;
+    (2) add the key-rotation surface: `$previousKeys` field,
+        `previousKeys(array $keys): $this`, `getAllKeys(): array`,
+        `getPreviousKeys(): array`, and rewrite `decrypt()` to
+        `foreach ($this->getAllKeys() ...)` (closes §1 key-rotation
+        unreachable);
+    (3) add `static supported($key, $cipher): bool`,
+        `static generateKey($cipher): string` (Laravel-shape STATIC)
+        — decide whether to RETIRE the instance `generateKey` (BC
+        break) or keep both with a deprecation note (§7 candidate
+        for S01); add `static appearsEncrypted($value): bool`;
+    (4) add `ensureTagIsValid($tag)` and the AEAD/non-AEAD branches;
+        add IV byte-length check inside `validPayload()`; add
+        `json_last_error()` check after `json_encode` (closes §4/§5/
+        §6);
+    (5) lowercase every `$cipher` lookup (`strtolower($cipher)` in
+        `validateKey`, `isAEAD`, `getJsonPayload`);
+    (6) add `#[\SensitiveParameter]` to every relevant param (closes
+        §7) — security parity with C03;
+    (7) add `MissingAppKeyException` and route empty-key from
+        `validateKey()` through it;
+    (8) rewrite `EncrypterProvider`:
+        (a) extend `Phare\Support\ServiceProvider implements
+            DeferrableProvider` (cross-cuts US-E02), drop
+            `Phalcon\Di\ServiceProviderInterface`;
+        (b) bind `'encrypter'` to `Phare\Encryption\Encrypter`
+            (not `Phalcon\Encryption\Crypt`) — **DECISION POINT
+            for S01**: is the dual stack intentional (e.g., Phalcon
+            Crypt kept for `encryptBase64`-format legacy data) or
+            should Stack 2 be retired wholesale? Recommended retire;
+        (c) add `parseKey()` with `base64:` prefix handling and
+            `MissingAppKeyException` on empty key (closes §10);
+        (d) add `->previousKeys($config['app.previous_keys'] ?? [])`
+            wiring (closes §11);
+        (e) add `SerializableClosure::setSecretKey($key)` when the
+            package is present (closes §12 — cross-cuts US-D01);
+        (f) decide whether `'random'` and `'security'` bindings
+            stay (currently Phalcon-typed) or migrate — they belong
+            under US-C03 + a future Random subsystem audit;
+    (9) retire or rewrite `Phare\Support\helpers.php::encrypter()`:
+        either delete (Laravel has no such helper) or change return
+        type to `Phare\Contracts\Encryption\Encrypter` (closes ➃);
+        rewrite `encrypt()` / `decrypt()` / `hash()` helpers to go
+        through the new `'encrypter'` binding instead of
+        `encryptBase64`/`decryptBase64`. Rename or DELETE the
+        `hash()` helper — it is misnamed and PHP-builtin-colliding
+        (closes §3);
+    (10) add the `Crypt` facade under `Phare\Support\Facades\`
+         (cross-cuts US-E05);
+    (11) cut over `HasAttributes::resolveAttributeEncrypter()` to
+         resolve through the new container binding instead of `new
+         Encrypter(...)` — closes §2 dual-stack drift.
+
+  - Blocked partly on:
+    US-E02 (Phare ServiceProvider base + DeferrableProvider — same
+    block as C03 (10));
+    US-E03 (Config wrapper for `app.key` / `app.cipher` /
+    `app.previous_keys`);
+    US-D01 (queue side of `SerializableClosure::setSecretKey`).
+  - Cross-cuts: US-C02 §3/§4 (recaller cookie), US-C05 (CSRF
+    encrypted cookie), US-A07 (`@encrypted` Blade directive),
+    US-E05 (Crypt facade).
+
