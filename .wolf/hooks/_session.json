@@ -1,72 +1,12 @@
 {
-  "session_id": "session-2026-05-27-1102",
-  "started": "2026-05-27T02:02:32.331Z",
-  "files_read": {
-    "/opt/framework/tasks/prd.json": {
-      "count": 1,
-      "tokens": 13230,
-      "first_read": "2026-05-27T02:02:46.767Z"
-    },
-    "/opt/framework/tasks/progress.txt": {
-      "count": 2,
-      "tokens": 17059,
-      "first_read": "2026-05-27T02:02:50.731Z"
-    },
-    "/opt/framework/src/Phare/Middleware/VerifyCsrfToken.php": {
-      "count": 1,
-      "tokens": 755,
-      "first_read": "2026-05-27T02:03:10.428Z"
-    },
-    "/opt/framework/src/Phare/Security/Csrf.php": {
-      "count": 1,
-      "tokens": 662,
-      "first_read": "2026-05-27T02:03:12.872Z"
-    },
-    "/opt/laravel-framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestForgery.php": {
-      "count": 1,
-      "tokens": 0,
-      "first_read": "2026-05-27T02:03:17.071Z"
-    },
-    "/opt/framework/docs/audit-area-c.md": {
-      "count": 2,
-      "tokens": 22355,
-      "first_read": "2026-05-27T02:04:04.088Z"
-    }
-  },
-  "files_written": [
-    {
-      "file": "/opt/framework/docs/audit-area-c.md",
-      "action": "edit",
-      "tokens": 5841,
-      "at": "2026-05-27T02:06:58.627Z"
-    },
-    {
-      "file": "/opt/framework/tasks/prd.json",
-      "action": "edit",
-      "tokens": 1004,
-      "at": "2026-05-27T02:07:25.703Z"
-    },
-    {
-      "file": "/opt/framework/tasks/progress.txt",
-      "action": "edit",
-      "tokens": 1174,
-      "at": "2026-05-27T02:07:56.874Z"
-    },
-    {
-      "file": "/opt/framework/tasks/progress.txt",
-      "action": "edit",
-      "tokens": 2512,
-      "at": "2026-05-27T02:08:59.649Z"
-    }
-  ],
-  "edit_counts": {
-    "docs/audit-area-c.md": 1,
-    "tasks/prd.json": 1,
-    "tasks/progress.txt": 2
-  },
-  "anatomy_hits": 5,
-  "anatomy_misses": 1,
-  "repeated_reads_warned": 2,
+  "session_id": "session-2026-05-27-1111",
+  "started": "2026-05-27T02:11:59.947Z",
+  "files_read": {},
+  "files_written": [],
+  "edit_counts": {},
+  "anatomy_hits": 0,
+  "anatomy_misses": 0,
+  "repeated_reads_warned": 0,
   "cerebrum_warnings": 0,
   "stop_count": 0
 }
