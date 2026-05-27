@@ -176,6 +176,86 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-26T20:32:15.265Z"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-05-27T01:52:53.828Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "docs/audit-area-c.md",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-27T01:52:53.828Z"
+    },
+    {
+      "id": "bug-013",
+      "timestamp": "2026-05-27T01:53:16.564Z",
+      "error_message": "Significant refactor of ",
+      "file": "tasks/prd.json",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 14→14 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-27T01:53:16.564Z"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-05-27T01:53:46.918Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "tasks/progress.txt",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block | Also: ## 2026-05-27 - US-C03 Audit Hashing; - Diffed `src/Phare/Hashing/` (6 files) + `Providers/HashSer",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "txt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-27T01:54:28.390Z"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-05-27T02:00:26.662Z",
+      "error_message": "Missing error handling in name",
+      "file": "docs/audit-area-c.md",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-27T02:00:26.662Z"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-05-27T02:00:47.209Z",
+      "error_message": "Significant refactor of ",
+      "file": "tasks/prd.json",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→6 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-27T02:00:47.209Z"
     }
   ]
 }
