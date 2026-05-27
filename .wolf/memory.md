@@ -426,3 +426,13 @@
 
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
+
+## Session: 2026-05-27 10:47
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:52 | Edited docs/audit-area-c.md | added nullish coalescing | ~5220 |
+| 10:53 | Edited tasks/prd.json | 14→14 lines | ~914 |
+| 10:53 | Edited tasks/progress.txt | modified hazards() | ~1012 |
+| 10:54 | Edited tasks/progress.txt | modified cluster() | ~1548 |
+| 11:30 | US-C03 Audit Hashing | docs/audit-area-c.md +320L, tasks/prd.json, tasks/progress.txt | ### Hashing appended; Effort M; subsystem namespace Phalcon-CLEAN, 2 leaks in HashServiceProvider only; 5 security defects (rounds=10, no #[\SensitiveParameter], no $verifyAlgorithm, no bcrypt $limit, no sodium thread override → infinite-rehash); silent-config-dropthrough; argon/argon2i name divergence | ~12000 |
