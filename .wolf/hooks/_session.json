@@ -8,8 +8,8 @@
       "first_read": "2026-05-27T15:23:33.974Z"
     },
     "/opt/framework/docs/audit-area-c.md": {
-      "count": 3,
-      "tokens": 33162,
+      "count": 4,
+      "tokens": 38777,
       "first_read": "2026-05-27T15:26:00.368Z"
     },
     "/opt/framework/tasks/prd.json": {
@@ -41,6 +41,56 @@
       "count": 1,
       "tokens": 581,
       "first_read": "2026-05-27T15:39:27.997Z"
+    },
+    "/opt/framework/src/Phare/Queue/QueueInterface.php": {
+      "count": 1,
+      "tokens": 159,
+      "first_read": "2026-05-27T15:43:04.474Z"
+    },
+    "/opt/framework/src/Phare/Queue/Job.php": {
+      "count": 1,
+      "tokens": 1310,
+      "first_read": "2026-05-27T15:43:07.223Z"
+    },
+    "/opt/framework/src/Phare/Queue/QueueManager.php": {
+      "count": 1,
+      "tokens": 2151,
+      "first_read": "2026-05-27T15:43:09.947Z"
+    },
+    "/opt/framework/src/Phare/Queue/SyncQueue.php": {
+      "count": 1,
+      "tokens": 348,
+      "first_read": "2026-05-27T15:43:12.826Z"
+    },
+    "/opt/framework/src/Phare/Queue/DatabaseQueue.php": {
+      "count": 1,
+      "tokens": 940,
+      "first_read": "2026-05-27T15:43:15.849Z"
+    },
+    "/opt/framework/src/Phare/Queue/RedisQueue.php": {
+      "count": 1,
+      "tokens": 1401,
+      "first_read": "2026-05-27T15:43:20.639Z"
+    },
+    "/opt/framework/src/Phare/Queue/Queueable.php": {
+      "count": 1,
+      "tokens": 279,
+      "first_read": "2026-05-27T15:43:26.667Z"
+    },
+    "/opt/framework/src/Phare/Queue/QueueServiceProvider.php": {
+      "count": 1,
+      "tokens": 541,
+      "first_read": "2026-05-27T15:43:29.808Z"
+    },
+    "/opt/framework/src/Phare/Queue/Connectors/ConnectorInterface.php": {
+      "count": 1,
+      "tokens": 59,
+      "first_read": "2026-05-27T15:43:32.607Z"
+    },
+    "/opt/framework/src/Phare/Queue/Connectors/DatabaseConnector.php": {
+      "count": 1,
+      "tokens": 130,
+      "first_read": "2026-05-27T15:43:35.414Z"
     }
   },
   "files_written": [
@@ -85,17 +135,36 @@
       "action": "edit",
       "tokens": 1365,
       "at": "2026-05-27T15:41:49.282Z"
+    },
+    {
+      "file": "/opt/framework/docs/audit-area-d.md",
+      "action": "create",
+      "tokens": 7283,
+      "at": "2026-05-27T15:46:47.506Z"
+    },
+    {
+      "file": "/opt/framework/tasks/prd.json",
+      "action": "edit",
+      "tokens": 788,
+      "at": "2026-05-27T15:47:10.482Z"
+    },
+    {
+      "file": "/opt/framework/tasks/progress.txt",
+      "action": "edit",
+      "tokens": 2486,
+      "at": "2026-05-27T15:48:12.063Z"
     }
   ],
   "edit_counts": {
     "docs/audit-area-c.md": 2,
-    "tasks/prd.json": 2,
-    "tasks/progress.txt": 2,
-    "docs/completion-criteria.md": 1
+    "tasks/prd.json": 3,
+    "tasks/progress.txt": 3,
+    "docs/completion-criteria.md": 1,
+    "docs/audit-area-d.md": 1
   },
-  "anatomy_hits": 7,
+  "anatomy_hits": 17,
   "anatomy_misses": 1,
-  "repeated_reads_warned": 3,
+  "repeated_reads_warned": 4,
   "cerebrum_warnings": 0,
   "stop_count": 0
 }
