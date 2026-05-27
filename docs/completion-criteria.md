@@ -141,6 +141,14 @@ Deferred — document, do not build:
 - Horizon-style queue dashboard
 - Full Laravel package-discovery ecosystem
 - Vite/asset pipeline beyond existing Laravel Mix setup
+- **Sanctum (Phare `Auth/Sanctum/`)** — `laravel/sanctum` is an official
+  Laravel package but not part of Illuminate (§3 reference path). Per
+  US-C08 (2026-05-28), deferred to a future "Area F — Official Laravel
+  packages" milestone. Forward-visibility notes recorded in
+  `docs/audit-area-c.md` § Sanctum / Passkeys.
+- **Passkeys (Phare `Auth/Passkeys/`)** — Phare-original subsystem; Laravel
+  ships no passkey/WebAuthn primitive in core or official packages. Per
+  US-C08 (2026-05-28), no parity diff is meaningful; defer indefinitely.
 - Any subsystem not listed in §3
 
 Re-scope decision: if an item proves too costly, move it from §4 to §7 with a written
