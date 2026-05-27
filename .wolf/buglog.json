@@ -272,6 +272,38 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-27T02:07:25.705Z"
+    },
+    {
+      "id": "bug-018",
+      "timestamp": "2026-05-27T11:24:10.602Z",
+      "error_message": "Missing guard clause",
+      "file": "docs/audit-area-c.md",
+      "root_cause": "No early return/throw for edge case: $this->cache->has($this->cleanRateLimiterKey($key",
+      "fix": "Added guard clause: if ($this->cache->has($this->cleanRateLimite)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-27T11:24:10.602Z"
+    },
+    {
+      "id": "bug-019",
+      "timestamp": "2026-05-27T11:24:53.275Z",
+      "error_message": "Significant refactor of ",
+      "file": "tasks/prd.json",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 14→14 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-27T11:24:53.275Z"
     }
   ]
 }
