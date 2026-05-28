@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 649455,
-    "total_reads": 186,
-    "total_writes": 50,
-    "total_sessions": 103,
-    "anatomy_hits": 143,
-    "anatomy_misses": 43,
-    "repeated_reads_blocked": 21,
-    "estimated_savings_vs_bare_cli": 272101
+    "total_tokens_estimated": 916427,
+    "total_reads": 320,
+    "total_writes": 70,
+    "total_sessions": 107,
+    "anatomy_hits": 221,
+    "anatomy_misses": 99,
+    "repeated_reads_blocked": 43,
+    "estimated_savings_vs_bare_cli": 581931
   },
   "sessions": [
     {
@@ -1731,6 +1731,978 @@
         "writes_count": 4,
         "repeated_reads_blocked": 2,
         "anatomy_lookups": 8
+      }
+    },
+    {
+      "id": "session-2026-05-28-1526",
+      "started": "2026-05-28T06:26:17.454Z",
+      "ended": "2026-05-28T06:36:26.151Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 16941,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Dispatcher.php",
+          "tokens_estimated": 3373,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/Dispatcher.php",
+          "tokens_estimated": 489,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/Dispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/Dispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/NullDispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/CallQueuedListener.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/QueuedClosure.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Event.php",
+          "tokens_estimated": 37,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Listener.php",
+          "tokens_estimated": 30,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/EventServiceProvider.php",
+          "tokens_estimated": 775,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/ShouldBroadcast.php",
+          "tokens_estimated": 67,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/ShouldDispatchAfterCommit.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/ShouldHandleEventsAfterCommit.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/InvokeQueuedClosure.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/EventServiceProvider.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 6372,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Foundation/Events/DispatcherProvider.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EventsManagerProvider.php",
+          "tokens_estimated": 144,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DispatcherProvider.php",
+          "tokens_estimated": 373,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/ShouldDispatchAfterCommit.php",
+          "tokens_estimated": 22,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 5784,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 570,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 28623,
+        "output_tokens_estimated": 6354,
+        "reads_count": 21,
+        "writes_count": 2,
+        "repeated_reads_blocked": 3,
+        "anatomy_lookups": 11
+      }
+    },
+    {
+      "id": "session-2026-05-28-1526",
+      "started": "2026-05-28T06:26:17.454Z",
+      "ended": "2026-05-28T06:43:50.757Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 17325,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Dispatcher.php",
+          "tokens_estimated": 3373,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/Dispatcher.php",
+          "tokens_estimated": 489,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/Dispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/Dispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/NullDispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/CallQueuedListener.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/QueuedClosure.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Event.php",
+          "tokens_estimated": 37,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Listener.php",
+          "tokens_estimated": 30,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/EventServiceProvider.php",
+          "tokens_estimated": 775,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/ShouldBroadcast.php",
+          "tokens_estimated": 67,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/ShouldDispatchAfterCommit.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/ShouldHandleEventsAfterCommit.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/InvokeQueuedClosure.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/EventServiceProvider.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 6372,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Foundation/Events/DispatcherProvider.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EventsManagerProvider.php",
+          "tokens_estimated": 144,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DispatcherProvider.php",
+          "tokens_estimated": 373,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/ShouldDispatchAfterCommit.php",
+          "tokens_estimated": 22,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastManager.php",
+          "tokens_estimated": 1318,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/Broadcaster.php",
+          "tokens_estimated": 875,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/PusherBroadcaster.php",
+          "tokens_estimated": 747,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/RedisBroadcaster.php",
+          "tokens_estimated": 593,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/LogBroadcaster.php",
+          "tokens_estimated": 221,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/NullBroadcaster.php",
+          "tokens_estimated": 117,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastEvent.php",
+          "tokens_estimated": 273,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/PendingBroadcast.php",
+          "tokens_estimated": 245,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Channel.php",
+          "tokens_estimated": 67,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/InteractsWithSockets.php",
+          "tokens_estimated": 95,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastServiceProvider.php",
+          "tokens_estimated": 193,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Broadcasting/Factory.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Broadcasting/Broadcaster.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/BroadcastManager.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/Broadcasters/Broadcaster.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 4075,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/PendingBroadcast.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/BroadcastEvent.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/BroadcastController.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/AnonymousEvent.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/PresenceChannel.php",
+          "tokens_estimated": 51,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/Channel.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 5784,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 570,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 5004,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 709,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 37877,
+        "output_tokens_estimated": 12067,
+        "reads_count": 43,
+        "writes_count": 4,
+        "repeated_reads_blocked": 5,
+        "anatomy_lookups": 24
+      }
+    },
+    {
+      "id": "session-2026-05-28-1526",
+      "started": "2026-05-28T06:26:17.454Z",
+      "ended": "2026-05-28T06:50:00.258Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 17846,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Dispatcher.php",
+          "tokens_estimated": 3373,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/Dispatcher.php",
+          "tokens_estimated": 489,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/Dispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/Dispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/NullDispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/CallQueuedListener.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/QueuedClosure.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Event.php",
+          "tokens_estimated": 37,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Listener.php",
+          "tokens_estimated": 30,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/EventServiceProvider.php",
+          "tokens_estimated": 775,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/ShouldBroadcast.php",
+          "tokens_estimated": 67,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/ShouldDispatchAfterCommit.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Events/ShouldHandleEventsAfterCommit.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/InvokeQueuedClosure.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Events/EventServiceProvider.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 6372,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Foundation/Events/DispatcherProvider.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EventsManagerProvider.php",
+          "tokens_estimated": 144,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DispatcherProvider.php",
+          "tokens_estimated": 373,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Events/Contracts/ShouldDispatchAfterCommit.php",
+          "tokens_estimated": 22,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastManager.php",
+          "tokens_estimated": 1318,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/Broadcaster.php",
+          "tokens_estimated": 875,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/PusherBroadcaster.php",
+          "tokens_estimated": 747,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/RedisBroadcaster.php",
+          "tokens_estimated": 593,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/LogBroadcaster.php",
+          "tokens_estimated": 221,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Broadcasters/NullBroadcaster.php",
+          "tokens_estimated": 117,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastEvent.php",
+          "tokens_estimated": 273,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/PendingBroadcast.php",
+          "tokens_estimated": 245,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/Channel.php",
+          "tokens_estimated": 67,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/InteractsWithSockets.php",
+          "tokens_estimated": 95,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastServiceProvider.php",
+          "tokens_estimated": 193,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Broadcasting/Factory.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Broadcasting/Broadcaster.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/BroadcastManager.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/Broadcasters/Broadcaster.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 4075,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/PendingBroadcast.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/BroadcastEvent.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/BroadcastController.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/AnonymousEvent.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/PresenceChannel.php",
+          "tokens_estimated": 51,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Broadcasting/Channel.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Notifications/NotificationManager.php",
+          "tokens_estimated": 1186,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Notifications/Notification.php",
+          "tokens_estimated": 865,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Notifications/Notifiable.php",
+          "tokens_estimated": 651,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Notifications/Channels/ChannelManager.php",
+          "tokens_estimated": 645,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Notifications/Channels/MailChannel.php",
+          "tokens_estimated": 527,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Notifications/Channels/DatabaseChannel.php",
+          "tokens_estimated": 527,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Notifications/Channels/SmsChannel.php",
+          "tokens_estimated": 525,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Notifications/Channels/SlackChannel.php",
+          "tokens_estimated": 469,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Notifications/Dispatcher.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Contracts/Notifications/Factory.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Notifications/ChannelManager.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Notifications/NotificationSender.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Notifications/Notification.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Notifications/RoutesNotifications.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Notifications/Channels/MailChannel.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Notifications/Channels/DatabaseChannel.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 5784,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 570,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 5004,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 709,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 7640,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 771,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 43793,
+        "output_tokens_estimated": 20478,
+        "reads_count": 59,
+        "writes_count": 6,
+        "repeated_reads_blocked": 6,
+        "anatomy_lookups": 32
+      }
+    },
+    {
+      "id": "session-2026-05-28-1926",
+      "started": "2026-05-28T10:26:01.889Z",
+      "ended": "2026-05-28T11:46:23.769Z",
+      "reads": [
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 29308,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 19838,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Scheduling/Event.php",
+          "tokens_estimated": 3319,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Scheduling/Schedule.php",
+          "tokens_estimated": 970,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Scheduling/CallbackEvent.php",
+          "tokens_estimated": 431,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Scheduling/ScheduleRunCommand.php",
+          "tokens_estimated": 365,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 25960,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Container/Container.php",
+          "tokens_estimated": 12350,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 401,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 116,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 4075,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/audit-area-d.md",
+          "tokens_estimated": 2238,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/docs/audit-area-e.md",
+          "tokens_estimated": 6241,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 558,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 561,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 2185,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/docs/audit-summary.md",
+          "tokens_estimated": 6651,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tasks/prd.json",
+          "tokens_estimated": 549,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tasks/progress.txt",
+          "tokens_estimated": 1664,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 97133,
+        "output_tokens_estimated": 20647,
+        "reads_count": 11,
+        "writes_count": 8,
+        "repeated_reads_blocked": 8,
+        "anatomy_lookups": 11
       }
     }
   ],
