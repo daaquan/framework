@@ -76,6 +76,11 @@ class Str
         $this->helper = new HelperFactory();
     }
 
+    public static function of(string $value): Stringable
+    {
+        return new Stringable($value);
+    }
+
     public static function __callStatic(string $name, array $arguments)
     {
         self::$instance ??= new self();

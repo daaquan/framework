@@ -956,6 +956,18 @@ if (!function_exists('object_get')) {
     }
 }
 
+// str()
+if (!function_exists('str')) {
+    function str(?string $string = null): \Phare\Collections\Stringable|string
+    {
+        if (is_null($string)) {
+            return \Phare\Collections\Str::random();
+        }
+
+        return \Phare\Collections\Str::of($string);
+    }
+}
+
 // preg_replace_array()
 if (!function_exists('preg_replace_array')) {
     /**
