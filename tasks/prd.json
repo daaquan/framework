@@ -363,8 +363,8 @@
         "No framework code changed"
       ],
       "priority": 24,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audit complete. ### Events section appended to docs/audit-area-d.md (~260 lines). Effort M-L, Risk CRITICAL. Phare Dispatcher 437 LOC / 16 pub methods vs Laravel 900 LOC / ~30 methods. Key gaps: (1) NO setQueueResolver -- ShouldQueue listeners run sync (silent feature drop). (2) NO broadcastEvent/shouldBroadcast -- ShouldBroadcast events skip broadcast (silent feature drop). (3) Dual-stack: $app['events'] (Phare) coexists with $app['eventsManager']/$app['dispatcher'] (Phalcon) -- 3rd dual-stack instance after A07/C04. (4) HasEvents trait resolves via Phalcon\\Di\\Di::getDefault() -- 4th subsystem-namespace Phalcon leak after C01/C07/D01. (5) Naming divergence: transaction resolver wired to 'dbManager' not 'db.transactions'. (6) Missing ShouldHandleEventsAfterCommit marker. (7) dispatchIf/dispatchUnless mislocated on dispatcher (Laravel puts them on Dispatchable trait). (8) listen() returns void (not chainable Collection); silently drops QueuedClosure. (9) subscribe() has fallback auto-wire via on<Event> methods (Phalcon convention, Laravel does not have this). NEW US-S01 defect class: MARKER-CONTRACT-WITHOUT-READER (ShouldBroadcast defined but never type-checked at runtime). Event class catalogs: Auth missing 7/13, Database missing 8/13, plus wholesale missing Cache/Mail/Notifications/Queue/Routing/Console event namespaces."
     },
     {
       "id": "US-D03",
@@ -378,8 +378,8 @@
         "No framework code changed"
       ],
       "priority": 25,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audit complete. ### Broadcasting section appended to docs/audit-area-d.md (~370 lines). Effort L, Risk HIGH. Phare 14 files / 714 LOC vs Laravel ~18 files / ~3000 LOC + 7 contracts (~24% LOC ratio). Key gaps: (1) BroadcastManager::queue() is SYNCHRONOUS despite name -- NEW US-S01 defect class METHOD-NAME-LIES. (2) Wildcard channel auth BROKEN -- Phare does exact-key lookup, Laravel walks-and-matches with regex -- NEW pattern WILDCARD-AS-EXACT-KEY. (3) BroadcastController + /broadcasting/auth route MISSING -- Pusher/Echo auth flow cannot function. (4) 14 missing public methods on BroadcastManager (routes/userRoutes/channelRoutes/socket/on/private/presence/event/pusher/ably/getApplication/setApplication/forgetDrivers/__call). (5) AblyBroadcaster MISSING but config/broadcasting.php references it -- NEW silent-config sub-pattern CONFIG-PROMISES-UNSHIPPED-DRIVER. (6) Contracts namespace COLLAPSED -- Phare\\Broadcasting\\Contracts\\ does NOT exist; ShouldBroadcast lives under Phare\\Events\\Contracts\\ (cross-subsystem placement) -- NEW pattern NAMESPACE-COLLAPSE. (7) 5th subsystem-namespace Phalcon leak: BroadcastServiceProvider imports Phalcon\\Di\\DiInterface + ServiceProviderInterface. (8) channel(name, callable) drops Laravel's options array (10th silent-arg-drop). (9) 19/20/21 same-name/different-shape: resolveBinding + resolveImplicitBindingIfPossible PUBLIC in Phare PROTECTED in Laravel; channel() void/no-options Phare vs $this/$options Laravel. (10) Wholesale missing: AnonymousEvent/UniqueBroadcastEvent/EncryptedPrivateChannel/InteractsWithBroadcasting/UsePusherChannelConventions/FakePendingBroadcast + ALL 7 Broadcasting contracts. Blocked by D01 (queue real-ness) + D02 (events broadcastEvent path). Pattern: 3 new defect classes per Area-D audit holds (D01/D02/D03 all surface 3 classes each)."
     },
     {
       "id": "US-D04",
@@ -393,8 +393,8 @@
         "No framework code changed"
       ],
       "priority": 26,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audit complete. ### Notifications section appended to docs/audit-area-d.md (~400 lines). Effort L, Risk HIGH-CRITICAL. Phare 13 files / 1517 LOC vs Laravel ~31 files / ~3400 LOC + 2 contracts (~45% LOC ratio). 5 open defects: (1) FAKE-DRIVER x3 (DatabaseChannel/SmsChannel/SlackChannel all use protected array storage with 'For testing' comments); (2) STUB-DEFECT Notifiable::notifications() returns [] hardcoded; (3) MailChannel silent no-op when mailer is null; (4) NO broadcast channel (via=>['broadcast'] throws); (5) NO ShouldQueue handling (NotificationManager::sendNow body is verbatim alias of send() with comment 'not implementing queued notifications'). 3 NEW US-S01 defect classes surfaced: TEST-SCAFFOLDING-IN-PRODUCTION-CLASS (getSent*/getStored*/clear* methods on production classes -- 4 instances in this audit alone), OUT-OF-CORE-PACKAGE-INLINED (Slack/Sms shipped inline; Laravel keeps as official packages -- signals Phare mirrors older Laravel version), DUPLICATED-DRIVER-RESOLUTION-WITHOUT-MANAGER-BASE (ChannelManager re-implements customDrivers Closure registry instead of extending Phare\\Support\\Manager). Plus CONVENTION INCONSISTENCY (string event-names vs class event-objects within same subsystem). LAYER-COLLAPSE 2nd+3rd instances confirmed: (a) Notification class merges sender-side + recipient-side read-state, (b) NotificationManager merges Manager + Sender concerns (Laravel separates into NotificationSender). HELPER-INSIDE-BOOT 2nd instance (notify()/notification() in boot()). METHOD-NAME-LIES 2nd (sendNow aliases send). Silent-arg-drop 11-13 (sendNow drops $channels; notifyNow drops $channels; routeNotificationFor drops $notification). 15th no-contracts subsystem. 14+ wholesale missing: NotificationSender/SendQueuedNotifications/AnonymousNotifiable/DatabaseNotification/DatabaseNotificationCollection/HasDatabaseNotifications/RoutesNotifications/BroadcastChannel/3xMessage/4xEvent/Console command/Action+2 contracts. ZERO Phalcon leaks in this subsystem (first Phalcon-clean D-area). Blocked by D01+D02+D03+D05+B-area DatabaseNotification model."
     },
     {
       "id": "US-D05",
@@ -408,8 +408,8 @@
         "No framework code changed"
       ],
       "priority": 27,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audit complete. ### Mail section appended to docs/audit-area-d.md (~350 lines). Effort XL (matches D01 Queue), Risk CRITICAL. Phare 8 files / 645 LOC vs Laravel ~30 files / ~3400 LOC + 5 contracts (~19% incl Mailable's 1917 LOC, ~9% without -- widest D-area gap). 5 CRITICAL defects: (1) FAKE-DRIVER 6th instance: Mailer::send body writes to $sentMails[] array and returns true -- ZERO transport. NO SMTP, NO Symfony Mailer, NO PHPMailer. (2) SECURITY-CRITICAL STUB: Mailable::renderView is naive str_replace('{{ \\$key }}', $value, $content) -- NO HTML escaping, no Blade integration, source comment 'in a full implementation this would integrate with the view system'. (3) ZERO transports -- Phare ships none of Laravel's 12 (Symfony/Smtp/Sendmail/Ses/SesV2/Resend/Mail/Mailgun/Postmark/Failover/Roundrobin/Log/Array). (4) NO queue routing -- 5 methods missing (queue/onQueue/queueOn/later/laterOn). (5) NO v9+ Mailables convention (Address/Attachment/Content/Envelope/Headers DTOs all missing) -- confirms Phare mirrors v6/v7 Mailable shape. 3 NEW US-S01 defect classes: CONFIG-AS-DECORATION (Mailer ctor accepts transport config keys never read by send body), TRANSIENT-BUILDER-CLASS (Mail\\Message exists only to be copied into Mailable; no transport-side consumer), DEFECT-PAIR-HIDE (FAKE-DRIVER masks symptom of missing from() builder -- 'From:' header omitted, only the FAKE transport accepts it; SMTP would reject). Plus METHOD-NAME-LIES 3rd instance (send() returns true without delivering). Mailable::from() ABSENT entirely -- no sender setter at all on the base class. 6th subsystem-namespace Phalcon leak: MailServiceProvider imports Phalcon\\Di\\DiInterface + ServiceProviderInterface (D01-D03+D05 all leak; D04 only Phalcon-clean). 16th no-contracts subsystem. Silent-arg-drop 14th: Mailer::send drops Laravel's data + callback args. Same-name/diff-shape 26-28 (Mailer::send arity drop+return type, Mailable::attach locks out Attachable, Mailable::view 2nd-arg-meaning-opposite-to-Laravel -- cross-call hazard). Wholesale missing: 5 contracts + 12 transports + PendingMail + SendQueuedMailable + SentMessage + TextMessage + Markdown + Attachment + 5 Mailables/ DTOs + 2 Events + ~12 assertion methods inside Mailable. STUB-DEFECT 6 + FAKE-DRIVER 6 + TEST-SCAFFOLDING-IN-PRODUCTION-CLASS 5 + LAYER-COLLAPSE 3 + METHOD-NAME-LIES 3 + HELPER-INSIDE-BOOT 2 -- D-area defect-class instance counts accelerating."
     },
     {
       "id": "US-D06",
@@ -423,8 +423,8 @@
         "No framework code changed"
       ],
       "priority": 28,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. ### Console Scheduler appended to docs/audit-area-d.md. Effort M. 6 files in src/Phare/Console/Scheduling/ — ALL PHALCON-CLEAN (first Area-D subsystem clean since D04; zero Phalcon refs). Schedule (10 pub: command/job/call/exec/events/dueEvents/timezone/getTimezone/clear/run), Event (~35 pub: full basic frequency set + output/hooks/filters/isDue/run), CallbackEvent (2 pub own). CRITICAL correctness defect: ScheduleRunCommand line 43 captures outer $result not lambda param $r in the success-counter filter — counter is always wrong (same family as stub-defect, silent-wrong-answer). DIY cron parser (50 LOC) misses step-ranges-with-bounds (2-10/2), L/W/#/? special chars vs dragonmantank/cron-expression — silent mis-scheduling. No mutex/overlap (withoutOverlapping/onOneServer/mutexName/CacheEventMutex all absent). No success/failure callbacks (onSuccess/onFailure/then/thenPing absent). No email-output hooks. Missing 30+ frequency methods (sub-minute, day-of-week helpers, quarterly, lastDayOfMonth, between/unlessBetween). Schedule missing: group(), serverShouldRun(), useCache(), compileArrayInput(). 7 schedule:* commands absent (work/finish/interrupt/pause/resume/test/clearCache). No ManagesAttributes / PendingEventAttributes. 16th no-contracts subsystem."
     },
     {
       "id": "US-E01",
@@ -439,8 +439,8 @@
         "No framework code changed"
       ],
       "priority": 29,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. docs/audit-area-e.md CREATED with ### Container section. [x] DOWNGRADED to [~]. Container extends Phalcon\\Di\\Di — entire Phalcon DI API published (structural inheritance leak: set/setShared/getService/getServices/loadFromConfig/loadFromYaml/loadFromPhp/loadFromIni/loadFromJson/resetDefault/getDefaultBuilder/__set/__get/__isset etc). Documented exception confirmed: get()/has() inherited from Phalcon\\Di\\Di are NOT new gaps per PRD §2. $reservedServices map hard-codes 23 Phalcon slot names to Phalcon type classes; isReserved()/isAliasReserved() expose them publicly. Phare\Contracts\Foundation\Container is 10-method stub vs Laravel's 24-method contract (missing: call/extend/factory/flush/addContextualBinding/afterResolving/beforeResolving/bindMethod/resolving/scoped/scopedIf/tag/tagged/when). Missing public methods: build(), makeWith(), currentEnvironmentIs(), resolveEnvironmentUsing(), getBindings(), fireAfterResolvingAttributeCallbacks(). 16 contextual-attribute resolvers (Container/Attributes/*) are a Phare strength — full Laravel 13 attribute set shipped. Effort M: composition-over-inheritance refactor needed to clear the structural leak."
     },
     {
       "id": "US-E02",
@@ -454,8 +454,8 @@
         "No framework code changed"
       ],
       "priority": 30,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. ### Service Providers appended to docs/audit-area-e.md. Effort S. Phare\\Support\\ServiceProvider: 3 pub (register/boot/__construct). LEAK: __construct(Application|DiInterface $app) — published-dependency Phalcon\\Di\\DiInterface (7th instance of this pattern across A07/C01/C02/C03/C04/D01-05 providers + now ServiceProvider base itself — this leak is at the ROOT class that 26 concrete providers inherit). Missing 7 methods: booted/booting/callBootedCallbacks/callBootingCallbacks/commands/isDeferred/provides/when. No DeferrableProvider concept (eager-only loading). No $bindings/$singletons convenience arrays. No resource publishing (publishes/loadMigrationsFrom/loadViewsFrom/loadRoutesFrom). No callAfterResolving. 18th no-contracts subsystem."
     },
     {
       "id": "US-E03",
@@ -470,8 +470,8 @@
         "No framework code changed"
       ],
       "priority": 31,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. ### Config appended to docs/audit-area-e.md. [x] CONFIRMED. Phare\\Config\\Repository is FULLY Phalcon-CLEAN (only a comment mentioning Phalcon). 22 pub methods vs Laravel's 18 — Phare is a SUPERSET (extra: merge, path, setMany, toArray). Missing: Macroable trait (no when()/custom macros), no Phare\\Contracts\\Config\\Repository interface (19th no-contracts). Functional equivalence confirmed. Effort S: add Macroable + publish contract."
     },
     {
       "id": "US-E04",
@@ -485,8 +485,8 @@
         "No framework code changed"
       ],
       "priority": 32,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. ### Console / Artisan appended to docs/audit-area-e.md. Effort L. Phalcon-CLEAN — Command extends Symfony\\Command, Application extends Symfony\\Application, Kernel implements ConsoleKernel; zero Phalcon inheritance. Application missing: addCommand/resolve/resolveCommands/setContainerCommandLoader/getLaravel. Command missing: fail/setLaravel/getLaravel/isHidden/setHidden + IO table/newLine/progress/listing surface. Kernel missing: bootstrap/bootstrappers/terminate/whenCommandLifecycleIsLongerThan/call/callWithOutput/queue/output lifecycle. 14 commands ship vs Laravel's ~60 — ~46 missing (all make:cast/channel/class/console/contract/enum/event/exception/job/listener/observer/policy/resource/rule/scope/test, about, db/schema commands, model:prune/show, optimize, tinker, serve, etc.). No Tinker, no serve (these are separate packages). 20th no-contracts."
     },
     {
       "id": "US-E05",
@@ -500,8 +500,8 @@
         "No framework code changed"
       ],
       "priority": 33,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. ### Facades appended to docs/audit-area-e.md. Effort S-M. Facade BASE is Phalcon-CLEAN. 16 Phare facades vs 45 Laravel. Missing ~29: Blade/Bus/Concurrency/Config/Context/Cookie/Crypt/Date/Exceptions/File/Gate/Hash/Http/Lang/Mail/MaintenanceMode/Notification/ParallelTesting/Password/Pipeline/Process/Queue/RateLimiter/Redirect/Redis/Route/Schedule/Schema/Storage/URL/Validator/View/Vite. Phare-extra: DebugLogger/Security/Sanctum/Sqids. Missing facades are blocked on underlying services — adding them is mechanical once underlying services exist. 21st no-contracts."
     },
     {
       "id": "US-E06",
@@ -515,8 +515,8 @@
         "No framework code changed"
       ],
       "priority": 34,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. ### Helpers appended to docs/audit-area-e.md. Effort M. PHALCON LEAKS: (1) encrypter(): Crypt — return type is Phalcon\\Encryption\\Crypt (helper-return-type leak, C04 class, 2nd global-scope instance); (2) security(): mixed returns Phalcon\\Encryption\\Security from DI slot (DI-slot leak, typed mixed to hide it). File-scope imports 5 Phalcon classes (Config/Di/Crypt/Dump/Random). NAMING-DEFECT 2 instances: hash() returns encrypt ciphertext not a hash (C04 first instance); bcrypt() calls security()->hash() = Phalcon Security hash, bypasses Phare\\Hashing entirely. ~25 Phare helpers vs Laravel's 87 (64 Foundation + 23 Support). Missing ~60: abort_if/unless/action/app_path/auth/back/base_path/broadcast/cache/config_path/context/cookie/csrf_field/csrf_token/defer/dispatch/method_field/now/old/policy/rescue/session/storage_path/today/to_route/trans/trans_choice/url/validator/view/vite; Support: blank/class_basename/class_uses_recursive/e/filled/optional/retry/str/tap/throw_if/throw_unless/with etc."
     },
     {
       "id": "US-E07",
@@ -530,8 +530,8 @@
         "No framework code changed"
       ],
       "priority": 35,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Audited 2026-05-28. ### Translation appended to docs/audit-area-e.md. Effort M. Phalcon-CLEAN. 12 pub vs Laravel 23. Missing ~11: addJsonPath/addLines/addNamespace/determineLocalesUsing/getLoader/getSelector/handleMissingKeysUsing/hasForLocale/load/locale/parseKey/setLoaded/setSelector/stringable. No JSON translations (lang/en.json format). No namespaced package translations (addNamespace). Missing __() global helper (E06). MessageSelector plural engine absent. 22nd no-contracts subsystem."
     },
     {
       "id": "US-S01",
@@ -546,8 +546,8 @@
         "docs/audit-summary.md written; stops for human review - no implementation started"
       ],
       "priority": 36,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Completed 2026-05-28. docs/audit-summary.md written. §1: 7-form Phalcon leak taxonomy (L1 structural inheritance / L2 contract extension / L3 published-dependency / L4 provider-boundary / L5 DI-slot / L6 Phalcon-DI-facade-as-service-locator / L7 helper-return-type). §2: 25 defect classes catalogued (D01-D25: stub-defect/silent-arg-drop/config-dropthrough/porting-hazard/raw-sql-bypass/FAKE-DRIVER/orphaned/dual-stack/triple-stack/logout-blast-radius/session-fixation/key-rotation/infinite-rehash/naming-defect/unit-divergence/service-locator/un-cleaned-key/un-qualified-column/layer-collapse/test-scaffolding-in-production/marker-contract-without-reader/wildcard-as-exact-key/config-promises-unshipped-driver/singleton-state-loss/method-name-lies). §3: 14 security-critical defects (3 CRITICAL, 6 HIGH, 5 MEDIUM). §4: 22 no-contracts subsystems. §5: version-anchor estimates. §6: gap table sorted by effort (S/M/L/XL). §7: re-scope candidates (Sanctum/Passkeys to Area F; tinker/serve skip). §8: 6-phase implementation order. §9: 22-entry porting-hazard list."
     }
   ]
 }
