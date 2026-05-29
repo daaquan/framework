@@ -237,4 +237,72 @@ class ValidatorTest extends TestCase
 
         $this->assertTrue($validator->passes());
     }
+
+    public function test_format_rules()
+    {
+        foreach ($this->formatRuleCases() as $label => [$rule, $value, $expectPass]) {
+            $validator = new Validator(['field' => $value], ['field' => $rule]);
+
+            $this->assertSame(
+                $expectPass,
+                $validator->passes(),
+                "Case [{$label}] rule [{$rule}] on " . var_export($value, true)
+            );
+        }
+    }
+
+    private function formatRuleCases(): array
+    {
+        return [
+            // alpha
+            'alpha pass' => ['alpha', 'abcDEF', true],
+            'alpha fail digit' => ['alpha', 'abc1', false],
+            // alpha_num
+            'alpha_num pass' => ['alpha_num', 'abc123', true],
+            'alpha_num fail dash' => ['alpha_num', 'abc-1', false],
+            // alpha_dash
+            'alpha_dash pass' => ['alpha_dash', 'abc-1_2', true],
+            'alpha_dash fail space' => ['alpha_dash', 'abc 1', false],
+            // digits
+            'digits pass' => ['digits:4', '1234', true],
+            'digits fail length' => ['digits:4', '123', false],
+            'digits fail nonnum' => ['digits:4', '12a4', false],
+            // digits_between
+            'digits_between pass' => ['digits_between:2,4', '123', true],
+            'digits_between fail low' => ['digits_between:2,4', '1', false],
+            'digits_between fail high' => ['digits_between:2,4', '12345', false],
+            // size
+            'size string pass' => ['size:3', 'abc', true],
+            'size string fail' => ['size:3', 'abcd', false],
+            'size numeric pass' => ['integer|size:10', 10, true],
+            // starts_with
+            'starts_with pass' => ['starts_with:foo,bar', 'foobaz', true],
+            'starts_with fail' => ['starts_with:foo,bar', 'bazfoo', false],
+            // ends_with
+            'ends_with pass' => ['ends_with:foo,bar', 'bazbar', true],
+            'ends_with fail' => ['ends_with:foo,bar', 'barbaz', false],
+            // uuid
+            'uuid pass' => ['uuid', '9b2e1f7a-4c3d-4b2a-8e1f-0a1b2c3d4e5f', true],
+            'uuid fail' => ['uuid', 'not-a-uuid', false],
+            // json
+            'json pass' => ['json', '{"a":1}', true],
+            'json fail' => ['json', '{a:1}', false],
+            // ip
+            'ip v4 pass' => ['ip', '192.168.0.1', true],
+            'ip v6 pass' => ['ip', '::1', true],
+            'ip fail' => ['ip', '999.1.1.1', false],
+            // ipv4
+            'ipv4 pass' => ['ipv4', '10.0.0.1', true],
+            'ipv4 fail v6' => ['ipv4', '::1', false],
+            // ipv6
+            'ipv6 pass' => ['ipv6', 'fe80::1', true],
+            'ipv6 fail v4' => ['ipv6', '10.0.0.1', false],
+            // lowercase
+            'lowercase pass' => ['lowercase', 'abc', true],
+            'lowercase fail' => ['lowercase', 'Abc', false],
+            // uppercase
+            'uppercase pass' => ['uppercase', 'ABC', true],
+            'uppercase fail' => ['uppercase', 'ABc', false],
+        ];
+    }
 }
