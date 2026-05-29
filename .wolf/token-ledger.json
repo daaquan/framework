@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 1390972,
-    "total_reads": 570,
-    "total_writes": 391,
+    "total_tokens_estimated": 1405518,
+    "total_reads": 579,
+    "total_writes": 410,
     "total_sessions": 114,
-    "anatomy_hits": 425,
+    "anatomy_hits": 434,
     "anatomy_misses": 145,
-    "repeated_reads_blocked": 211,
-    "estimated_savings_vs_bare_cli": 2254732
+    "repeated_reads_blocked": 216,
+    "estimated_savings_vs_bare_cli": 2262515
   },
   "sessions": [
     {
@@ -6078,6 +6078,172 @@
         "writes_count": 5,
         "repeated_reads_blocked": 0,
         "anatomy_lookups": 3
+      }
+    },
+    {
+      "id": "session-2026-05-29-0608",
+      "started": "2026-05-29T21:08:40.196Z",
+      "ended": "2026-05-29T21:30:51.042Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6551,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 332,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/HelpersHashTest.php",
+          "tokens_estimated": 282,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 1473,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 1579,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php",
+          "tokens_estimated": 478,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/PersonalAccessToken.php",
+          "tokens_estimated": 591,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php",
+          "tokens_estimated": 768,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/NewAccessToken.php",
+          "tokens_estimated": 164,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 610,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 646,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 159,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/HelpersHashTest.php",
+          "tokens_estimated": 152,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Encryption/SensitiveParameterTest.php",
+          "tokens_estimated": 409,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 29,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 23,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 27,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/PersonalAccessToken.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/NewAccessToken.php",
+          "tokens_estimated": 32,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 12218,
+        "output_tokens_estimated": 2328,
+        "reads_count": 9,
+        "writes_count": 19,
+        "repeated_reads_blocked": 5,
+        "anatomy_lookups": 9
       }
     }
   ],
