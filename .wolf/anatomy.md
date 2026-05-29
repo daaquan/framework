@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T14:48:57.717Z
-> Files: 535 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T14:59:21.122Z
+> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -152,7 +152,7 @@
 - `BroadcastEvent.php` — Event: BroadcastEvent (~273 tok)
 - `BroadcastException.php` — Declares BroadcastException (~29 tok)
 - `BroadcastManager.php` — BroadcastManager: driver, connection, extend, getDefaultDriver + 4 more (~1318 tok)
-- `BroadcastServiceProvider.php` — Service provider: BroadcastServiceProvider (~193 tok)
+- `BroadcastServiceProvider.php` — BroadcastServiceProvider: register (~165 tok)
 - `Channel.php` — Channel: __toString (~67 tok)
 - `InteractsWithSockets.php` — Trait: InteractsWithSockets (~95 tok)
 - `PendingBroadcast.php` — PendingBroadcast: via, toOthers, __destruct (~245 tok)
@@ -320,7 +320,7 @@
 ## src/Phare/Contracts/Foundation/
 
 - `Application.php` — Get the version number of the application. (~253 tok)
-- `Container.php` — Determine if the given abstract type has been bound. (~401 tok)
+- `Container.php` — Container: bound, resolved, isShared + 6 more (~424 tok)
 
 ## src/Phare/Contracts/Foundation/Bus/
 
@@ -574,7 +574,7 @@
 - `Mailer.php` — Mailer: send, raw, html, getConfig + 2 more (~600 tok)
 - `MailException.php` — Declares MailException (~20 tok)
 - `MailManager.php` — MailManager: mailer, getDefaultMailer, __call (~655 tok)
-- `MailServiceProvider.php` — Service provider: MailServiceProvider (~222 tok)
+- `MailServiceProvider.php` — MailServiceProvider: register (~195 tok)
 - `Message.php` — Message: to, cc, bcc, replyTo + 6 more (~492 tok)
 - `RawMailable.php` — Mail: RawMailable (~151 tok)
 
@@ -621,32 +621,32 @@
 
 ## src/Phare/Providers/
 
-- `AuthServiceProvider.php` — Service provider: AuthServiceProvider (~189 tok)
+- `AuthServiceProvider.php` — AuthServiceProvider: register (~161 tok)
 - `BladeViewProvider.php` — BladeViewProvider: register (~879 tok)
-- `CacheProvider.php` — CacheProvider: register (~169 tok)
-- `ChronosProvider.php` — ChronosProvider: register (~232 tok)
-- `ConfigProvider.php` — ConfigProvider: register (~101 tok)
-- `DatabaseProvider.php` — DatabaseProvider: register (~332 tok)
-- `DebugLoggerProvider.php` — DebugLoggerProvider: register (~118 tok)
-- `DebugWhoopsProvider.php` — DebugWhoopsProvider: register (~166 tok)
-- `DispatcherProvider.php` — DispatcherProvider: register (~373 tok)
-- `EncrypterProvider.php` — Service provider for security and encryption. (~360 tok)
-- `ErrorHandlerProvider.php` — ErrorHandlerProvider: register (~108 tok)
-- `EventsManagerProvider.php` — EventsManagerProvider: register (~144 tok)
-- `FilesystemProvider.php` — FilesystemProvider: register (~167 tok)
-- `FilterProvider.php` — FilterProvider: register (~101 tok)
-- `HashServiceProvider.php` — Service provider: HashServiceProvider (~213 tok)
-- `LogServiceProvider.php` — Service provider: LogServiceProvider (~118 tok)
-- `ModelProvider.php` — ModelProvider: register (~282 tok)
+- `CacheProvider.php` — CacheProvider: register (~141 tok)
+- `ChronosProvider.php` — ChronosProvider: register (~204 tok)
+- `ConfigProvider.php` — ConfigProvider: register (~73 tok)
+- `DatabaseProvider.php` — DatabaseProvider: register (~304 tok)
+- `DebugLoggerProvider.php` — DebugLoggerProvider: register (~93 tok)
+- `DebugWhoopsProvider.php` — DebugWhoopsProvider: register (~142 tok)
+- `DispatcherProvider.php` — DispatcherProvider: register (~346 tok)
+- `EncrypterProvider.php` — Service provider for security and encryption. (~332 tok)
+- `ErrorHandlerProvider.php` — ErrorHandlerProvider: register (~81 tok)
+- `EventsManagerProvider.php` — EventsManagerProvider: register (~116 tok)
+- `FilesystemProvider.php` — FilesystemProvider: register (~139 tok)
+- `FilterProvider.php` — FilterProvider: register (~73 tok)
+- `HashServiceProvider.php` — HashServiceProvider: register (~186 tok)
+- `LogServiceProvider.php` — LogServiceProvider: register (~90 tok)
+- `ModelProvider.php` — ModelProvider: register (~254 tok)
 - `PasskeyServiceProvider.php` — Register passkey (WebAuthn) authentication services. (~628 tok)
-- `QueueServiceProvider.php` — Service provider: QueueServiceProvider (~249 tok)
-- `RequestProvider.php` — RequestProvider: register (~124 tok)
-- `ResponseProvider.php` — ResponseProvider: register (~102 tok)
+- `QueueServiceProvider.php` — QueueServiceProvider: register (~221 tok)
+- `RequestProvider.php` — RequestProvider: register (~97 tok)
+- `ResponseProvider.php` — ResponseProvider: register (~74 tok)
 - `RouteServiceProvider.php` — Service provider: RouteServiceProvider (~215 tok)
-- `SessionProvider.php` — SessionProvider: register (~510 tok)
-- `SqidsProvider.php` — SqidsProvider: register (~136 tok)
+- `SessionProvider.php` — SessionProvider: register (~482 tok)
+- `SqidsProvider.php` — SqidsProvider: register (~108 tok)
 - `TranslateProvider.php` — Registers a service provider. (~404 tok)
-- `ViewProvider.php` — ViewProvider: register (~105 tok)
+- `ViewProvider.php` — ViewProvider: register (~77 tok)
 - `VoltViewProvider.php` — VoltViewProvider: register (~774 tok)
 
 ## src/Phare/Queue/
@@ -907,6 +907,10 @@
 ## tests/Unit/Config/
 
 - `RepositoryMacroTest.php` (~165 tok)
+
+## tests/Unit/Mail/
+
+- `MailServiceProviderTest.php` (~664 tok)
 
 ## tests/Unit/Support/
 
