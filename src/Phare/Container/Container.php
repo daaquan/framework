@@ -2,6 +2,7 @@
 
 namespace Phare\Container;
 
+use ArrayAccess;
 use Closure;
 use Phalcon\Annotations\Annotation;
 use Phalcon\Assets\Manager;
@@ -10,6 +11,7 @@ use Phalcon\Db\Adapter\AdapterInterface;
 use Phalcon\Di\Di;
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\Exception;
+use Phalcon\Di\ServiceInterface;
 use Phalcon\Encryption\Crypt\CryptInterface;
 use Phalcon\Encryption\Security;
 use Phalcon\Filter\Filter;
@@ -35,7 +37,10 @@ use Phare\Contracts\Foundation\Container as ContractsContainer;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use TypeError;
 
-class Container extends Di implements ContractsContainer, PsrContainerInterface
+/**
+ * @implements ArrayAccess<string, mixed>
+ */
+class Container implements ArrayAccess, ContractsContainer, DiInterface, PsrContainerInterface
 {
     /**
      * Phalcon standard services
@@ -229,8 +234,7 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
 
     public function __construct()
     {
-        parent::__construct();
-        $this->phalconDi = $this;
+        $this->phalconDi = new Di();
     }
 
     /**
@@ -1278,14 +1282,126 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
         $this->attributeHandlers[$attribute] = $handler;
     }
 
-    // Phalcon\Di\Di already implements get(string, $parameters): mixed,
-    // which satisfies PSR-11 ContainerInterface::get(). We declare
-    // `implements PsrContainerInterface` on the class header but do NOT
-    // override get() here, because Phalcon's getShared() internally calls
-    // $this->get() and an override would re-enter make() recursively.
+    // --- Phalcon DiInterface delegation -------------------------------------
     //
-    // ArrayAccess offsetSet / offsetUnset / __set are also inherited from
-    // Phalcon — overriding them broke existing internal service registration.
+    // Container holds an inner Phalcon\Di\Di ($this->phalconDi) by composition
+    // rather than inheriting it. Every DiInterface store operation delegates to
+    // that inner instance. Because the inner Di's getShared() internally calls
+    // its OWN get() (not the Container's), routing get() through here no longer
+    // risks re-entering make() recursively — composition removed that hazard.
+
+    /**
+     * @param mixed $definition
+     */
+    public function attempt(string $name, $definition, bool $shared = false): ServiceInterface|bool
+    {
+        return $this->phalconDi->attempt($name, $definition, $shared);
+    }
+
+    /**
+     * @param mixed $parameters
+     */
+    public function get(string $name, $parameters = null): mixed
+    {
+        return $this->phalconDi->get($name, $parameters);
+    }
+
+    public function getRaw(string $name): mixed
+    {
+        return $this->phalconDi->getRaw($name);
+    }
+
+    public function getService(string $name): ServiceInterface
+    {
+        return $this->phalconDi->getService($name);
+    }
+
+    /**
+     * @return array<string, ServiceInterface>
+     */
+    public function getServices(): array
+    {
+        return $this->phalconDi->getServices();
+    }
+
+    /**
+     * @param mixed $parameters
+     */
+    public function getShared(string $name, $parameters = null): mixed
+    {
+        return $this->phalconDi->getShared($name, $parameters);
+    }
+
+    /**
+     * Satisfies BOTH PsrContainerInterface::has() and DiInterface::has().
+     */
+    public function has(string $name): bool
+    {
+        return $this->phalconDi->has($name);
+    }
+
+    public function remove(string $name): void
+    {
+        $this->phalconDi->remove($name);
+    }
+
+    /**
+     * @param mixed $definition
+     */
+    public function set(string $name, $definition, bool $shared = false): ServiceInterface
+    {
+        return $this->phalconDi->set($name, $definition, $shared);
+    }
+
+    public function setService(string $name, ServiceInterface $rawDefinition): ServiceInterface
+    {
+        return $this->phalconDi->setService($name, $rawDefinition);
+    }
+
+    /**
+     * @param mixed $definition
+     */
+    public function setShared(string $name, $definition): ServiceInterface
+    {
+        return $this->phalconDi->setShared($name, $definition);
+    }
+
+    public static function getDefault(): ?DiInterface
+    {
+        return Di::getDefault();
+    }
+
+    public static function setDefault(DiInterface $container): void
+    {
+        Di::setDefault($container);
+    }
+
+    public static function reset(): void
+    {
+        Di::reset();
+    }
+
+    // --- ArrayAccess delegation (load-bearing: app()[$id], $this->app['config']) ---
+
+    public function offsetExists($offset): bool
+    {
+        return $this->phalconDi->offsetExists($offset);
+    }
+
+    public function offsetGet($offset): mixed
+    {
+        return $this->phalconDi->offsetGet($offset);
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        $this->phalconDi->offsetSet($offset, $value);
+    }
+
+    public function offsetUnset($offset): void
+    {
+        $this->phalconDi->offsetUnset($offset);
+    }
 
     /**
      * Convert a bare unknown-id make() error into a PSR-11 compliant
