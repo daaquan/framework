@@ -4,7 +4,6 @@ use Faker\Factory;
 use Faker\Generator;
 use Phalcon\Config\Config;
 use Phalcon\Di\Di;
-use Phalcon\Encryption\Crypt;
 use Phalcon\Support\Debug\Dump;
 use Phalcon\Support\Helper\Str\Random;
 use Phare\Broadcasting\BroadcastManager;
@@ -14,8 +13,10 @@ use Phare\Collections\Collection;
 use Phare\Collections\Str;
 use Phare\Contracts\Debug\ExceptionHandler;
 use Phare\Contracts\Foundation\Application;
+use Phare\Encryption\Encrypter;
 use Phare\Events\Contracts\ShouldBroadcast;
 use Phare\Foundation\Http\ResponseStatusCode;
+use Phare\Hashing\HashManager;
 use Phare\Http\Response;
 use Phare\Support\Env;
 use Phare\Support\HigherOrderTapProxy;
@@ -311,39 +312,48 @@ if (!function_exists('fake') && class_exists(Factory::class)) {
 
 // encrypter()
 if (!function_exists('encrypter')) {
-    function encrypter(): Crypt
+    function encrypter(): Encrypter
     {
-        return app('encrypter');
+        $encrypter = app('encrypter');
+
+        if (!$encrypter instanceof Encrypter) {
+            throw new RuntimeException('Encrypter service not registered.');
+        }
+
+        return $encrypter;
     }
 }
 
 // encrypt()
 if (!function_exists('encrypt')) {
-    function encrypt(string $value, ?string $key = null): string
+    function encrypt(mixed $value, bool $serialize = true): string
     {
-        $key ??= config('app.key');
-
-        return encrypter()->encryptBase64($value, $key);
+        return encrypter()->encrypt($value, $serialize);
     }
 }
 
 // decrypt()
 if (!function_exists('decrypt')) {
-    function decrypt(string $value, ?string $key = null): string
+    function decrypt(string $payload, bool $unserialize = true): mixed
     {
-        $key ??= config('app.key');
-
-        return encrypter()->decryptBase64($value, $key);
+        return encrypter()->decrypt($payload, $unserialize);
     }
 }
 
 // bcrypt()
 if (!function_exists('bcrypt')) {
-    function bcrypt(string $value, ?string $key = null): string
+    /**
+     * @param array<string, mixed> $options
+     */
+    function bcrypt(#[SensitiveParameter] string $value, array $options = []): string
     {
-        $key ??= config('app.key');
+        $hasher = app('hash');
 
-        return security()->hash($value, $key);
+        if (!$hasher instanceof HashManager) {
+            throw new RuntimeException('Hash service not registered.');
+        }
+
+        return $hasher->make($value, $options);
     }
 }
 
@@ -352,18 +362,6 @@ if (!function_exists('security')) {
     function security(): mixed
     {
         return app('security');
-    }
-}
-
-// hash()
-if (!function_exists('hash')) {
-    function hash(string $value, ?string $key = null): string
-    {
-        $key ??= config('app.key');
-
-        // Generate a hash using encrypt()
-        // Previously decrypt() was mistakenly called
-        return encrypter()->encryptBase64($value, $key);
     }
 }
 
@@ -958,13 +956,13 @@ if (!function_exists('object_get')) {
 
 // str()
 if (!function_exists('str')) {
-    function str(?string $string = null): \Phare\Collections\Stringable|string
+    function str(?string $string = null): Phare\Collections\Stringable|string
     {
         if (is_null($string)) {
-            return \Phare\Collections\Str::random();
+            return Str::random();
         }
 
-        return \Phare\Collections\Str::of($string);
+        return Str::of($string);
     }
 }
 

@@ -4,9 +4,9 @@ namespace Phare\Providers;
 
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\ServiceProviderInterface;
-use Phalcon\Encryption\Crypt;
 use Phalcon\Encryption\Security;
 use Phalcon\Encryption\Security\Random;
+use Phare\Encryption\Encrypter;
 use Phare\Foundation\AbstractApplication as Application;
 
 /**
@@ -31,22 +31,16 @@ class EncrypterProvider implements ServiceProviderInterface
 
         $app->singleton('encrypter', function () use ($app) {
             $config = $app['config'];
-            $appKey = $config->path('app.key');
-            [$method, $encoded] = explode(':', $appKey);
 
-            // Dynamic function name for decoding
-            $decodeMethod = "{$method}_decode";
-            if (!function_exists($decodeMethod)) {
-                throw new \RuntimeException("Key decode method `{$decodeMethod}` does not exist.");
+            $key = (string)$config->path('app.key');
+            if (str_starts_with($key, 'base64:')) {
+                $key = base64_decode(substr($key, 7), true) ?: '';
             }
 
-            // Decode the key using the dynamic decode method
-            $key = $decodeMethod(substr($encoded, strlen($method) + 1));
+            // Phare\Encryption\Encrypter only registers lower-case cipher names.
+            $cipher = strtolower((string)$config->path('app.cipher', 'aes-256-cbc'));
 
-            // Instantiate Crypt with the key and set the cipher method
-            return (new Crypt())
-                ->setKey($key)
-                ->setCipher($config->path('app.cipher'));
+            return new Encrypter($key, $cipher);
         });
     }
 }

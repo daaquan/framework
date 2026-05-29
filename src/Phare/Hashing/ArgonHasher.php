@@ -17,7 +17,7 @@ class ArgonHasher implements HasherInterface
         $this->threads = $options['threads'] ?? $this->threads;
     }
 
-    public function make(string $value, array $options = []): string
+    public function make(#[\SensitiveParameter] string $value, array $options = []): string
     {
         $hash = password_hash($value, $this->algorithm(), [
             'memory_cost' => $options['memory'] ?? $this->memory,
@@ -32,7 +32,7 @@ class ArgonHasher implements HasherInterface
         return $hash;
     }
 
-    public function check(string $value, string $hashedValue, array $options = []): bool
+    public function check(#[\SensitiveParameter] string $value, string $hashedValue, array $options = []): bool
     {
         if (strlen($hashedValue) === 0) {
             return false;

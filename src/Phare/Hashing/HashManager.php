@@ -56,12 +56,12 @@ class HashManager extends Manager
         return new Argon2idHasher();
     }
 
-    public function make(string $value, array $options = []): string
+    public function make(#[\SensitiveParameter] string $value, array $options = []): string
     {
         return $this->driver()->make($value, $options);
     }
 
-    public function check(string $value, string $hashedValue, array $options = []): bool
+    public function check(#[\SensitiveParameter] string $value, string $hashedValue, array $options = []): bool
     {
         return $this->driver()->check($value, $hashedValue, $options);
     }
