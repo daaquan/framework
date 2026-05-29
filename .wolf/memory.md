@@ -787,3 +787,4 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 23:48 | Edited src/Phare/Validation/Validator.php | added 15 condition(s) | ~1869 |
 | 23:48 | Edited src/Phare/Validation/Validator.php | expanded (+18 lines) | ~440 |
 | 23:50 | A06 validation batch: implicit-rules refactor + 18 rules (present/filled/accepted/declined, gt/gte/lt/lte/multiple_of, date_format/before/after, required_if/unless/with/with_all/without/without_all) | Validator.php, ValidatorTest.php | TDD RED→GREEN, suite 1338→1347, phpstan 0 new, pint clean | ~12k |
+| 23:51 | Session end: 5 writes across 2 files (ValidatorTest.php, Validator.php) | 3 reads | ~11283 tok |
