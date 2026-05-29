@@ -35,7 +35,7 @@ class SanctumGuard
         return null;
     }
 
-    public function validate(array $credentials = []): bool
+    public function validate(#[\SensitiveParameter] array $credentials = []): bool
     {
         return !is_null($this->user());
     }
@@ -55,7 +55,7 @@ class SanctumGuard
         return null;
     }
 
-    protected function findAccessToken(string $token): ?PersonalAccessToken
+    protected function findAccessToken(#[\SensitiveParameter] string $token): ?PersonalAccessToken
     {
         return Sanctum::findToken($token);
     }

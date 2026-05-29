@@ -15,7 +15,7 @@ class Encrypter
         'aes-256-gcm' => ['size' => 32, 'aead' => true],
     ];
 
-    public function __construct(string $key, string $cipher = 'aes-256-cbc')
+    public function __construct(#[\SensitiveParameter] string $key, string $cipher = 'aes-256-cbc')
     {
         $this->validateKey($key, $cipher);
 
@@ -23,7 +23,7 @@ class Encrypter
         $this->cipher = $cipher;
     }
 
-    public function encrypt(mixed $value, bool $serialize = true): string
+    public function encrypt(#[\SensitiveParameter] mixed $value, bool $serialize = true): string
     {
         $iv = random_bytes(openssl_cipher_iv_length($this->cipher));
 
@@ -81,7 +81,7 @@ class Encrypter
         return $unserialize ? unserialize($decrypted) : $decrypted;
     }
 
-    public function encryptString(string $value): string
+    public function encryptString(#[\SensitiveParameter] string $value): string
     {
         return $this->encrypt($value, false);
     }
@@ -91,7 +91,7 @@ class Encrypter
         return $this->decrypt($payload, false);
     }
 
-    protected function validateKey(string $key, string $cipher): void
+    protected function validateKey(#[\SensitiveParameter] string $key, string $cipher): void
     {
         if (!isset(static::$supportedCiphers[$cipher])) {
             throw new \InvalidArgumentException("Unsupported cipher: {$cipher}");
