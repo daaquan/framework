@@ -746,3 +746,7 @@
 | 21:39 | Created src/Phare/Contracts/Support/DeferrableProvider.php | — | ~60 |
 | 21:39 | Edited src/Phare/Support/ServiceProvider.php | added 3 condition(s) | ~367 |
 | 21:40 | E02: ServiceProvider provides()/booting()/booted()/mergeConfigFrom + DeferrableProvider contract (TDD). Lazy deferred-resolution NOT done (needs make() interception) | Support/ServiceProvider.php +Contracts/Support/DeferrableProvider.php ServiceProviderTest | suite green; phpstan clean | ~5k |
+| 21:41 | Session end: 11 writes across 10 files (MacroableTest.php, RepositoryMacroTest.php, Macroable.php, Repository.php, CommandIoTest.php) | 5 reads | ~12338 tok |
+
+## Session summary 2026-05-29
+Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch security/phase0-laravel13-parity, 2 commits (17e0ef5, fbfca8d). Tests 1218->1321. All TDD, phpstan 0 regression. Deferred: E01 (Container un-inherit, XL), E02 lazy deferred-resolution. Pending decision: composer php ^8.2->^8.3.
