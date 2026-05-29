@@ -1,123 +1,117 @@
 {
-  "session_id": "session-2026-05-28-1926",
-  "started": "2026-05-28T10:26:01.889Z",
+  "session_id": "session-2026-05-29-2125",
+  "started": "2026-05-29T12:25:41.667Z",
   "files_read": {
-    "/opt/framework/tasks/progress.txt": {
-      "count": 4,
-      "tokens": 29308,
-      "first_read": "2026-05-28T11:30:38.472Z"
-    },
-    "/opt/framework/tasks/prd.json": {
-      "count": 3,
-      "tokens": 19838,
-      "first_read": "2026-05-28T11:30:38.836Z"
-    },
-    "/opt/framework/src/Phare/Console/Scheduling/Event.php": {
+    "/opt/framework/src/Phare/Config/Repository.php": {
       "count": 1,
-      "tokens": 3319,
-      "first_read": "2026-05-28T11:31:04.691Z"
+      "tokens": 2011,
+      "first_read": "2026-05-29T12:32:31.160Z"
     },
-    "/opt/framework/src/Phare/Console/Scheduling/Schedule.php": {
+    "/opt/framework/src/Phare/Console/Command.php": {
       "count": 1,
-      "tokens": 970,
-      "first_read": "2026-05-28T11:31:08.838Z"
+      "tokens": 1615,
+      "first_read": "2026-05-29T12:35:42.117Z"
     },
-    "/opt/framework/src/Phare/Console/Scheduling/CallbackEvent.php": {
+    "/opt/framework/src/Phare/Console/Output/SymfonyOutput.php": {
       "count": 1,
-      "tokens": 431,
-      "first_read": "2026-05-28T11:31:08.851Z"
+      "tokens": 202,
+      "first_read": "2026-05-29T12:35:50.524Z"
     },
-    "/opt/framework/src/Phare/Console/Scheduling/ScheduleRunCommand.php": {
+    "/opt/framework/tests/Console/AgentFriendlyTest.php": {
       "count": 1,
-      "tokens": 365,
-      "first_read": "2026-05-28T11:31:55.769Z"
+      "tokens": 939,
+      "first_read": "2026-05-29T12:36:37.150Z"
     },
-    "/opt/framework/docs/audit-area-d.md": {
-      "count": 2,
-      "tokens": 25960,
-      "first_read": "2026-05-28T11:32:19.037Z"
-    },
-    "/opt/framework/src/Phare/Container/Container.php": {
-      "count": 2,
-      "tokens": 12350,
-      "first_read": "2026-05-28T11:33:33.075Z"
-    },
-    "/opt/framework/src/Phare/Contracts/Foundation/Container.php": {
+    "/opt/framework/src/Phare/Foundation/AbstractApplication.php": {
       "count": 1,
-      "tokens": 401,
-      "first_read": "2026-05-28T11:34:06.773Z"
-    },
-    "/opt/framework/src/Phare/Support/ServiceProvider.php": {
-      "count": 1,
-      "tokens": 116,
-      "first_read": "2026-05-28T11:34:41.630Z"
-    },
-    "/opt/framework/src/Phare/Support/helpers.php": {
-      "count": 2,
-      "tokens": 4075,
-      "first_read": "2026-05-28T11:36:24.674Z"
+      "tokens": 4590,
+      "first_read": "2026-05-29T12:38:33.121Z"
     }
   },
   "files_written": [
     {
-      "file": "/opt/framework/docs/audit-area-d.md",
-      "action": "edit",
-      "tokens": 2238,
-      "at": "2026-05-28T11:33:18.148Z"
-    },
-    {
-      "file": "/opt/framework/docs/audit-area-e.md",
+      "file": "/opt/framework/tests/Unit/Support/MacroableTest.php",
       "action": "create",
-      "tokens": 6241,
-      "at": "2026-05-28T11:39:21.383Z"
+      "tokens": 372,
+      "at": "2026-05-29T12:31:49.053Z"
     },
     {
-      "file": "/opt/framework/tasks/prd.json",
-      "action": "edit",
-      "tokens": 558,
-      "at": "2026-05-28T11:39:43.798Z"
-    },
-    {
-      "file": "/opt/framework/tasks/prd.json",
-      "action": "edit",
-      "tokens": 561,
-      "at": "2026-05-28T11:40:00.881Z"
-    },
-    {
-      "file": "/opt/framework/tasks/prd.json",
-      "action": "edit",
-      "tokens": 2185,
-      "at": "2026-05-28T11:40:58.403Z"
-    },
-    {
-      "file": "/opt/framework/docs/audit-summary.md",
+      "file": "/opt/framework/tests/Unit/Config/RepositoryMacroTest.php",
       "action": "create",
-      "tokens": 6651,
-      "at": "2026-05-28T11:43:37.731Z"
+      "tokens": 177,
+      "at": "2026-05-29T12:31:55.595Z"
     },
     {
-      "file": "/opt/framework/tasks/prd.json",
-      "action": "edit",
-      "tokens": 549,
-      "at": "2026-05-28T11:43:56.797Z"
+      "file": "/opt/framework/src/Phare/Support/Traits/Macroable.php",
+      "action": "create",
+      "tokens": 746,
+      "at": "2026-05-29T12:32:12.212Z"
     },
     {
-      "file": "/opt/framework/tasks/progress.txt",
+      "file": "/opt/framework/src/Phare/Contracts/Config/Repository.php",
+      "action": "create",
+      "tokens": 241,
+      "at": "2026-05-29T12:32:17.884Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Config/Repository.php",
       "action": "edit",
-      "tokens": 1664,
-      "at": "2026-05-28T11:44:55.711Z"
+      "tokens": 84,
+      "at": "2026-05-29T12:32:36.375Z"
+    },
+    {
+      "file": "/opt/framework/tests/Console/CommandIoTest.php",
+      "action": "create",
+      "tokens": 370,
+      "at": "2026-05-29T12:36:52.298Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Console/Command.php",
+      "action": "edit",
+      "tokens": 284,
+      "at": "2026-05-29T12:37:04.652Z"
+    },
+    {
+      "file": "/opt/framework/phpunit.xml.dist",
+      "action": "edit",
+      "tokens": 40,
+      "at": "2026-05-29T12:37:33.166Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Support/ServiceProviderTest.php",
+      "action": "edit",
+      "tokens": 210,
+      "at": "2026-05-29T12:39:21.673Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Contracts/Support/DeferrableProvider.php",
+      "action": "create",
+      "tokens": 64,
+      "at": "2026-05-29T12:39:35.173Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+      "action": "edit",
+      "tokens": 393,
+      "at": "2026-05-29T12:39:43.648Z"
     }
   ],
   "edit_counts": {
-    "docs/audit-area-d.md": 1,
-    "docs/audit-area-e.md": 1,
-    "tasks/prd.json": 4,
-    "docs/audit-summary.md": 1,
-    "tasks/progress.txt": 1
+    "tests/Unit/Support/MacroableTest.php": 1,
+    "tests/Unit/Config/RepositoryMacroTest.php": 1,
+    "src/Phare/Support/Traits/Macroable.php": 1,
+    "src/Phare/Contracts/Config/Repository.php": 1,
+    "src/Phare/Config/Repository.php": 1,
+    "tests/Console/CommandIoTest.php": 1,
+    "src/Phare/Console/Command.php": 1,
+    "phpunit.xml.dist": 1,
+    "tests/Unit/Support/ServiceProviderTest.php": 1,
+    "src/Phare/Contracts/Support/DeferrableProvider.php": 1,
+    "src/Phare/Support/ServiceProvider.php": 1
   },
-  "anatomy_hits": 11,
+  "anatomy_hits": 5,
   "anatomy_misses": 0,
-  "repeated_reads_warned": 8,
+  "repeated_reads_warned": 0,
   "cerebrum_warnings": 0,
-  "stop_count": 1
+  "stop_count": 2
 }
