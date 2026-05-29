@@ -2,16 +2,15 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Mvc\Url as UrlResolver;
-use Phare\Foundation\AbstractApplication as Application;
 use Phare\Http\Request;
+use Phare\Support\ServiceProvider;
 
-class RequestProvider implements ServiceProviderInterface
+class RequestProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('url', new UrlResolver());
 
         $app->singleton('request', Request::class);

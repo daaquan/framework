@@ -2,15 +2,14 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Events\Manager as EventsManager;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
-class EventsManagerProvider implements ServiceProviderInterface
+class EventsManagerProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $di): void
+    public function register(): void
     {
+        $di = $this->app;
         $di->singleton('eventsManager', function () {
             $manager = new EventsManager();
             $manager->enablePriorities(true);

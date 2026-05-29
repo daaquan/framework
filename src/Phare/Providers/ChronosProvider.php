@@ -3,14 +3,13 @@
 namespace Phare\Providers;
 
 use Chronos\Chronos;
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
-class ChronosProvider implements ServiceProviderInterface
+class ChronosProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         if ($timezone = $app['config']->path('app.timezone')) {
             ini_set('date.timezone', $timezone);
         }

@@ -3,14 +3,13 @@
 namespace Phare\Providers;
 
 use Phalcon\Config\Config;
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
-class ConfigProvider implements ServiceProviderInterface
+class ConfigProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('config', Config::class);
     }
 }

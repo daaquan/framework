@@ -2,15 +2,14 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\AbstractApplication as Application;
 use Phare\Http\Response;
+use Phare\Support\ServiceProvider;
 
-class ResponseProvider implements ServiceProviderInterface
+class ResponseProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('response', Response::class);
     }
 }

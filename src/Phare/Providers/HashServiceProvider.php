@@ -2,15 +2,14 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\AbstractApplication as Application;
 use Phare\Hashing\HashManager;
+use Phare\Support\ServiceProvider;
 
-class HashServiceProvider implements ServiceProviderInterface
+class HashServiceProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('hash.manager', function ($app) {
             $default = $app['config']?->path('hashing.driver') ?? 'bcrypt';
 

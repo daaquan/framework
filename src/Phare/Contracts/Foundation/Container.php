@@ -2,7 +2,12 @@
 
 namespace Phare\Contracts\Foundation;
 
-interface Container
+use ArrayAccess;
+
+/**
+ * @extends ArrayAccess<string, mixed>
+ */
+interface Container extends ArrayAccess
 {
     /**
      * Determine if the given abstract type has been bound.

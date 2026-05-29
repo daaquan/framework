@@ -2,15 +2,14 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\AbstractApplication as Application;
 use Phare\Foundation\Bootstrap\HandleExceptions;
+use Phare\Support\ServiceProvider;
 
-class ErrorHandlerProvider implements ServiceProviderInterface
+class ErrorHandlerProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         (new HandleExceptions())->register($app);
     }
 }
