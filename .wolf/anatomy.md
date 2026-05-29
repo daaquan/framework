@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T15:16:46.931Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T21:11:08.959Z
 > Files: 543 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
@@ -770,7 +770,7 @@
 
 - `MessageBag.php` — MessageBag: add, merge, has, first + 13 more (~863 tok)
 - `ValidationException.php` — ValidationException: getValidator, errors, getStatus, setStatus + 6 more (~517 tok)
-- `Validator.php` — Validator: passes/fails/errors/validated + ~50 rules incl implicit set (present/filled/accepted/declined bypass empty-skip via $implicitRules), gt/gte/lt/lte/multiple_of, date_format/before/after, required_if/unless/with/with_all/without/without_all (~6429 tok)
+- `Validator.php` — Rules that run even when the attribute is empty or absent. (~7112 tok)
 
 ## src/Phare/View/
 
@@ -946,4 +946,4 @@
 
 ## tests/Validation/
 
-- `ValidatorTest.php` — ValidatorTest: test_validator_passes_with_valid_data, test_validator_fails_with_invalid_data, test_v (~4411 tok)
+- `ValidatorTest.php` — ValidatorTest: test_validator_passes_with_valid_data, test_validator_fails_with_invalid_data, test_v (~4962 tok)
