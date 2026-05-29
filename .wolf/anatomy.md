@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T14:59:21.122Z
-> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T15:16:46.931Z
+> Files: 543 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -319,7 +319,7 @@
 
 ## src/Phare/Contracts/Foundation/
 
-- `Application.php` — Get the version number of the application. (~253 tok)
+- `Application.php` — Get the version number of the application. (~524 tok)
 - `Container.php` — Container: bound, resolved, isShared + 6 more (~424 tok)
 
 ## src/Phare/Contracts/Foundation/Bus/
@@ -622,7 +622,7 @@
 ## src/Phare/Providers/
 
 - `AuthServiceProvider.php` — AuthServiceProvider: register (~161 tok)
-- `BladeViewProvider.php` — BladeViewProvider: register (~879 tok)
+- `BladeViewProvider.php` — BladeViewProvider: register (~877 tok)
 - `CacheProvider.php` — CacheProvider: register (~141 tok)
 - `ChronosProvider.php` — ChronosProvider: register (~204 tok)
 - `ConfigProvider.php` — ConfigProvider: register (~73 tok)
@@ -638,16 +638,16 @@
 - `HashServiceProvider.php` — HashServiceProvider: register (~186 tok)
 - `LogServiceProvider.php` — LogServiceProvider: register (~90 tok)
 - `ModelProvider.php` — ModelProvider: register (~254 tok)
-- `PasskeyServiceProvider.php` — Register passkey (WebAuthn) authentication services. (~628 tok)
+- `PasskeyServiceProvider.php` — Register passkey (WebAuthn) authentication services. (~625 tok)
 - `QueueServiceProvider.php` — QueueServiceProvider: register (~221 tok)
 - `RequestProvider.php` — RequestProvider: register (~97 tok)
 - `ResponseProvider.php` — ResponseProvider: register (~74 tok)
-- `RouteServiceProvider.php` — Service provider: RouteServiceProvider (~215 tok)
+- `RouteServiceProvider.php` — RouteServiceProvider: register (~213 tok)
 - `SessionProvider.php` — SessionProvider: register (~482 tok)
 - `SqidsProvider.php` — SqidsProvider: register (~108 tok)
-- `TranslateProvider.php` — Registers a service provider. (~404 tok)
+- `TranslateProvider.php` — Registers a service provider. (~401 tok)
 - `ViewProvider.php` — ViewProvider: register (~77 tok)
-- `VoltViewProvider.php` — VoltViewProvider: register (~774 tok)
+- `VoltViewProvider.php` — VoltViewProvider: register (~772 tok)
 
 ## src/Phare/Queue/
 
@@ -841,6 +841,7 @@
 - `ContainerCompositionTest.php` — Characterization tests (8) pinning bind/singleton/alias/isShared/getShared/DiInterface behavior pre-E01 refactor (~400 tok)
 - `ContainerTest.php` — Interface: LoggerInterface (4 methods) (~1618 tok)
 - `ContextualBindingEdgeTest.php` — Interface: EdgeTransport (7 methods) (~806 tok)
+- `ProviderMigrationE02bTest.php` (~492 tok)
 - `PSR11AndArrayAccessTest.php` (~307 tok)
 
 ## tests/Container/Attributes/
@@ -895,10 +896,18 @@
 - `EventLifecycleTest.php` — EventLifecycleObserver: creating, updated (~2187 tok)
 - `MassAssignmentTest.php` — Model — 1 fields (~522 tok)
 
+## tests/Foundation/Http/
+
+- `KernelPipelineTest.php` — KernelPipelineTestKernel: handle, setGlobalMiddleware, setMiddlewareGroups, setRouteMiddlewareMap + (~2399 tok)
+
 ## tests/Hashing/
 
 - `HasherTest.php` (~318 tok)
 - `HashManagerTest.php` — make: check, needsRehash, info + 3 more (~2048 tok)
+
+## tests/Support/
+
+- `SimpleApplication.php` — SimpleApplication: version, basePath, configPath, databasePath + 50 more (~1995 tok)
 
 ## tests/Unit/Auth/
 
@@ -908,9 +917,25 @@
 
 - `RepositoryMacroTest.php` (~165 tok)
 
+## tests/Unit/Database/
+
+- `DatabaseManagerTest.php` — FakeTransaction: begin, commit, rollback, get + 17 more (~1656 tok)
+
+## tests/Unit/Eloquent/
+
+- `ModelEventsTest.php` — EventModelTestApplication: version, basePath, bootstrapPath, configPath + 10 more (~694 tok)
+
+## tests/Unit/Events/
+
+- `DispatcherTest.php` — EventTestApplication: version, basePath, bootstrapPath, configPath + 14 more (~2798 tok)
+
 ## tests/Unit/Mail/
 
 - `MailServiceProviderTest.php` (~664 tok)
+
+## tests/Unit/Queue/
+
+- `DispatchableTest.php` — DispatchableTestApplication: version, basePath, bootstrapPath, configPath + 10 more (~1053 tok)
 
 ## tests/Unit/Support/
 

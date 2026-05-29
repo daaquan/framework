@@ -818,3 +818,27 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 23:59 | Edited tests/Cache/CacheRepositoryTest.php | inline fix | ~12 |
 | 00:00 | Migrated 24 providers to Phare\Support\ServiceProvider base class | src/Phare/Providers/*, Mail, Broadcasting | 1347 passed | ~15k |
 | 00:03 | E02-remainder: migrated 24/29 providers to Phare\Support\ServiceProvider (closure-safe alias trick); +ArrayAccess on Container contract; 5 landmines deferred E02b (need Application contract) | 24 providers, Container contract, 2 tests | suite 1347 held, phpstan dirs 160→118, pint clean | ~60k (subagent) |
+| 00:03 | Session end: 33 writes across 29 files (ValidatorTest.php, Validator.php, Container.php, ConfigProvider.php, CacheProvider.php) | 30 reads | ~18926 tok |
+| 00:10 | Created tests/Container/ProviderMigrationE02bTest.php | — | ~492 |
+| 00:11 | Edited src/Phare/Contracts/Foundation/Application.php | modified version() | ~339 |
+| 00:13 | Edited src/Phare/Providers/RouteServiceProvider.php | modified register() | ~99 |
+| 00:13 | Edited src/Phare/Providers/TranslateProvider.php | modified register() | ~120 |
+| 00:13 | Session end: 37 writes across 33 files (ValidatorTest.php, Validator.php, Container.php, ConfigProvider.php, CacheProvider.php) | 36 reads | ~23203 tok |
+| 00:13 | Edited src/Phare/Providers/BladeViewProvider.php | 10→9 lines | ~79 |
+| 00:13 | Edited src/Phare/Providers/BladeViewProvider.php | modified register() | ~58 |
+| 00:13 | Edited src/Phare/Providers/VoltViewProvider.php | modified register() | ~99 |
+| 00:13 | Edited src/Phare/Providers/PasskeyServiceProvider.php | 7→6 lines | ~72 |
+| 00:13 | Edited src/Phare/Providers/PasskeyServiceProvider.php | modified register() | ~67 |
+| 00:14 | Edited tests/Unit/Database/DatabaseManagerTest.php | modified basePath() | ~236 |
+| 00:15 | Edited tests/Unit/Queue/DispatchableTest.php | modified basePath() | ~236 |
+| 00:15 | Edited tests/Unit/Events/DispatcherTest.php | modified basePath() | ~236 |
+| 00:15 | Edited tests/Unit/Eloquent/ModelEventsTest.php | modified basePath() | ~236 |
+| 00:15 | Edited tests/Foundation/Http/KernelPipelineTest.php | modified basePath() | ~235 |
+| 00:15 | Edited tests/Support/SimpleApplication.php | modified bootstrapPath() | ~84 |
+| 00:15 | Edited tests/Support/SimpleApplication.php | modified has() | ~181 |
+| 00:16 | Edited tests/Unit/Database/DatabaseManagerTest.php | 5→6 lines | ~63 |
+| 00:16 | Edited tests/Unit/Database/DatabaseManagerTest.php | 5→6 lines | ~63 |
+| 00:16 | Edited tests/Unit/Database/DatabaseManagerTest.php | 5→6 lines | ~74 |
+| 00:16 | Edited tests/Unit/Database/DatabaseManagerTest.php | 5→6 lines | ~73 |
+| 00:17 | E02b: migrated final 5 providers (Route/Translate/Blade/Volt/Passkey) to ServiceProvider base; fixed test doubles for enriched Application/Container contract | src/Phare/Providers/*, tests/* | 1352 passed | ~30k |
+| 00:20 | E02b: provider migration COMPLETE (29/29 off Phalcon SP iface); enriched Application contract (extends Container + path/env methods); migrated last 5 + fixed 6 test doubles/mocks for enriched contract | Application.php, 5 providers, 6 test files, new E02b test | suite 1347→1352, phpstan providers 34→11, pint clean | ~107k (subagent) |
