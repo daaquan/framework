@@ -769,3 +769,4 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 21:57 | Edited src/Phare/Validation/Validator.php | modified validateAlpha() | ~1091 |
 | 22:05 | A06 Phase-2: +15 DB-free validation rules (alpha/alpha_num/alpha_dash/digits/digits_between/size/starts_with/ends_with/uuid/json/ip/ipv4/ipv6/lowercase/uppercase) + default msgs, TDD | src/Phare/Validation/Validator.php, tests/Validation/ValidatorTest.php | 1325→1326 green, phpstan 62=62 (0 regression), pint clean | ~10k |
 | 21:59 | Session end: 10 writes across 5 files (HashManagerTest.php, HashManager.php, hashing.php, ValidatorTest.php, Validator.php) | 11 reads | ~18076 tok |
+| 22:39 | E01 design doc: Container composition seam, scope split (E01a now / E01b gated on B01 / provider-migration=E02-remainder) | docs/superpowers/plans/2026-05-29-e01-container-composition.md | written, worktree e01-container-composition | ~9k |

@@ -81,6 +81,7 @@
 - `2026-05-11-phase3-finalize.md` — Phase 3 Finalize: Kernel::registerRoutes() wiring-only orchestration (~5590 tok)
 - `2026-05-11-phase5-finalize.md` — Phase 5 Finalize: Log channel-stack + Manager base extraction (~9051 tok)
 - `2026-05-11-phase6-container-edges.md` — Phase 6 Implementation Plan: Laravel 13 Container Edge Behaviors (~5586 tok)
+- `2026-05-29-e01-container-composition.md` — E01 design+plan: drop `Container extends Phalcon\Di\Di` via composition seam (inner Di + implements DiInterface by delegation); E01b/provider-migration scoped out (~4200 tok)
 
 ## docs/superpowers/specs/
 
