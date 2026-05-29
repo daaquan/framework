@@ -16,6 +16,25 @@ class Validator
 
     protected array $customRules = [];
 
+    /**
+     * Rules that run even when the attribute is empty or absent.
+     *
+     * @var list<string>
+     */
+    protected array $implicitRules = [
+        'required',
+        'required_if',
+        'required_unless',
+        'required_with',
+        'required_with_all',
+        'required_without',
+        'required_without_all',
+        'filled',
+        'present',
+        'accepted',
+        'declined',
+    ];
+
     public function __construct(array $data, array $rules, array $messages = [], array $customAttributes = [])
     {
         $this->data = $data;
@@ -76,12 +95,19 @@ class Validator
         }
 
         foreach ($rules as $rule) {
-            if (!str_starts_with($rule, 'required') && ($value === null || $value === '')) {
+            if (!$this->isImplicitRule($rule) && ($value === null || $value === '')) {
                 continue;
             }
 
             $this->validateRule($attribute, $value, $rule);
         }
+    }
+
+    protected function isImplicitRule(string $rule): bool
+    {
+        [$name] = $this->parseRule($rule);
+
+        return str_starts_with($name, 'required') || in_array($name, $this->implicitRules, true);
     }
 
     protected function validateRule(string $attribute, $value, string $rule): void
@@ -184,6 +210,24 @@ class Validator
             'ipv6' => "The {$attribute} must be a valid IPv6 address.",
             'lowercase' => "The {$attribute} must be lowercase.",
             'uppercase' => "The {$attribute} must be uppercase.",
+            'present' => "The {$attribute} field must be present.",
+            'filled' => "The {$attribute} field must have a value.",
+            'accepted' => "The {$attribute} must be accepted.",
+            'declined' => "The {$attribute} must be declined.",
+            'gt' => "The {$attribute} must be greater than {$param0}.",
+            'gte' => "The {$attribute} must be greater than or equal to {$param0}.",
+            'lt' => "The {$attribute} must be less than {$param0}.",
+            'lte' => "The {$attribute} must be less than or equal to {$param0}.",
+            'multiple_of' => "The {$attribute} must be a multiple of {$param0}.",
+            'date_format' => "The {$attribute} does not match the format {$param0}.",
+            'before' => "The {$attribute} must be a date before {$param0}.",
+            'after' => "The {$attribute} must be a date after {$param0}.",
+            'required_if' => "The {$attribute} field is required when {$param0} is {$param1}.",
+            'required_unless' => "The {$attribute} field is required unless {$param0} is in {$param1}.",
+            'required_with' => "The {$attribute} field is required when {$param0} is present.",
+            'required_with_all' => "The {$attribute} field is required when {$param0} is present.",
+            'required_without' => "The {$attribute} field is required when {$param0} is not present.",
+            'required_without_all' => "The {$attribute} field is required when none of {$param0} are present.",
         ];
 
         return $messages[$rule] ?? "The {$attribute} field is invalid.";
@@ -424,6 +468,214 @@ class Validator
     protected function validateUppercase(string $attribute, mixed $value, array $parameters): bool
     {
         return is_string($value) && mb_strtoupper($value, 'UTF-8') === $value;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validatePresent(string $attribute, mixed $value, array $parameters): bool
+    {
+        return array_key_exists($attribute, $this->data);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateFilled(string $attribute, mixed $value, array $parameters): bool
+    {
+        if (array_key_exists($attribute, $this->data)) {
+            return $this->validateRequired($attribute, $value, []);
+        }
+
+        return true;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateAccepted(string $attribute, mixed $value, array $parameters): bool
+    {
+        return in_array($value, ['yes', 'on', '1', 1, true, 'true'], true);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateDeclined(string $attribute, mixed $value, array $parameters): bool
+    {
+        return in_array($value, ['no', 'off', '0', 0, false, 'false'], true);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateGt(string $attribute, mixed $value, array $parameters): bool
+    {
+        return $this->getSize($attribute, $value) > $this->comparisonTarget($parameters[0]);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateGte(string $attribute, mixed $value, array $parameters): bool
+    {
+        return $this->getSize($attribute, $value) >= $this->comparisonTarget($parameters[0]);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateLt(string $attribute, mixed $value, array $parameters): bool
+    {
+        return $this->getSize($attribute, $value) < $this->comparisonTarget($parameters[0]);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateLte(string $attribute, mixed $value, array $parameters): bool
+    {
+        return $this->getSize($attribute, $value) <= $this->comparisonTarget($parameters[0]);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateMultipleOf(string $attribute, mixed $value, array $parameters): bool
+    {
+        if (!is_numeric($value) || !is_numeric($parameters[0])) {
+            return false;
+        }
+
+        $divisor = (float)$parameters[0];
+        if ($divisor == 0.0) {
+            return false;
+        }
+
+        return fmod((float)$value, $divisor) == 0.0;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateDateFormat(string $attribute, mixed $value, array $parameters): bool
+    {
+        if (!is_string($value) && !is_numeric($value)) {
+            return false;
+        }
+
+        $value = (string)$value;
+        foreach ($parameters as $format) {
+            $date = \DateTime::createFromFormat('!' . $format, $value);
+
+            if ($date && $date->format($format) === $value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateBefore(string $attribute, mixed $value, array $parameters): bool
+    {
+        return $this->compareDates($value, $parameters[0], '<');
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateAfter(string $attribute, mixed $value, array $parameters): bool
+    {
+        return $this->compareDates($value, $parameters[0], '>');
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateRequiredIf(string $attribute, mixed $value, array $parameters): bool
+    {
+        $other = $this->getValue($parameters[0]);
+
+        if (in_array((string)$other, array_slice($parameters, 1), true)) {
+            return $this->validateRequired($attribute, $value, []);
+        }
+
+        return true;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateRequiredUnless(string $attribute, mixed $value, array $parameters): bool
+    {
+        $other = $this->getValue($parameters[0]);
+
+        if (!in_array((string)$other, array_slice($parameters, 1), true)) {
+            return $this->validateRequired($attribute, $value, []);
+        }
+
+        return true;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateRequiredWith(string $attribute, mixed $value, array $parameters): bool
+    {
+        foreach ($parameters as $field) {
+            if ($this->validateRequired($field, $this->getValue($field), [])) {
+                return $this->validateRequired($attribute, $value, []);
+            }
+        }
+
+        return true;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateRequiredWithAll(string $attribute, mixed $value, array $parameters): bool
+    {
+        foreach ($parameters as $field) {
+            if (!$this->validateRequired($field, $this->getValue($field), [])) {
+                return true;
+            }
+        }
+
+        return $this->validateRequired($attribute, $value, []);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateRequiredWithout(string $attribute, mixed $value, array $parameters): bool
+    {
+        foreach ($parameters as $field) {
+            if (!$this->validateRequired($field, $this->getValue($field), [])) {
+                return $this->validateRequired($attribute, $value, []);
+            }
+        }
+
+        return true;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateRequiredWithoutAll(string $attribute, mixed $value, array $parameters): bool
+    {
+        foreach ($parameters as $field) {
+            if ($this->validateRequired($field, $this->getValue($field), [])) {
+                return true;
+            }
+        }
+
+        return $this->validateRequired($attribute, $value, []);
+    }
+
+    /**
+     * Resolve a comparison parameter to a size: another field's size when the
+     * field exists in the data, otherwise the numeric literal.
+     */
+    protected function comparisonTarget(string $parameter): int|float
+    {
+        if (array_key_exists($parameter, $this->data)) {
+            return $this->getSize($parameter, $this->data[$parameter]);
+        }
+
+        return is_numeric($parameter) ? (float)$parameter : $this->getSize($parameter, $parameter);
+    }
+
+    protected function compareDates(mixed $value, string $parameter, string $operator): bool
+    {
+        $left = $this->toTimestamp($value);
+        $right = $this->toTimestamp(array_key_exists($parameter, $this->data) ? $this->data[$parameter] : $parameter);
+
+        if ($left === false || $right === false) {
+            return false;
+        }
+
+        return $operator === '<' ? $left < $right : $left > $right;
+    }
+
+    protected function toTimestamp(mixed $value): int|false
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return $value->getTimestamp();
+        }
+
+        if (!is_string($value) && !is_numeric($value)) {
+            return false;
+        }
+
+        return strtotime((string)$value);
     }
 
     protected function getSize(string $attribute, $value): int|float

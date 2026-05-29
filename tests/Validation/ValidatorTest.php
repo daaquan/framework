@@ -251,9 +251,114 @@ class ValidatorTest extends TestCase
         }
     }
 
+    public function test_present_rule()
+    {
+        // present: key must exist, value may be empty
+        $this->assertTrue((new Validator(['field' => ''], ['field' => 'present']))->passes());
+        $this->assertTrue((new Validator(['field' => 'x'], ['field' => 'present']))->passes());
+        $this->assertTrue((new Validator(['field' => null], ['field' => 'present']))->passes());
+        $this->assertTrue((new Validator([], ['field' => 'present']))->fails());
+    }
+
+    public function test_filled_rule()
+    {
+        // filled: if present, must not be empty; if absent, passes
+        $this->assertTrue((new Validator(['field' => ''], ['field' => 'filled']))->fails());
+        $this->assertTrue((new Validator(['field' => null], ['field' => 'filled']))->fails());
+        $this->assertTrue((new Validator([], ['field' => 'filled']))->passes());
+        $this->assertTrue((new Validator(['field' => 'x'], ['field' => 'filled']))->passes());
+    }
+
+    public function test_accepted_rule()
+    {
+        foreach (['yes', 'on', '1', 1, true, 'true'] as $v) {
+            $this->assertTrue((new Validator(['tos' => $v], ['tos' => 'accepted']))->passes(), 'accepted ' . var_export($v, true));
+        }
+        foreach (['no', '0', 0, false, '', 'maybe'] as $v) {
+            $this->assertTrue((new Validator(['tos' => $v], ['tos' => 'accepted']))->fails(), 'accepted-fail ' . var_export($v, true));
+        }
+        $this->assertTrue((new Validator([], ['tos' => 'accepted']))->fails());
+    }
+
+    public function test_declined_rule()
+    {
+        foreach (['no', 'off', '0', 0, false, 'false'] as $v) {
+            $this->assertTrue((new Validator(['tos' => $v], ['tos' => 'declined']))->passes(), 'declined ' . var_export($v, true));
+        }
+        foreach (['yes', '1', 1, true, ''] as $v) {
+            $this->assertTrue((new Validator(['tos' => $v], ['tos' => 'declined']))->fails(), 'declined-fail ' . var_export($v, true));
+        }
+        $this->assertTrue((new Validator([], ['tos' => 'declined']))->fails());
+    }
+
+    public function test_gt_gte_lt_lte_rules()
+    {
+        $data = ['a' => 10, 'b' => 5, 'c' => 10];
+
+        $this->assertTrue((new Validator($data, ['a' => 'gt:b']))->passes());
+        $this->assertTrue((new Validator($data, ['b' => 'gt:a']))->fails());
+        $this->assertTrue((new Validator($data, ['a' => 'gt:c']))->fails());
+
+        $this->assertTrue((new Validator($data, ['a' => 'gte:c']))->passes());
+        $this->assertTrue((new Validator($data, ['a' => 'gte:b']))->passes());
+        $this->assertTrue((new Validator($data, ['b' => 'gte:a']))->fails());
+
+        $this->assertTrue((new Validator($data, ['b' => 'lt:a']))->passes());
+        $this->assertTrue((new Validator($data, ['a' => 'lt:b']))->fails());
+
+        $this->assertTrue((new Validator($data, ['a' => 'lte:c']))->passes());
+        $this->assertTrue((new Validator($data, ['b' => 'lte:a']))->passes());
+        $this->assertTrue((new Validator($data, ['a' => 'lte:b']))->fails());
+    }
+
+    public function test_required_if_rule()
+    {
+        $this->assertTrue((new Validator(['type' => 'company', 'vat' => ''], ['vat' => 'required_if:type,company']))->fails());
+        $this->assertTrue((new Validator(['type' => 'person', 'vat' => ''], ['vat' => 'required_if:type,company']))->passes());
+        $this->assertTrue((new Validator(['type' => 'company', 'vat' => 'X1'], ['vat' => 'required_if:type,company']))->passes());
+    }
+
+    public function test_required_unless_rule()
+    {
+        $this->assertTrue((new Validator(['type' => 'person', 'vat' => ''], ['vat' => 'required_unless:type,person']))->passes());
+        $this->assertTrue((new Validator(['type' => 'company', 'vat' => ''], ['vat' => 'required_unless:type,person']))->fails());
+    }
+
+    public function test_required_with_rules()
+    {
+        $this->assertTrue((new Validator(['a' => 'x', 'b' => ''], ['b' => 'required_with:a']))->fails());
+        $this->assertTrue((new Validator(['b' => ''], ['b' => 'required_with:a']))->passes());
+
+        $this->assertTrue((new Validator(['a' => 'x', 'c' => 'y', 'b' => ''], ['b' => 'required_with_all:a,c']))->fails());
+        $this->assertTrue((new Validator(['a' => 'x', 'b' => ''], ['b' => 'required_with_all:a,c']))->passes());
+    }
+
+    public function test_required_without_rules()
+    {
+        $this->assertTrue((new Validator(['b' => ''], ['b' => 'required_without:a']))->fails());
+        $this->assertTrue((new Validator(['a' => 'x', 'b' => ''], ['b' => 'required_without:a']))->passes());
+
+        $this->assertTrue((new Validator(['b' => ''], ['b' => 'required_without_all:a,c']))->fails());
+        $this->assertTrue((new Validator(['a' => 'x', 'b' => ''], ['b' => 'required_without_all:a,c']))->passes());
+    }
+
     private function formatRuleCases(): array
     {
         return [
+            // multiple_of
+            'multiple_of pass' => ['multiple_of:5', 10, true],
+            'multiple_of fail' => ['multiple_of:5', 7, false],
+            'multiple_of pass float' => ['multiple_of:0.5', 1.5, true],
+            // date_format
+            'date_format pass' => ['date_format:Y-m-d', '2020-01-01', true],
+            'date_format fail' => ['date_format:Y-m-d', '01/01/2020', false],
+            'date_format pass time' => ['date_format:H:i', '13:45', true],
+            // before (literal date param)
+            'before pass' => ['before:2020-12-31', '2020-01-01', true],
+            'before fail' => ['before:2019-12-31', '2020-01-01', false],
+            // after (literal date param)
+            'after pass' => ['after:2019-01-01', '2020-01-01', true],
+            'after fail' => ['after:2021-01-01', '2020-01-01', false],
             // alpha
             'alpha pass' => ['alpha', 'abcDEF', true],
             'alpha fail digit' => ['alpha', 'abc1', false],

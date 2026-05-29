@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 997499,
-    "total_reads": 361,
-    "total_writes": 140,
-    "total_sessions": 110,
-    "anatomy_hits": 257,
-    "anatomy_misses": 104,
-    "repeated_reads_blocked": 45,
-    "estimated_savings_vs_bare_cli": 595648
+    "total_tokens_estimated": 1117596,
+    "total_reads": 397,
+    "total_writes": 171,
+    "total_sessions": 111,
+    "anatomy_hits": 283,
+    "anatomy_misses": 114,
+    "repeated_reads_blocked": 58,
+    "estimated_savings_vs_bare_cli": 720021
   },
   "sessions": [
     {
@@ -3383,6 +3383,428 @@
         "writes_count": 10,
         "repeated_reads_blocked": 1,
         "anatomy_lookups": 8
+      }
+    },
+    {
+      "id": "session-2026-05-29-2145",
+      "started": "2026-05-29T12:45:12.438Z",
+      "ended": "2026-05-29T13:03:11.152Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Hashing/ArgonHasher.php",
+          "tokens_estimated": 470,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 771,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Hashing/HashManager.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/Argon2idHasher.php",
+          "tokens_estimated": 45,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/Argon2iHasher.php",
+          "tokens_estimated": 44,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/BcryptHasher.php",
+          "tokens_estimated": 351,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Hashing/HashManagerTest.php",
+          "tokens_estimated": 1496,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6551,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/config/hashing.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 2608,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Hashing/HashManagerTest.php",
+          "tokens_estimated": 658,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 230,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 496,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/config/hashing.php",
+          "tokens_estimated": 581,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 180,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 907,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 141,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 1007,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 371,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 1169,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 12336,
+        "output_tokens_estimated": 5740,
+        "reads_count": 11,
+        "writes_count": 10,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 8
+      }
+    },
+    {
+      "id": "session-2026-05-29-2208",
+      "started": "2026-05-29T13:08:55.020Z",
+      "ended": "2026-05-29T13:40:35.724Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Container/Container.php",
+          "tokens_estimated": 12350,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Container/Container.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 401,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 4590,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 12350,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 428,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Bootstrap/RegisterProviders.php",
+          "tokens_estimated": 111,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 8617,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 707,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 149,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 128,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 446,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 671,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 30230,
+        "output_tokens_estimated": 10910,
+        "reads_count": 9,
+        "writes_count": 9,
+        "repeated_reads_blocked": 2,
+        "anatomy_lookups": 6
+      }
+    },
+    {
+      "id": "session-2026-05-29-2208",
+      "started": "2026-05-29T13:08:55.020Z",
+      "ended": "2026-05-29T13:50:26.757Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Container/Container.php",
+          "tokens_estimated": 12350,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Container/Container.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 401,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 4590,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 12350,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 428,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Bootstrap/RegisterProviders.php",
+          "tokens_estimated": 111,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 11193,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/phpunit.xml.dist",
+          "tokens_estimated": 474,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 605,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Container/ContainerTest.php",
+          "tokens_estimated": 1618,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Container/ContainerCompatibilityTest.php",
+          "tokens_estimated": 3015,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/PSR11AndArrayAccessTest.php",
+          "tokens_estimated": 307,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerTest.php",
+          "tokens_estimated": 1618,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 8617,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 707,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 149,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 128,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 446,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 671,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 648,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+          "tokens_estimated": 128,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 135,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 49060,
+        "output_tokens_estimated": 11821,
+        "reads_count": 16,
+        "writes_count": 12,
+        "repeated_reads_blocked": 10,
+        "anatomy_lookups": 12
       }
     }
   ],
