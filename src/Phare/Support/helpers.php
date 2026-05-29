@@ -357,14 +357,6 @@ if (!function_exists('bcrypt')) {
     }
 }
 
-// security()
-if (!function_exists('security')) {
-    function security(): mixed
-    {
-        return app('security');
-    }
-}
-
 // hashStringWithSalt()
 if (!function_exists('hashStringWithSalt')) {
     function hashStringWithSalt(string $string, string $salt): string

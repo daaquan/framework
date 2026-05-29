@@ -857,3 +857,7 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 06:10 | Edited src/Phare/Validation/Validator.php | added 6 condition(s) | ~603 |
 | 06:11 | Edited src/Phare/Validation/Validator.php | 2→7 lines | ~149 |
 | 06:12 | A06 array-batch: array:keys, distinct(+strict/ignore_case), in_array:field, prohibited/prohibited_if/prohibited_unless (flat-model adaptations) | Validator.php, ValidatorTest.php | TDD RED→GREEN, suite 1352→1355, phpstan 62→62 (0 new), pint clean | ~9k |
+| 06:12 | Session end: 3 writes across 2 files (ValidatorTest.php, Validator.php) | 0 reads | ~1415 tok |
+| 06:13 | Edited tests/Unit/Support/HelpersHashTest.php | modified function() | ~142 |
+| 06:13 | Edited src/Phare/Support/helpers.php | removed 9 lines | ~7 |
+| 06:14 | E-area helper leaks closed: removed dead leaky security(): mixed helper (Phalcon Security, 0 callers, non-parity); encrypter() already fixed | helpers.php, HelpersHashTest.php | TDD RED→GREEN, suite 1355→1356, phpstan helpers 52→52, pint clean | ~6k |

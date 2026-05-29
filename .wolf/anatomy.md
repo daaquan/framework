@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T21:11:08.959Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T21:13:44.017Z
 > Files: 543 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
@@ -722,7 +722,7 @@
 - `Chronos.php` — Chronos: parse, now, copy, diffForHumans + 1 more (~848 tok)
 - `DataTransferObject.php` — DataTransferObject: fill, toArray, only, except + 1 more (~538 tok)
 - `Env.php` — Indicates if the putenv function is enabled. (~365 tok)
-- `helpers.php` — array_any: config, config_set_path, env + 39 more (~6551 tok)
+- `helpers.php` — array_any: config, config_set_path, env + 38 more (~6517 tok)
 - `HigherOrderTapProxy.php` — The target being tapped. (~175 tok)
 - `Manager.php` — Laravel-parity abstract manager for multi-driver services. (~1123 tok)
 - `ServiceProvider.php` — Get the services provided by the provider (used by deferred providers). (~428 tok)
@@ -940,7 +940,7 @@
 ## tests/Unit/Support/
 
 - `EncrypterSlotTest.php` — Declares refreshEncrypterSlotApp (~432 tok)
-- `HelpersHashTest.php` — Declares refreshHashHelperApp (~282 tok)
+- `HelpersHashTest.php` — Declares refreshHashHelperApp (~401 tok)
 - `MacroableTest.php` — Declares each (~347 tok)
 - `ServiceProviderTest.php` — Container subclass that records boot-lifecycle callbacks for assertions. (~404 tok)
 
