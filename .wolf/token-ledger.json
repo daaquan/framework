@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 979423,
-    "total_reads": 350,
-    "total_writes": 130,
-    "total_sessions": 109,
-    "anatomy_hits": 249,
-    "anatomy_misses": 101,
-    "repeated_reads_blocked": 44,
-    "estimated_savings_vs_bare_cli": 594048
+    "total_tokens_estimated": 997499,
+    "total_reads": 361,
+    "total_writes": 140,
+    "total_sessions": 110,
+    "anatomy_hits": 257,
+    "anatomy_misses": 104,
+    "repeated_reads_blocked": 45,
+    "estimated_savings_vs_bare_cli": 595648
   },
   "sessions": [
     {
@@ -3250,6 +3250,139 @@
         "writes_count": 11,
         "repeated_reads_blocked": 0,
         "anatomy_lookups": 5
+      }
+    },
+    {
+      "id": "session-2026-05-29-2145",
+      "started": "2026-05-29T12:45:12.438Z",
+      "ended": "2026-05-29T12:59:31.213Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Hashing/ArgonHasher.php",
+          "tokens_estimated": 470,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 771,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Hashing/HashManager.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/Argon2idHasher.php",
+          "tokens_estimated": 45,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/Argon2iHasher.php",
+          "tokens_estimated": 44,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/BcryptHasher.php",
+          "tokens_estimated": 351,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Hashing/HashManagerTest.php",
+          "tokens_estimated": 1496,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6551,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/config/hashing.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 2608,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Hashing/HashManagerTest.php",
+          "tokens_estimated": 658,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 230,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 496,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/config/hashing.php",
+          "tokens_estimated": 581,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 180,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 907,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 141,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 1007,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 371,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 1169,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 12336,
+        "output_tokens_estimated": 5740,
+        "reads_count": 11,
+        "writes_count": 10,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 8
       }
     }
   ],
