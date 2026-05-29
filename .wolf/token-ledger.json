@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 916427,
-    "total_reads": 320,
-    "total_writes": 70,
-    "total_sessions": 107,
-    "anatomy_hits": 221,
-    "anatomy_misses": 99,
-    "repeated_reads_blocked": 43,
-    "estimated_savings_vs_bare_cli": 581931
+    "total_tokens_estimated": 979423,
+    "total_reads": 350,
+    "total_writes": 130,
+    "total_sessions": 109,
+    "anatomy_hits": 249,
+    "anatomy_misses": 101,
+    "repeated_reads_blocked": 44,
+    "estimated_savings_vs_bare_cli": 594048
   },
   "sessions": [
     {
@@ -2703,6 +2703,553 @@
         "writes_count": 8,
         "repeated_reads_blocked": 8,
         "anatomy_lookups": 11
+      }
+    },
+    {
+      "id": "session-2026-05-29-1619",
+      "started": "2026-05-29T07:19:44.640Z",
+      "ended": "2026-05-29T07:23:20.151Z",
+      "reads": [
+        {
+          "file": "/opt/framework/docs/audit-summary.md",
+          "tokens_estimated": 5820,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 5820,
+        "output_tokens_estimated": 0,
+        "reads_count": 1,
+        "writes_count": 0,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-05-29-1619",
+      "started": "2026-05-29T07:19:44.640Z",
+      "ended": "2026-05-29T07:49:09.372Z",
+      "reads": [
+        {
+          "file": "/opt/framework/docs/audit-summary.md",
+          "tokens_estimated": 5820,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Passwords/PasswordBroker.php",
+          "tokens_estimated": 656,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HasherInterface.php",
+          "tokens_estimated": 168,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/BcryptHasher.php",
+          "tokens_estimated": 339,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Database/MigratorTest.php",
+          "tokens_estimated": 2597,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 1530,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Session/Session.php",
+          "tokens_estimated": 100,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Auth/ManagerTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/ArgonHasher.php",
+          "tokens_estimated": 458,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 528,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Hashing/HashManagerTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/phpunit.xml.dist",
+          "tokens_estimated": 401,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 116,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 4590,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6517,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Cache/CacheRepositoryTest.php",
+          "tokens_estimated": 952,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/HashServiceProvider.php",
+          "tokens_estimated": 213,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 438,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 1473,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Auth/PasswordBrokerTest.php",
+          "tokens_estimated": 612,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tests/Auth/PasswordBrokerTest.php",
+          "tokens_estimated": 740,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Passwords/TokenRepositoryInterface.php",
+          "tokens_estimated": 212,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Passwords/DatabaseTokenRepository.php",
+          "tokens_estimated": 367,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Passwords/PasswordBroker.php",
+          "tokens_estimated": 482,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Auth/CanResetPassword.php",
+          "tokens_estimated": 60,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Passwords/PasswordBroker.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Passwords/PasswordBroker.php",
+          "tokens_estimated": 46,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Auth/PasswordBrokerTest.php",
+          "tokens_estimated": 17,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Auth/PasswordBrokerTest.php",
+          "tokens_estimated": 136,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Auth/ManagerTest.php",
+          "tokens_estimated": 186,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 102,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Auth/ManagerTest.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Hashing/HasherTest.php",
+          "tokens_estimated": 341,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HasherInterface.php",
+          "tokens_estimated": 78,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/BcryptHasher.php",
+          "tokens_estimated": 9,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/BcryptHasher.php",
+          "tokens_estimated": 43,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/BcryptHasher.php",
+          "tokens_estimated": 32,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/ArgonHasher.php",
+          "tokens_estimated": 26,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/ArgonHasher.php",
+          "tokens_estimated": 32,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+          "tokens_estimated": 78,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Hashing/HashManagerTest.php",
+          "tokens_estimated": 27,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/phpunit.xml.dist",
+          "tokens_estimated": 65,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/ServiceProviderTest.php",
+          "tokens_estimated": 261,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 56,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/HelpersHashTest.php",
+          "tokens_estimated": 302,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 50,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 108,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 64,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 57,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/EncrypterSlotTest.php",
+          "tokens_estimated": 463,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 66,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 149,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 196,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 9,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/phpunit.xml.dist",
+          "tokens_estimated": 59,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 26896,
+        "output_tokens_estimated": 5604,
+        "reads_count": 19,
+        "writes_count": 38,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 17
+      }
+    },
+    {
+      "id": "session-2026-05-29-2125",
+      "started": "2026-05-29T12:25:41.667Z",
+      "ended": "2026-05-29T12:41:06.622Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Config/Repository.php",
+          "tokens_estimated": 2011,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Command.php",
+          "tokens_estimated": 1615,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Output/SymfonyOutput.php",
+          "tokens_estimated": 202,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Console/AgentFriendlyTest.php",
+          "tokens_estimated": 939,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 4590,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Unit/Support/MacroableTest.php",
+          "tokens_estimated": 372,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Config/RepositoryMacroTest.php",
+          "tokens_estimated": 177,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Traits/Macroable.php",
+          "tokens_estimated": 746,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Config/Repository.php",
+          "tokens_estimated": 241,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Config/Repository.php",
+          "tokens_estimated": 84,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Console/CommandIoTest.php",
+          "tokens_estimated": 370,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Command.php",
+          "tokens_estimated": 284,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/phpunit.xml.dist",
+          "tokens_estimated": 40,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/ServiceProviderTest.php",
+          "tokens_estimated": 210,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Support/DeferrableProvider.php",
+          "tokens_estimated": 64,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 393,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 9357,
+        "output_tokens_estimated": 2981,
+        "reads_count": 5,
+        "writes_count": 11,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 5
+      }
+    },
+    {
+      "id": "session-2026-05-29-2125",
+      "started": "2026-05-29T12:25:41.667Z",
+      "ended": "2026-05-29T12:43:46.093Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Config/Repository.php",
+          "tokens_estimated": 2011,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Command.php",
+          "tokens_estimated": 1615,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Output/SymfonyOutput.php",
+          "tokens_estimated": 202,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Console/AgentFriendlyTest.php",
+          "tokens_estimated": 939,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 4590,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Unit/Support/MacroableTest.php",
+          "tokens_estimated": 372,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Config/RepositoryMacroTest.php",
+          "tokens_estimated": 177,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Traits/Macroable.php",
+          "tokens_estimated": 746,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Config/Repository.php",
+          "tokens_estimated": 241,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Config/Repository.php",
+          "tokens_estimated": 84,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Console/CommandIoTest.php",
+          "tokens_estimated": 370,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Console/Command.php",
+          "tokens_estimated": 284,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/phpunit.xml.dist",
+          "tokens_estimated": 40,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/ServiceProviderTest.php",
+          "tokens_estimated": 210,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Support/DeferrableProvider.php",
+          "tokens_estimated": 64,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 393,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 9357,
+        "output_tokens_estimated": 2981,
+        "reads_count": 5,
+        "writes_count": 11,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 5
       }
     }
   ],
