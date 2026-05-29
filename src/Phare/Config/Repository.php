@@ -5,9 +5,13 @@ namespace Phare\Config;
 use ArrayAccess;
 use InvalidArgumentException;
 use Phare\Collections\Collection;
+use Phare\Contracts\Config\Repository as RepositoryContract;
+use Phare\Support\Traits\Macroable;
 
-class Repository implements ArrayAccess
+class Repository implements ArrayAccess, RepositoryContract
 {
+    use Macroable;
+
     protected array $items = [];
 
     public function __construct(array $items = [])
@@ -47,7 +51,7 @@ class Repository implements ArrayAccess
         $keys = is_array($key) ? $key : [$key => $value];
 
         foreach ($keys as $configKey => $configValue) {
-            $this->setPathValue($this->items, (string) $configKey, $configValue);
+            $this->setPathValue($this->items, (string)$configKey, $configValue);
         }
     }
 
@@ -224,7 +228,7 @@ class Repository implements ArrayAccess
             return;
         }
 
-        $this->set((string) $offset, $value);
+        $this->set((string)$offset, $value);
     }
 
     public function offsetUnset(mixed $offset): void

@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T07:47:38.528Z
-> Files: 525 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T12:39:43.637Z
+> Files: 531 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -21,7 +21,7 @@
 - `Dockerfile` — Docker container definition (~187 tok)
 - `LICENSE` — Project license (~286 tok)
 - `phpstan.neon.dist` (~42 tok)
-- `phpunit.xml.dist` (~456 tok)
+- `phpunit.xml.dist` (~474 tok)
 - `pint.json` (~146 tok)
 - `README.ja.md` — Phare フレームワーク (~411 tok)
 - `README.md` — Project documentation (~580 tok)
@@ -189,12 +189,12 @@
 - `ConfigEnvironment.php` — ConfigEnvironment: load, getEnvironment, setEnvironmentOverride, getEnvironmentOverrides + 3 more (~907 tok)
 - `EnvironmentDetector.php` — EnvironmentDetector: detect, setEnvironments, getEnvironments (~527 tok)
 - `EnvironmentManager.php` — EnvironmentManager: detect, getEnvironment, isEnvironment, isProduction + 6 more (~824 tok)
-- `Repository.php` — Get a configuration value using "dot" notation. (~2011 tok)
+- `Repository.php` — Get a configuration value using "dot" notation. (~2048 tok)
 
 ## src/Phare/Console/
 
 - `Application.php` — Add --env and --language options to all commands. (~747 tok)
-- `Command.php` — Framework application/container instance (not Symfony Console Application). (~1615 tok)
+- `Command.php` — Framework application/container instance (not Symfony Console Application). (~1851 tok)
 - `Config.php` — Get the singleton instance (~1706 tok)
 - `Kernel.php` — The Artisan commands provided by your application. (~671 tok)
 - `SignatureParser.php` — Parse the command signature and register arguments/options. (~317 tok)
@@ -298,6 +298,10 @@
 
 - `Cache.php` — Interface: Cache (21 methods) (~464 tok)
 
+## src/Phare/Contracts/Config/
+
+- `Repository.php` — Determine if the given configuration value exists. (~225 tok)
+
 ## src/Phare/Contracts/Console/
 
 - `Application.php` — Run an Artisan console command by name. (~146 tok)
@@ -348,6 +352,7 @@
 ## src/Phare/Contracts/Support/
 
 - `Arrayable.php` — Interface: Arrayable (1 methods) (~70 tok)
+- `DeferrableProvider.php` — Get the services provided by the provider. (~60 tok)
 - `Jsonable.php` — Convert the object to its JSON representation. (~66 tok)
 
 ## src/Phare/Database/
@@ -718,7 +723,7 @@
 - `helpers.php` — array_any: config, config_set_path, env + 39 more (~6551 tok)
 - `HigherOrderTapProxy.php` — The target being tapped. (~175 tok)
 - `Manager.php` — Laravel-parity abstract manager for multi-driver services. (~1123 tok)
-- `ServiceProvider.php` — ServiceProvider: register, boot (~97 tok)
+- `ServiceProvider.php` — Get the services provided by the provider (used by deferred providers). (~428 tok)
 
 ## src/Phare/Support/Facades/
 
@@ -741,6 +746,7 @@
 
 ## src/Phare/Support/Traits/
 
+- `Macroable.php` — Allows registering additional methods on a class at runtime (Laravel parity). (~696 tok)
 - `ReflectsClosures.php` — Resolve event class names from the first typed Closure parameter. (~380 tok)
 
 ## src/Phare/Testing/
@@ -822,6 +828,7 @@
 ## tests/Console/
 
 - `AgentFriendlyTest.php` — Minimal concrete command used for testing the AgentFriendly trait. (~939 tok)
+- `CommandIoTest.php` — IoTestCommand: handle (~345 tok)
 - `MakeMigrationCommandTest.php` — TestableMakeMigrationCommand: setBasePath, setArgument, setOption, getMessages + 6 more (~1460 tok)
 - `MigrateCommandTest.php` — FakeMigrator: run, reset, rollback, execute + 5 more (~1465 tok)
 
@@ -894,8 +901,13 @@
 
 - `ManagerTest.php` — ManagerTestUser: getAuthIdentifier, getAuthPassword (~1560 tok)
 
+## tests/Unit/Config/
+
+- `RepositoryMacroTest.php` (~165 tok)
+
 ## tests/Unit/Support/
 
 - `EncrypterSlotTest.php` — Declares refreshEncrypterSlotApp (~432 tok)
 - `HelpersHashTest.php` — Declares refreshHashHelperApp (~282 tok)
-- `ServiceProviderTest.php` — Declares register (~243 tok)
+- `MacroableTest.php` — Declares each (~347 tok)
+- `ServiceProviderTest.php` — Container subclass that records boot-lifecycle callbacks for assertions. (~404 tok)

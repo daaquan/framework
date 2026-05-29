@@ -732,3 +732,17 @@
 
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
+| 21:31 | Created tests/Unit/Support/MacroableTest.php | — | ~347 |
+| 21:31 | Created tests/Unit/Config/RepositoryMacroTest.php | — | ~165 |
+| 21:32 | Created src/Phare/Support/Traits/Macroable.php | — | ~696 |
+| 21:32 | Created src/Phare/Contracts/Config/Repository.php | — | ~225 |
+| 21:32 | Edited src/Phare/Config/Repository.php | added 3 import(s) | ~79 |
+| 21:34 | E03: Config Macroable trait + Contracts/Config/Repository (TDD) | +Support/Traits/Macroable.php +Contracts/Config/Repository.php Config/Repository.php +2 tests | 1295 suite green; phpstan no new error kind (16->17 dup noise) | ~5k |
+| 21:36 | Created tests/Console/CommandIoTest.php | — | ~345 |
+| 21:37 | Edited src/Phare/Console/Command.php | modified line() | ~265 |
+| 21:37 | Edited phpunit.xml.dist | 1→2 lines | ~38 |
+| 21:37 | E04: Console IO surface warn/newLine/table/secret (TDD); tests/Console added to suite | Console/Command.php +CommandIoTest phpunit.xml.dist | suite green; phpstan Command 10=10 | ~4k |
+| 21:39 | Edited tests/Unit/Support/ServiceProviderTest.php | modified makeBootSpyApp() | ~196 |
+| 21:39 | Created src/Phare/Contracts/Support/DeferrableProvider.php | — | ~60 |
+| 21:39 | Edited src/Phare/Support/ServiceProvider.php | added 3 condition(s) | ~367 |
+| 21:40 | E02: ServiceProvider provides()/booting()/booted()/mergeConfigFrom + DeferrableProvider contract (TDD). Lazy deferred-resolution NOT done (needs make() interception) | Support/ServiceProvider.php +Contracts/Support/DeferrableProvider.php ServiceProviderTest | suite green; phpstan clean | ~5k |
