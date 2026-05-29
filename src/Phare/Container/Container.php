@@ -1406,8 +1406,8 @@ class Container implements ArrayAccess, ContractsContainer, DiInterface, PsrCont
     /**
      * Convert a bare unknown-id make() error into a PSR-11 compliant
      * NotFoundException. Public sugar; callers preferring strict PSR-11
-     * semantics should use this rather than the bare get() inherited
-     * from Phalcon.
+     * semantics should use this rather than the bare get() delegated
+     * to the inner Phalcon Di.
      */
     public function psrGet(string $id): mixed
     {
