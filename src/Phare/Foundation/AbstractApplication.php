@@ -6,12 +6,14 @@ namespace Phare\Foundation;
 
 use Phalcon\Application\AbstractApplication as Application;
 use Phalcon\Config\Config;
+use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Events\Manager;
 use Phalcon\Mvc\Micro;
 use Phare\Container\Container;
 use Phare\Contracts\Foundation\Application as ApplicationContract;
 use Phare\Foundation\Events\ApplicationBooted;
 use Phare\Foundation\Events\ApplicationBooting;
+use Phare\Support\ServiceProvider;
 
 /**
  * This abstract class serves as the foundation for all applications built on the framework.
@@ -99,6 +101,8 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function __construct(protected string $basePath)
     {
+        parent::__construct();
+
         self::setDefault($this);
 
         $this->app = $this->createApplication();
@@ -311,7 +315,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
         $appProviders = is_array($appProviders) ? $appProviders : $appProviders->toArray();
 
         foreach ($appProviders as $providerClass) {
-            if (is_subclass_of($providerClass, \Phare\Support\ServiceProvider::class)) {
+            if (is_subclass_of($providerClass, ServiceProvider::class)) {
                 $provider = new $providerClass($this);
                 $provider->register();
                 $provider->boot();
@@ -320,7 +324,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
             }
 
             $provider = new $providerClass();
-            if ($provider instanceof \Phalcon\Di\ServiceProviderInterface) {
+            if ($provider instanceof ServiceProviderInterface) {
                 $provider->register($this);
             }
         }
@@ -658,7 +662,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     protected function resolveEnvironment(): string
     {
         if ($this->environmentResolver instanceof \Closure) {
-            return (string) ($this->environmentResolver)();
+            return (string)($this->environmentResolver)();
         }
 
         return getenv('APP_ENV') ?: 'production';
