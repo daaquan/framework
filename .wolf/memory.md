@@ -788,3 +788,33 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 23:48 | Edited src/Phare/Validation/Validator.php | expanded (+18 lines) | ~440 |
 | 23:50 | A06 validation batch: implicit-rules refactor + 18 rules (present/filled/accepted/declined, gt/gte/lt/lte/multiple_of, date_format/before/after, required_if/unless/with/with_all/without/without_all) | Validator.php, ValidatorTest.php | TDD RED→GREEN, suite 1338→1347, phpstan 0 new, pint clean | ~12k |
 | 23:51 | Session end: 5 writes across 2 files (ValidatorTest.php, Validator.php) | 3 reads | ~11283 tok |
+| 23:55 | Edited src/Phare/Contracts/Foundation/Container.php | 4→9 lines | ~39 |
+| 23:56 | Edited src/Phare/Providers/ConfigProvider.php | modified register() | ~62 |
+| 23:56 | Edited src/Phare/Providers/CacheProvider.php | modified register() | ~77 |
+| 23:56 | Edited src/Phare/Broadcasting/BroadcastServiceProvider.php | modified register() | ~60 |
+| 23:56 | Edited src/Phare/Mail/MailServiceProvider.php | modified register() | ~58 |
+| 23:56 | Edited src/Phare/Providers/AuthServiceProvider.php | modified register() | ~65 |
+| 23:56 | Edited src/Phare/Providers/ChronosProvider.php | modified register() | ~64 |
+| 23:56 | Edited src/Phare/Providers/DatabaseProvider.php | modified register() | ~69 |
+| 23:56 | Edited src/Phare/Providers/DebugLoggerProvider.php | modified register() | ~67 |
+| 23:56 | Edited src/Phare/Providers/DebugWhoopsProvider.php | modified register() | ~78 |
+| 23:56 | Edited src/Phare/Providers/DispatcherProvider.php | modified register() | ~92 |
+| 23:57 | Edited src/Phare/Providers/EncrypterProvider.php | modified register() | ~122 |
+| 23:57 | Edited src/Phare/Providers/ErrorHandlerProvider.php | modified register() | ~69 |
+| 23:57 | Edited src/Phare/Providers/EventsManagerProvider.php | modified register() | ~69 |
+| 23:57 | Edited src/Phare/Providers/FilesystemProvider.php | modified register() | ~70 |
+| 23:57 | Edited src/Phare/Providers/FilterProvider.php | modified register() | ~62 |
+| 23:57 | Edited src/Phare/Providers/HashServiceProvider.php | modified register() | ~66 |
+| 23:57 | Edited src/Phare/Providers/LogServiceProvider.php | modified register() | ~64 |
+| 23:57 | Edited src/Phare/Providers/ModelProvider.php | modified register() | ~105 |
+| 23:57 | Edited src/Phare/Providers/QueueServiceProvider.php | modified register() | ~71 |
+| 23:57 | Edited src/Phare/Providers/RequestProvider.php | modified register() | ~71 |
+| 23:57 | Edited src/Phare/Providers/ResponseProvider.php | modified register() | ~63 |
+| 23:57 | Edited src/Phare/Providers/SessionProvider.php | modified register() | ~127 |
+| 23:57 | Edited src/Phare/Providers/SqidsProvider.php | modified register() | ~56 |
+| 23:57 | Edited src/Phare/Providers/ViewProvider.php | modified register() | ~59 |
+| 23:59 | Edited tests/Unit/Mail/MailServiceProviderTest.php | modified test() | ~43 |
+| 23:59 | Edited tests/Unit/Mail/MailServiceProviderTest.php | inline fix | ~9 |
+| 23:59 | Edited tests/Cache/CacheRepositoryTest.php | inline fix | ~12 |
+| 00:00 | Migrated 24 providers to Phare\Support\ServiceProvider base class | src/Phare/Providers/*, Mail, Broadcasting | 1347 passed | ~15k |
+| 00:03 | E02-remainder: migrated 24/29 providers to Phare\Support\ServiceProvider (closure-safe alias trick); +ArrayAccess on Container contract; 5 landmines deferred E02b (need Application contract) | 24 providers, Container contract, 2 tests | suite 1347 held, phpstan dirs 160→118, pint clean | ~60k (subagent) |
