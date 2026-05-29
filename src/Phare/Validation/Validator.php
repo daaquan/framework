@@ -228,6 +228,11 @@ class Validator
             'required_with_all' => "The {$attribute} field is required when {$param0} is present.",
             'required_without' => "The {$attribute} field is required when {$param0} is not present.",
             'required_without_all' => "The {$attribute} field is required when none of {$param0} are present.",
+            'distinct' => "The {$attribute} field has a duplicate value.",
+            'in_array' => "The {$attribute} field does not exist in {$param0}.",
+            'prohibited' => "The {$attribute} field is prohibited.",
+            'prohibited_if' => "The {$attribute} field is prohibited when {$param0} is {$param1}.",
+            'prohibited_unless' => "The {$attribute} field is prohibited unless {$param0} is in {$param1}.",
         ];
 
         return $messages[$rule] ?? "The {$attribute} field is invalid.";
@@ -318,7 +323,77 @@ class Validator
 
     protected function validateArray(string $attribute, $value, array $parameters): bool
     {
-        return is_array($value);
+        if (!is_array($value)) {
+            return false;
+        }
+
+        if (empty($parameters)) {
+            return true;
+        }
+
+        return empty(array_diff_key($value, array_fill_keys($parameters, '')));
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateDistinct(string $attribute, mixed $value, array $parameters): bool
+    {
+        if (!is_array($value)) {
+            return false;
+        }
+
+        $strict = in_array('strict', $parameters, true);
+        $ignoreCase = in_array('ignore_case', $parameters, true);
+
+        $seen = [];
+        foreach ($value as $element) {
+            $element = $ignoreCase && is_string($element) ? mb_strtolower($element) : $element;
+
+            if (in_array($element, $seen, $strict)) {
+                return false;
+            }
+
+            $seen[] = $element;
+        }
+
+        return true;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateInArray(string $attribute, mixed $value, array $parameters): bool
+    {
+        $other = $this->getValue(rtrim($parameters[0], '.*'));
+
+        return is_array($other) && in_array($value, $other);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateProhibited(string $attribute, mixed $value, array $parameters): bool
+    {
+        return !$this->validateRequired($attribute, $value, []);
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateProhibitedIf(string $attribute, mixed $value, array $parameters): bool
+    {
+        $other = $this->getValue($parameters[0]);
+
+        if (in_array((string)$other, array_slice($parameters, 1), true)) {
+            return !$this->validateRequired($attribute, $value, []);
+        }
+
+        return true;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateProhibitedUnless(string $attribute, mixed $value, array $parameters): bool
+    {
+        $other = $this->getValue($parameters[0]);
+
+        if (!in_array((string)$other, array_slice($parameters, 1), true)) {
+            return !$this->validateRequired($attribute, $value, []);
+        }
+
+        return true;
     }
 
     protected function validateBoolean(string $attribute, $value, array $parameters): bool
