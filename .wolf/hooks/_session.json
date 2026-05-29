@@ -46,6 +46,11 @@
       "count": 1,
       "tokens": 164,
       "first_read": "2026-05-29T21:29:29.010Z"
+    },
+    "/opt/framework/src/Phare/Security/Csrf.php": {
+      "count": 1,
+      "tokens": 662,
+      "first_read": "2026-05-29T21:31:15.375Z"
     }
   },
   "files_written": [
@@ -162,6 +167,30 @@
       "action": "edit",
       "tokens": 32,
       "at": "2026-05-29T21:29:32.929Z"
+    },
+    {
+      "file": "/opt/framework/tests/Encryption/SensitiveParameterTest.php",
+      "action": "edit",
+      "tokens": 16,
+      "at": "2026-05-29T21:31:23.675Z"
+    },
+    {
+      "file": "/opt/framework/tests/Encryption/SensitiveParameterTest.php",
+      "action": "edit",
+      "tokens": 48,
+      "at": "2026-05-29T21:31:27.939Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Security/Csrf.php",
+      "action": "edit",
+      "tokens": 22,
+      "at": "2026-05-29T21:31:35.007Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Security/Csrf.php",
+      "action": "edit",
+      "tokens": 22,
+      "at": "2026-05-29T21:31:38.374Z"
     }
   ],
   "edit_counts": {
@@ -169,17 +198,18 @@
     "src/Phare/Validation/Validator.php": 2,
     "tests/Unit/Support/HelpersHashTest.php": 1,
     "src/Phare/Support/helpers.php": 1,
-    "tests/Encryption/SensitiveParameterTest.php": 1,
+    "tests/Encryption/SensitiveParameterTest.php": 3,
     "src/Phare/Encryption/Encrypter.php": 4,
     "src/Phare/Auth/Manager.php": 3,
     "src/Phare/Auth/Sanctum/SanctumGuard.php": 2,
     "src/Phare/Auth/Sanctum/PersonalAccessToken.php": 1,
     "src/Phare/Auth/Sanctum/Sanctum.php": 2,
-    "src/Phare/Auth/Sanctum/NewAccessToken.php": 1
+    "src/Phare/Auth/Sanctum/NewAccessToken.php": 1,
+    "src/Phare/Security/Csrf.php": 2
   },
-  "anatomy_hits": 9,
+  "anatomy_hits": 10,
   "anatomy_misses": 0,
   "repeated_reads_warned": 5,
   "cerebrum_warnings": 0,
-  "stop_count": 2
+  "stop_count": 3
 }
