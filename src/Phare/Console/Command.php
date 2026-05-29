@@ -8,6 +8,7 @@ use Phare\Console\Output\SymfonyOutput;
 use ReflectionClass;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
@@ -17,6 +18,7 @@ use Symfony\Component\Console\Question\Question;
 class Command extends SymfonyCommand
 {
     use AgentFriendly;
+
     /**
      * Framework application/container instance (not Symfony Console Application).
      */
@@ -219,5 +221,35 @@ class Command extends SymfonyCommand
     protected function line(string $message = ''): void
     {
         $this->output->write($message);
+    }
+
+    protected function warn(string $message): void
+    {
+        $this->getOutputInterface()->writeln("<comment>{$message}</comment>");
+    }
+
+    protected function newLine(int $count = 1): void
+    {
+        $this->getOutputInterface()->write(str_repeat(PHP_EOL, $count));
+    }
+
+    /**
+     * Render a table to the output.
+     *
+     * @param array<int, string> $headers
+     * @param array<int, array<int, string>> $rows
+     */
+    protected function table(array $headers, array $rows): void
+    {
+        $table = new Table($this->getOutputInterface());
+        $table->setHeaders($headers)->setRows($rows)->render();
+    }
+
+    /**
+     * Prompt for input that should not be echoed (alias of askPassword).
+     */
+    protected function secret(string $question): mixed
+    {
+        return $this->askPassword($question);
     }
 }
