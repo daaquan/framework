@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-28T11:44:55.697Z
-> Files: 515 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T07:47:38.528Z
+> Files: 525 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -21,7 +21,7 @@
 - `Dockerfile` — Docker container definition (~187 tok)
 - `LICENSE` — Project license (~286 tok)
 - `phpstan.neon.dist` (~42 tok)
-- `phpunit.xml.dist` (~401 tok)
+- `phpunit.xml.dist` (~456 tok)
 - `pint.json` (~146 tok)
 - `README.ja.md` — Phare フレームワーク (~411 tok)
 - `README.md` — Project documentation (~580 tok)
@@ -96,7 +96,7 @@
 - `Authenticatable.php` — Interface Authenticatable (~243 tok)
 - `AuthenticationException.php` — Declares AuthenticationException (~80 tok)
 - `AuthManager.php` — Owns the configured auth guards and resolves them on demand. (~1123 tok)
-- `Manager.php` — Indicates if the logout method has been called. (~1530 tok)
+- `Manager.php` — Indicates if the logout method has been called. (~1573 tok)
 
 ## src/Phare/Auth/Events/
 
@@ -124,7 +124,9 @@
 
 ## src/Phare/Auth/Passwords/
 
-- `PasswordBroker.php` — Password reset token manager. (~656 tok)
+- `DatabaseTokenRepository.php` — PDO-backed token store using the password_reset_tokens table. (~343 tok)
+- `PasswordBroker.php` — Password reset token manager. (~470 tok)
+- `TokenRepositoryInterface.php` — Persistence boundary for password reset tokens. (~198 tok)
 
 ## src/Phare/Auth/Sanctum/
 
@@ -290,6 +292,7 @@
 ## src/Phare/Contracts/Auth/
 
 - `Authenticatable.php` — Get the unique identifier for the user. (~168 tok)
+- `CanResetPassword.php` — Get the e-mail address where password reset links are sent. (~56 tok)
 
 ## src/Phare/Contracts/Cache/
 
@@ -528,10 +531,10 @@
 
 - `Argon2idHasher.php` — Argon2idHasher: algorithm (~45 tok)
 - `Argon2iHasher.php` — Argon2iHasher: algorithm (~44 tok)
-- `ArgonHasher.php` — ArgonHasher: make, check, needsRehash, info (~458 tok)
-- `BcryptHasher.php` — BcryptHasher: make, check, needsRehash, info + 1 more (~339 tok)
-- `HasherInterface.php` — Hash the given value. (~168 tok)
-- `HashManager.php` — HashManager: driver, make, check, needsRehash + 5 more (~528 tok)
+- `ArgonHasher.php` — ArgonHasher: make, check, needsRehash, info (~470 tok)
+- `BcryptHasher.php` — BcryptHasher: make, check, needsRehash, info + 1 more (~351 tok)
+- `HasherInterface.php` — Hash the given value. (~181 tok)
+- `HashManager.php` — HashManager: getDefaultDriver, setDefaultDriver, make, check + 3 more (~771 tok)
 
 ## src/Phare/Http/
 
@@ -620,7 +623,7 @@
 - `DebugLoggerProvider.php` — DebugLoggerProvider: register (~118 tok)
 - `DebugWhoopsProvider.php` — DebugWhoopsProvider: register (~166 tok)
 - `DispatcherProvider.php` — DispatcherProvider: register (~373 tok)
-- `EncrypterProvider.php` — Service provider for security and encryption. (~438 tok)
+- `EncrypterProvider.php` — Service provider for security and encryption. (~360 tok)
 - `ErrorHandlerProvider.php` — ErrorHandlerProvider: register (~108 tok)
 - `EventsManagerProvider.php` — EventsManagerProvider: register (~144 tok)
 - `FilesystemProvider.php` — FilesystemProvider: register (~167 tok)
@@ -712,10 +715,10 @@
 - `Chronos.php` — Chronos: parse, now, copy, diffForHumans + 1 more (~848 tok)
 - `DataTransferObject.php` — DataTransferObject: fill, toArray, only, except + 1 more (~538 tok)
 - `Env.php` — Indicates if the putenv function is enabled. (~365 tok)
-- `helpers.php` — array_any: config, config_set_path, env + 40 more (~4075 tok)
+- `helpers.php` — array_any: config, config_set_path, env + 39 more (~6551 tok)
 - `HigherOrderTapProxy.php` — The target being tapped. (~175 tok)
 - `Manager.php` — Laravel-parity abstract manager for multi-driver services. (~1123 tok)
-- `ServiceProvider.php` — Service provider: ServiceProvider (~116 tok)
+- `ServiceProvider.php` — ServiceProvider: register, boot (~97 tok)
 
 ## src/Phare/Support/Facades/
 
@@ -801,6 +804,7 @@
 
 - `PasskeyAuthenticatorTest.php` — implements: findByCredentialId, storeCredential, verify, put + 14 more (~1068 tok)
 - `PasskeyRegistrarTest.php` — implements: findByCredentialId, storeCredential, verify, put + 17 more (~1629 tok)
+- `PasswordBrokerTest.php` — In-memory token repository so the broker can be tested without a database. (~775 tok)
 
 ## tests/Cache/
 
@@ -880,3 +884,18 @@
 - `EloquentBuilderTest.php` (~2070 tok)
 - `EventLifecycleTest.php` — EventLifecycleObserver: creating, updated (~2187 tok)
 - `MassAssignmentTest.php` — Model — 1 fields (~522 tok)
+
+## tests/Hashing/
+
+- `HasherTest.php` (~318 tok)
+- `HashManagerTest.php` — make: check, needsRehash, info + 3 more (~1496 tok)
+
+## tests/Unit/Auth/
+
+- `ManagerTest.php` — ManagerTestUser: getAuthIdentifier, getAuthPassword (~1560 tok)
+
+## tests/Unit/Support/
+
+- `EncrypterSlotTest.php` — Declares refreshEncrypterSlotApp (~432 tok)
+- `HelpersHashTest.php` — Declares refreshHashHelperApp (~282 tok)
+- `ServiceProviderTest.php` — Declares register (~243 tok)

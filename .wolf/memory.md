@@ -674,3 +674,61 @@
 | 09:30 | Updated tasks/progress.txt | D06+E01-E07+S01 session entries | All 35 stories recorded | ~2800 |
 | 09:35 | Updated .wolf/memory.md | This entry | Session complete | ~500 |
 | 20:46 | Session end: 8 writes across 5 files (audit-area-d.md, audit-area-e.md, prd.json, audit-summary.md, progress.txt) | 11 reads | ~117780 tok |
+
+## Session: 2026-05-29 16:19
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+| 16:22 | Laravel13 spec verify + review | docs/audit-summary.md, Mailer/Queue/PasswordBroker | ref 13.2.0 stale (latest 13.7.0); php ^8.2 should be ^8.3; 3 critical claims confirmed real | ~6k |
+| 16:24 | Created tests/Auth/PasswordBrokerTest.php | — | ~571 |
+| 16:26 | Created tests/Auth/PasswordBrokerTest.php | — | ~691 |
+| 16:26 | Created src/Phare/Auth/Passwords/TokenRepositoryInterface.php | — | ~198 |
+| 16:26 | Created src/Phare/Auth/Passwords/DatabaseTokenRepository.php | — | ~343 |
+| 16:26 | Created src/Phare/Auth/Passwords/PasswordBroker.php | — | ~450 |
+| 16:27 | Created src/Phare/Contracts/Auth/CanResetPassword.php | — | ~56 |
+| 16:27 | Edited src/Phare/Auth/Passwords/PasswordBroker.php | added 1 import(s) | ~21 |
+| 16:27 | Edited src/Phare/Auth/Passwords/PasswordBroker.php | modified createToken() | ~43 |
+| 16:27 | Edited tests/Auth/PasswordBrokerTest.php | "email" → "a@example.com" | ~16 |
+| 16:27 | Edited tests/Auth/PasswordBrokerTest.php | modified makeResettable() | ~127 |
+
+| 16:28 | C07 fix: hash password-reset tokens (TDD) | PasswordBroker.php +TokenRepositoryInterface +DatabaseTokenRepository +Contracts/Auth/CanResetPassword +test | 6 tests green, 1218 suite green, phpstan clean | ~5k |
+| 16:29 | Edited tests/Unit/Auth/ManagerTest.php | modified test() | ~174 |
+| 16:30 | Edited src/Phare/Auth/Manager.php | 7→9 lines | ~95 |
+| 16:30 | Edited tests/Unit/Auth/ManagerTest.php | "logout destroys session a" → "logout clears auth state " | ~20 |
+| 16:31 | C02 fix: logout removes auth key only (TDD); regenerateId audit-claim is FALSE POSITIVE (Phalcon default deleteOldSession=true) | Auth/Manager.php +ManagerTest | 6 Manager tests green, 1219 suite green, phpstan 7=7 no regression | ~4k |
+| 16:32 | Created tests/Hashing/HasherTest.php | — | ~318 |
+| 16:32 | Edited src/Phare/Hashing/HasherInterface.php | modified make() | ~73 |
+| 16:32 | Edited src/Phare/Hashing/BcryptHasher.php | 10 → 12 | ~9 |
+| 16:32 | Edited src/Phare/Hashing/BcryptHasher.php | modified make() | ~40 |
+| 16:32 | Edited src/Phare/Hashing/BcryptHasher.php | inline fix | ~30 |
+| 16:32 | Edited src/Phare/Hashing/ArgonHasher.php | inline fix | ~25 |
+| 16:32 | Edited src/Phare/Hashing/ArgonHasher.php | inline fix | ~30 |
+| 16:32 | Edited src/Phare/Hashing/HashManager.php | modified make() | ~73 |
+| 16:34 | Edited tests/Hashing/HashManagerTest.php | 2→2 lines | ~26 |
+| 16:34 | Edited phpunit.xml.dist | 2→4 lines | ~61 |
+| 16:35 | C03 fix: bcrypt rounds 10->12 + #[SensitiveParameter] on all hashers (TDD); wired tests/Auth+tests/Hashing into phpunit suite | Hashing/* HasherInterface HashManager phpunit.xml.dist +HasherTest | 1266 suite green (was 1219; +31 orphaned tests now run); phpstan 20=20 no regression | ~6k |
+| 16:37 | Created tests/Unit/Support/ServiceProviderTest.php | — | ~243 |
+| 16:37 | Edited src/Phare/Support/ServiceProvider.php | modified __construct() | ~52 |
+| 16:38 | E02 fix: ServiceProvider \$app typed to container contract, Phalcon DiInterface removed (TDD) | Support/ServiceProvider.php +ServiceProviderTest | 1269 suite green; provider phpstan 117->105 | ~4k |
+| 16:40 | Created tests/Unit/Support/HelpersHashTest.php | — | ~282 |
+| 16:41 | Edited src/Phare/Support/helpers.php | modified bcrypt() | ~47 |
+| 16:41 | Edited src/Phare/Support/helpers.php | removed 13 lines | ~7 |
+| 16:42 | Edited src/Phare/Support/helpers.php | added 1 condition(s) | ~100 |
+| 16:42 | Edited src/Phare/Support/helpers.php | modified if() | ~60 |
+| 16:43 | Edited src/Phare/Support/helpers.php | modified bcrypt() | ~53 |
+| 16:44 | E06 fix: bcrypt() -> app(hash)->make; removed dead/lying hash() helper (TDD) | Support/helpers.php +HelpersHashTest | 1271 suite green; helpers phpstan 52=52 | ~5k |
+| 16:45 | Created tests/Unit/Support/EncrypterSlotTest.php | — | ~432 |
+| 16:46 | Edited src/Phare/Providers/EncrypterProvider.php | 6→6 lines | ~62 |
+| 16:46 | Edited src/Phare/Providers/EncrypterProvider.php | modified use() | ~139 |
+| 16:46 | Edited src/Phare/Support/helpers.php | added 1 condition(s) | ~183 |
+| 16:46 | Edited src/Phare/Support/helpers.php | 2→1 lines | ~9 |
+| 16:46 | Edited src/Phare/Support/helpers.php | added 1 import(s) | ~20 |
+| 16:47 | Edited phpunit.xml.dist | 2→3 lines | ~55 |
+| 16:47 | C04 fix: encrypter slot -> Phare Encrypter; helpers rewired; tests/Encryption added to suite (TDD) | EncrypterProvider.php helpers.php phpunit.xml.dist +EncrypterSlotTest | final suite green; phpstan 55=55 no regression | ~6k |
+| 16:49 | Session end: 38 writes across 20 files (PasswordBrokerTest.php, TokenRepositoryInterface.php, DatabaseTokenRepository.php, PasswordBroker.php, CanResetPassword.php) | 19 reads | ~32500 tok |
+
+## Session: 2026-05-29 21:25
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|

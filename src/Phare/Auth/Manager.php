@@ -14,8 +14,8 @@ use Phare\Auth\Events\Logout;
 use Phare\Auth\Events\Validated;
 use Phare\Collections\Arr;
 use Phare\Contracts\Auth\Authenticatable as User;
-use Phare\Events\Contracts\Dispatcher as EventsDispatcher;
 use Phare\Contracts\Session\Session;
+use Phare\Events\Contracts\Dispatcher as EventsDispatcher;
 
 class Manager
 {
@@ -109,7 +109,9 @@ class Manager
         $this->loggedOut = true;
         $this->authEventDispatched = false;
 
-        $this->session->destroy();
+        // Remove only the auth identifier, not the entire session, so CSRF
+        // tokens, flash data and other session state survive logout.
+        $this->session->remove($this->sessionKey());
 
         $this->dispatchEvent(new Logout($user));
     }

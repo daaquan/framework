@@ -2,14 +2,13 @@
 
 namespace Phare\Support;
 
-use Phalcon\Di\DiInterface;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Contracts\Foundation\Container;
 
 abstract class ServiceProvider
 {
-    protected Application|DiInterface $app;
+    protected Container $app;
 
-    public function __construct(Application|DiInterface $app)
+    public function __construct(Container $app)
     {
         $this->app = $app;
     }
