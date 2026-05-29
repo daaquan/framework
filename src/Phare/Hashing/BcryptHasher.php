@@ -4,14 +4,14 @@ namespace Phare\Hashing;
 
 class BcryptHasher implements HasherInterface
 {
-    protected int $rounds = 10;
+    protected int $rounds = 12;
 
     public function __construct(array $options = [])
     {
         $this->rounds = $options['rounds'] ?? $this->rounds;
     }
 
-    public function make(string $value, array $options = []): string
+    public function make(#[\SensitiveParameter] string $value, array $options = []): string
     {
         $cost = $options['rounds'] ?? $this->rounds;
 
@@ -24,7 +24,7 @@ class BcryptHasher implements HasherInterface
         return $hash;
     }
 
-    public function check(string $value, string $hashedValue, array $options = []): bool
+    public function check(#[\SensitiveParameter] string $value, string $hashedValue, array $options = []): bool
     {
         if (strlen($hashedValue) === 0) {
             return false;

@@ -33,7 +33,7 @@ class ManagerTestUser implements AuthenticatableContract
     {
         if (is_int($params) || is_string($params)) {
             foreach (self::$records as $record) {
-                if ((string) $record->id === (string) $params) {
+                if ((string)$record->id === (string)$params) {
                     return $record;
                 }
             }
@@ -42,9 +42,9 @@ class ManagerTestUser implements AuthenticatableContract
         }
 
         if (is_array($params) && isset($params['bind']['auth_identifier'])) {
-            $identifier = (string) $params['bind']['auth_identifier'];
+            $identifier = (string)$params['bind']['auth_identifier'];
             foreach (self::$records as $record) {
-                if ((string) $record->{self::getAuthIdentifierName()} === $identifier) {
+                if ((string)$record->{self::getAuthIdentifierName()} === $identifier) {
                     return $record;
                 }
             }
@@ -150,7 +150,7 @@ test('user retrieval from session dispatches authenticated once', function () {
     ]);
 });
 
-test('logout destroys session and dispatches logout event', function () {
+test('logout clears auth state and dispatches logout event', function () {
     $this->manager->attempt([
         'email' => 'alice@example.com',
         'password' => 'secret',
@@ -166,6 +166,23 @@ test('logout destroys session and dispatches logout event', function () {
         Login::class,
         Logout::class,
     ]);
+});
+
+test('logout clears only the auth key and preserves other session data', function () {
+    $this->session->set('cart', ['item-1']);
+    $this->session->set('_csrf_token', 'tok-123');
+
+    $this->manager->attempt([
+        'email' => 'alice@example.com',
+        'password' => 'secret',
+    ]);
+    expect($this->session->get('auth.user'))->toBe(10);
+
+    $this->manager->logout();
+
+    expect($this->session->get('auth.user'))->toBeNull();
+    expect($this->session->get('cart'))->toBe(['item-1']);
+    expect($this->session->get('_csrf_token'))->toBe('tok-123');
 });
 
 test('validate checks credentials without mutating session state', function () {

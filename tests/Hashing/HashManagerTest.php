@@ -56,7 +56,7 @@ it('provides hash information', function () {
     $info = $this->hashManager->info($hash);
 
     expect($info['algoName'])->toBe('bcrypt');
-    expect($info['options']['cost'])->toBe(10);
+    expect($info['options']['cost'])->toBe(12);
 });
 
 it('throws exception for unknown driver', function () {
