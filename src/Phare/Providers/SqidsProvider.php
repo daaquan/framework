@@ -2,15 +2,14 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 use Sqids\Sqids;
 
-class SqidsProvider implements ServiceProviderInterface
+class SqidsProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         if (!extension_loaded('sqids')) {
             return;
         }

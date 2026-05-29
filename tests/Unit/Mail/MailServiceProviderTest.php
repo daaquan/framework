@@ -19,11 +19,11 @@ beforeEach(function () {
         ],
     ]);
 
-    $this->provider = new MailServiceProvider();
+    $this->provider = new MailServiceProvider($this->app);
 });
 
 test('registers mailer and mail.manager services', function () {
-    $this->provider->register($this->app);
+    $this->provider->register();
 
     expect($this->app->has('mailer'))->toBeTrue();
     expect($this->app->has('mail.manager'))->toBeTrue();
@@ -32,14 +32,14 @@ test('registers mailer and mail.manager services', function () {
 });
 
 test('binds Mailer class', function () {
-    $this->provider->register($this->app);
+    $this->provider->register();
 
     expect($this->app->make(Mailer::class))->toBeInstanceOf(Mailer::class);
     expect($this->app->make(Mailer::class))->toBe($this->app->make('mailer'));
 });
 
 test('configures default mailer with top-level mail config', function () {
-    $this->provider->register($this->app);
+    $this->provider->register();
     $mailer = $this->app->make('mailer');
 
     expect($mailer->getConfig()['driver'])->toBe('smtp');
@@ -49,7 +49,7 @@ test('configures default mailer with top-level mail config', function () {
 
 test('falls back to Mailer defaults when mail config not set', function () {
     $this->app->bind('config', fn () => [], true);
-    $this->provider->register($this->app);
+    $this->provider->register();
 
     $mailer = $this->app->make('mailer');
 
@@ -68,7 +68,7 @@ test('mail.manager resolves named mailer from mail.mailers config', function () 
         ],
     ], true);
 
-    $this->provider->register($this->app);
+    $this->provider->register();
 
     $log = $this->app->make('mail.manager')->mailer('log');
 

@@ -2,16 +2,15 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phare\Cache\CacheManager;
-use Phare\Foundation\AbstractApplication as Application;
 use Phare\Foundation\Cache as CacheRepository;
+use Phare\Support\ServiceProvider;
 
-class CacheProvider implements ServiceProviderInterface
+class CacheProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('cache.manager', function ($app) {
             return new CacheManager($app);
         });

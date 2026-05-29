@@ -2,23 +2,22 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Encryption\Security;
 use Phalcon\Encryption\Security\Random;
 use Phare\Encryption\Encrypter;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
 /**
  * Service provider for security and encryption.
  */
-class EncrypterProvider implements ServiceProviderInterface
+class EncrypterProvider extends ServiceProvider
 {
     /**
      * @throws \RuntimeException If the key decode method does not exist.
      */
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('random', Random::class);
 
         $app->singleton('security', function () use ($app) {

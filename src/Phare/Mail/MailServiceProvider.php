@@ -2,14 +2,13 @@
 
 namespace Phare\Mail;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
-class MailServiceProvider implements ServiceProviderInterface
+class MailServiceProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('mail.manager', function ($app) {
             return new MailManager($app);
         });

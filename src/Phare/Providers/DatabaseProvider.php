@@ -2,15 +2,14 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phare\Database\MySql\DatabaseManager;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
-class DatabaseProvider implements ServiceProviderInterface
+class DatabaseProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('dbManager', function () use ($app) {
             foreach ($app['config']->path('app.phalcon.db') ?? [] as $key => $value) {
                 ini_set("phalcon.db.$key", $value);

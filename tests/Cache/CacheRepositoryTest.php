@@ -2,6 +2,11 @@
 
 use Phalcon\Di\Di;
 use Phare\Cache\CacheManager;
+use Phare\Foundation\Bootstrap\HandleExceptions;
+use Phare\Foundation\Bootstrap\LoadConfiguration;
+use Phare\Foundation\Bootstrap\LoadEnvironmentVariables;
+use Phare\Foundation\Bootstrap\RegisterFacades;
+use Phare\Foundation\Bootstrap\RegisterProviders;
 use Phare\Foundation\Cache;
 use Phare\Providers\CacheProvider;
 
@@ -12,11 +17,11 @@ function refreshCacheRepositoryTestApplication(): void
     $_ENV['APP_BASE_PATH'] = 'tests/Mock';
     $app = require $_ENV['APP_BASE_PATH'] . '/bootstrap/app.php';
     $app->bootstrapWith([
-        \Phare\Foundation\Bootstrap\LoadEnvironmentVariables::class,
-        \Phare\Foundation\Bootstrap\LoadConfiguration::class,
-        \Phare\Foundation\Bootstrap\HandleExceptions::class,
-        \Phare\Foundation\Bootstrap\RegisterProviders::class,
-        \Phare\Foundation\Bootstrap\RegisterFacades::class,
+        LoadEnvironmentVariables::class,
+        LoadConfiguration::class,
+        HandleExceptions::class,
+        RegisterProviders::class,
+        RegisterFacades::class,
     ]);
 
     Di::setDefault($app);
@@ -31,7 +36,7 @@ beforeEach(function () {
     if (!is_dir($cacheDir)) {
         mkdir($cacheDir, 0777, true);
     }
-    (new CacheProvider())->register(app());
+    (new CacheProvider(app()))->register();
 });
 
 it('provides laravel-like repository operations', function () {

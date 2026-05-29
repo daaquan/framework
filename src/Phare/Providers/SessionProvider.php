@@ -2,21 +2,20 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Session\Adapter\Redis;
 use Phalcon\Session\Adapter\Stream;
 use Phalcon\Storage\AdapterFactory;
 use Phalcon\Storage\SerializerFactory;
-use Phare\Foundation\AbstractApplication as Application;
 use Phare\Session\SessionManager;
 use Phare\Session\SessionStoreManager;
 use Phare\Storage\Adapter\RedisCluster;
+use Phare\Support\ServiceProvider;
 
-class SessionProvider implements ServiceProviderInterface
+class SessionProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('session.manager', function ($app) {
             return new SessionStoreManager($app);
         });

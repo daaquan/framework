@@ -2,16 +2,15 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\Micro as Application;
+use Phare\Support\ServiceProvider;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run;
 
-class DebugWhoopsProvider implements ServiceProviderInterface
+class DebugWhoopsProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         if (!class_exists(Run::class) || !$app['config']->path('app.debug')) {
             return;
         }
