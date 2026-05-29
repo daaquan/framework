@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 1117596,
-    "total_reads": 397,
-    "total_writes": 171,
-    "total_sessions": 111,
-    "anatomy_hits": 283,
-    "anatomy_misses": 114,
-    "repeated_reads_blocked": 58,
-    "estimated_savings_vs_bare_cli": 720021
+    "total_tokens_estimated": 1310859,
+    "total_reads": 458,
+    "total_writes": 260,
+    "total_sessions": 112,
+    "anatomy_hits": 325,
+    "anatomy_misses": 133,
+    "repeated_reads_blocked": 208,
+    "estimated_savings_vs_bare_cli": 2232183
   },
   "sessions": [
     {
@@ -3805,6 +3805,868 @@
         "writes_count": 12,
         "repeated_reads_blocked": 10,
         "anatomy_lookups": 12
+      }
+    },
+    {
+      "id": "session-2026-05-29-2208",
+      "started": "2026-05-29T13:08:55.020Z",
+      "ended": "2026-05-29T14:36:14.165Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Container/Container.php",
+          "tokens_estimated": 12350,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Container/Container.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 401,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 4599,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 13211,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 428,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Bootstrap/RegisterProviders.php",
+          "tokens_estimated": 111,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 11233,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 5494,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/phpunit.xml.dist",
+          "tokens_estimated": 474,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+          "tokens_estimated": 8698,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 646,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Container/ContainerTest.php",
+          "tokens_estimated": 1618,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Container/ContainerCompatibilityTest.php",
+          "tokens_estimated": 3015,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/PSR11AndArrayAccessTest.php",
+          "tokens_estimated": 307,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerTest.php",
+          "tokens_estimated": 1618,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/buglog.json",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Di/Di.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Di/DiInterface.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Micro.php",
+          "tokens_estimated": 540,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Web.php",
+          "tokens_estimated": 248,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Cache.php",
+          "tokens_estimated": 1416,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Testing/TestCase.php",
+          "tokens_estimated": 562,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6551,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 360,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/Lifecycle/InstanceAndExtendTest.php",
+          "tokens_estimated": 663,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/Lifecycle/ForgetTest.php",
+          "tokens_estimated": 357,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Mvc/Micro.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 8617,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 707,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 149,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 128,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 446,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 671,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 648,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+          "tokens_estimated": 128,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 135,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 484,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+          "tokens_estimated": 126,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 102,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 154,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 37,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 60,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 43,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 18,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 38,
+          "action": "edit"
+        },
+        {
+          "file": "/tmp/wt_prepend.php",
+          "tokens_estimated": 218,
+          "action": "create"
+        },
+        {
+          "file": "/tmp/wt_bootstrap.php",
+          "tokens_estimated": 240,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 416,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 203,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 19,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 25,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 836,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 119,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 103,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 62,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 57,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 42,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 50,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 91,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 528,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 56,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 36,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 32,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 74900,
+        "output_tokens_estimated": 16090,
+        "reads_count": 29,
+        "writes_count": 42,
+        "repeated_reads_blocked": 75,
+        "anatomy_lookups": 20
+      }
+    },
+    {
+      "id": "session-2026-05-29-2208",
+      "started": "2026-05-29T13:08:55.020Z",
+      "ended": "2026-05-29T14:41:46.002Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Container/Container.php",
+          "tokens_estimated": 12350,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Container/Container.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 401,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 4599,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 13211,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 428,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Bootstrap/RegisterProviders.php",
+          "tokens_estimated": 111,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 11233,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 5494,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/phpunit.xml.dist",
+          "tokens_estimated": 474,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+          "tokens_estimated": 8698,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 646,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Container/ContainerTest.php",
+          "tokens_estimated": 1618,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Container/ContainerCompatibilityTest.php",
+          "tokens_estimated": 3015,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/PSR11AndArrayAccessTest.php",
+          "tokens_estimated": 307,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerTest.php",
+          "tokens_estimated": 1618,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/buglog.json",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Di/Di.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Di/DiInterface.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Micro.php",
+          "tokens_estimated": 540,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Web.php",
+          "tokens_estimated": 248,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Cache.php",
+          "tokens_estimated": 1416,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Testing/TestCase.php",
+          "tokens_estimated": 562,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6551,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 360,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/Lifecycle/InstanceAndExtendTest.php",
+          "tokens_estimated": 663,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/Lifecycle/ForgetTest.php",
+          "tokens_estimated": 357,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Mvc/Micro.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 8617,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 707,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 149,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 128,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
+          "tokens_estimated": 446,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 671,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 648,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+          "tokens_estimated": 128,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 135,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 484,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+          "tokens_estimated": 126,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 102,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 154,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 37,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 60,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 43,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 18,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php",
+          "tokens_estimated": 38,
+          "action": "edit"
+        },
+        {
+          "file": "/tmp/wt_prepend.php",
+          "tokens_estimated": 218,
+          "action": "create"
+        },
+        {
+          "file": "/tmp/wt_bootstrap.php",
+          "tokens_estimated": 240,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 416,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 203,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 19,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 25,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 836,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 119,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 103,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 62,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 57,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 42,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 50,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 91,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+          "tokens_estimated": 528,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+          "tokens_estimated": 56,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+          "tokens_estimated": 36,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+          "tokens_estimated": 32,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 74900,
+        "output_tokens_estimated": 16090,
+        "reads_count": 29,
+        "writes_count": 42,
+        "repeated_reads_blocked": 75,
+        "anatomy_lookups": 20
+      }
+    },
+    {
+      "id": "session-2026-05-29-2344",
+      "started": "2026-05-29T14:44:10.685Z",
+      "ended": "2026-05-29T14:51:05.676Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 4010,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Validation/Validator.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 2910,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 1627,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 132,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 130,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 2003,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 471,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 6920,
+        "output_tokens_estimated": 4363,
+        "reads_count": 3,
+        "writes_count": 5,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 2
       }
     }
   ],
