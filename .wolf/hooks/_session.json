@@ -18,8 +18,8 @@
       "first_read": "2026-05-29T14:46:57.672Z"
     },
     "/opt/framework/src/Phare/Contracts/Foundation/Container.php": {
-      "count": 1,
-      "tokens": 401,
+      "count": 2,
+      "tokens": 424,
       "first_read": "2026-05-29T14:55:14.154Z"
     },
     "/opt/framework/src/Phare/Support/ServiceProvider.php": {
@@ -151,6 +151,71 @@
       "count": 1,
       "tokens": 0,
       "first_read": "2026-05-29T14:58:36.057Z"
+    },
+    "/opt/framework/src/Phare/Contracts/Foundation/Application.php": {
+      "count": 2,
+      "tokens": 524,
+      "first_read": "2026-05-29T15:11:00.532Z"
+    },
+    "/opt/framework/src/Phare/Providers/RouteServiceProvider.php": {
+      "count": 1,
+      "tokens": 215,
+      "first_read": "2026-05-29T15:13:05.249Z"
+    },
+    "/opt/framework/src/Phare/Providers/TranslateProvider.php": {
+      "count": 1,
+      "tokens": 404,
+      "first_read": "2026-05-29T15:13:05.782Z"
+    },
+    "/opt/framework/src/Phare/Providers/BladeViewProvider.php": {
+      "count": 1,
+      "tokens": 879,
+      "first_read": "2026-05-29T15:13:06.703Z"
+    },
+    "/opt/framework/src/Phare/Providers/VoltViewProvider.php": {
+      "count": 1,
+      "tokens": 774,
+      "first_read": "2026-05-29T15:13:07.228Z"
+    },
+    "/opt/framework/src/Phare/Providers/PasskeyServiceProvider.php": {
+      "count": 1,
+      "tokens": 628,
+      "first_read": "2026-05-29T15:13:07.297Z"
+    },
+    "/opt/framework/tests/Unit/Database/DatabaseManagerTest.php": {
+      "count": 2,
+      "tokens": 1601,
+      "first_read": "2026-05-29T15:13:54.019Z"
+    },
+    "/opt/framework/tests/Container/ProviderMigrationE02bTest.php": {
+      "count": 1,
+      "tokens": 492,
+      "first_read": "2026-05-29T15:14:30.368Z"
+    },
+    "/opt/framework/tests/Unit/Queue/DispatchableTest.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-29T15:15:04.337Z"
+    },
+    "/opt/framework/tests/Unit/Events/DispatcherTest.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-29T15:15:04.815Z"
+    },
+    "/opt/framework/tests/Unit/Eloquent/ModelEventsTest.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-29T15:15:05.804Z"
+    },
+    "/opt/framework/tests/Support/SimpleApplication.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-29T15:15:06.239Z"
+    },
+    "/opt/framework/tests/Foundation/Http/KernelPipelineTest.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-29T15:15:07.001Z"
     }
   },
   "files_written": [
@@ -351,6 +416,126 @@
       "action": "edit",
       "tokens": 13,
       "at": "2026-05-29T14:59:21.133Z"
+    },
+    {
+      "file": "/opt/framework/tests/Container/ProviderMigrationE02bTest.php",
+      "action": "create",
+      "tokens": 527,
+      "at": "2026-05-29T15:10:37.843Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Contracts/Foundation/Application.php",
+      "action": "edit",
+      "tokens": 363,
+      "at": "2026-05-29T15:11:46.105Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/RouteServiceProvider.php",
+      "action": "edit",
+      "tokens": 106,
+      "at": "2026-05-29T15:13:13.928Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/TranslateProvider.php",
+      "action": "edit",
+      "tokens": 128,
+      "at": "2026-05-29T15:13:17.415Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/BladeViewProvider.php",
+      "action": "edit",
+      "tokens": 85,
+      "at": "2026-05-29T15:13:20.700Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/BladeViewProvider.php",
+      "action": "edit",
+      "tokens": 62,
+      "at": "2026-05-29T15:13:22.575Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/VoltViewProvider.php",
+      "action": "edit",
+      "tokens": 106,
+      "at": "2026-05-29T15:13:26.064Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/PasskeyServiceProvider.php",
+      "action": "edit",
+      "tokens": 77,
+      "at": "2026-05-29T15:13:29.182Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/PasskeyServiceProvider.php",
+      "action": "edit",
+      "tokens": 72,
+      "at": "2026-05-29T15:13:30.898Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Database/DatabaseManagerTest.php",
+      "action": "edit",
+      "tokens": 253,
+      "at": "2026-05-29T15:14:49.154Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Queue/DispatchableTest.php",
+      "action": "edit",
+      "tokens": 253,
+      "at": "2026-05-29T15:15:16.540Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Events/DispatcherTest.php",
+      "action": "edit",
+      "tokens": 253,
+      "at": "2026-05-29T15:15:20.318Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Eloquent/ModelEventsTest.php",
+      "action": "edit",
+      "tokens": 253,
+      "at": "2026-05-29T15:15:24.050Z"
+    },
+    {
+      "file": "/opt/framework/tests/Foundation/Http/KernelPipelineTest.php",
+      "action": "edit",
+      "tokens": 251,
+      "at": "2026-05-29T15:15:27.478Z"
+    },
+    {
+      "file": "/opt/framework/tests/Support/SimpleApplication.php",
+      "action": "edit",
+      "tokens": 90,
+      "at": "2026-05-29T15:15:53.912Z"
+    },
+    {
+      "file": "/opt/framework/tests/Support/SimpleApplication.php",
+      "action": "edit",
+      "tokens": 194,
+      "at": "2026-05-29T15:15:56.951Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Database/DatabaseManagerTest.php",
+      "action": "edit",
+      "tokens": 67,
+      "at": "2026-05-29T15:16:39.635Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Database/DatabaseManagerTest.php",
+      "action": "edit",
+      "tokens": 67,
+      "at": "2026-05-29T15:16:41.967Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Database/DatabaseManagerTest.php",
+      "action": "edit",
+      "tokens": 79,
+      "at": "2026-05-29T15:16:44.796Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Database/DatabaseManagerTest.php",
+      "action": "edit",
+      "tokens": 78,
+      "at": "2026-05-29T15:16:46.941Z"
     }
   ],
   "edit_counts": {
@@ -382,11 +567,24 @@
     "src/Phare/Providers/SqidsProvider.php": 1,
     "src/Phare/Providers/ViewProvider.php": 1,
     "tests/Unit/Mail/MailServiceProviderTest.php": 2,
-    "tests/Cache/CacheRepositoryTest.php": 1
+    "tests/Cache/CacheRepositoryTest.php": 1,
+    "tests/Container/ProviderMigrationE02bTest.php": 1,
+    "src/Phare/Contracts/Foundation/Application.php": 1,
+    "src/Phare/Providers/RouteServiceProvider.php": 1,
+    "src/Phare/Providers/TranslateProvider.php": 1,
+    "src/Phare/Providers/BladeViewProvider.php": 2,
+    "src/Phare/Providers/VoltViewProvider.php": 1,
+    "src/Phare/Providers/PasskeyServiceProvider.php": 2,
+    "tests/Unit/Database/DatabaseManagerTest.php": 5,
+    "tests/Unit/Queue/DispatchableTest.php": 1,
+    "tests/Unit/Events/DispatcherTest.php": 1,
+    "tests/Unit/Eloquent/ModelEventsTest.php": 1,
+    "tests/Foundation/Http/KernelPipelineTest.php": 1,
+    "tests/Support/SimpleApplication.php": 2
   },
-  "anatomy_hits": 28,
-  "anatomy_misses": 2,
-  "repeated_reads_warned": 0,
+  "anatomy_hits": 35,
+  "anatomy_misses": 8,
+  "repeated_reads_warned": 3,
   "cerebrum_warnings": 0,
-  "stop_count": 2
+  "stop_count": 4
 }

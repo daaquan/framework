@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 1310859,
-    "total_reads": 458,
-    "total_writes": 260,
+    "total_tokens_estimated": 1352988,
+    "total_reads": 524,
+    "total_writes": 330,
     "total_sessions": 112,
-    "anatomy_hits": 325,
-    "anatomy_misses": 133,
+    "anatomy_hits": 387,
+    "anatomy_misses": 137,
     "repeated_reads_blocked": 208,
-    "estimated_savings_vs_bare_cli": 2232183
+    "estimated_savings_vs_bare_cli": 2244583
   },
   "sessions": [
     {
@@ -4667,6 +4667,786 @@
         "writes_count": 5,
         "repeated_reads_blocked": 0,
         "anatomy_lookups": 2
+      }
+    },
+    {
+      "id": "session-2026-05-29-2344",
+      "started": "2026-05-29T14:44:10.685Z",
+      "ended": "2026-05-29T15:03:51.748Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 4010,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Validation/Validator.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 2910,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 401,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 428,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ConfigProvider.php",
+          "tokens_estimated": 101,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/CacheProvider.php",
+          "tokens_estimated": 169,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastServiceProvider.php",
+          "tokens_estimated": 193,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Mail/MailServiceProvider.php",
+          "tokens_estimated": 222,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/AuthServiceProvider.php",
+          "tokens_estimated": 189,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ChronosProvider.php",
+          "tokens_estimated": 232,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DatabaseProvider.php",
+          "tokens_estimated": 332,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DebugLoggerProvider.php",
+          "tokens_estimated": 118,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DebugWhoopsProvider.php",
+          "tokens_estimated": 166,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DispatcherProvider.php",
+          "tokens_estimated": 373,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 360,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ErrorHandlerProvider.php",
+          "tokens_estimated": 108,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EventsManagerProvider.php",
+          "tokens_estimated": 144,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/FilesystemProvider.php",
+          "tokens_estimated": 167,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/FilterProvider.php",
+          "tokens_estimated": 101,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/HashServiceProvider.php",
+          "tokens_estimated": 213,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/LogServiceProvider.php",
+          "tokens_estimated": 118,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ModelProvider.php",
+          "tokens_estimated": 282,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/QueueServiceProvider.php",
+          "tokens_estimated": 249,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/RequestProvider.php",
+          "tokens_estimated": 124,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ResponseProvider.php",
+          "tokens_estimated": 102,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/SessionProvider.php",
+          "tokens_estimated": 510,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/SqidsProvider.php",
+          "tokens_estimated": 136,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ViewProvider.php",
+          "tokens_estimated": 105,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Mail/MailServiceProviderTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 1627,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 132,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 130,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 2003,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 471,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 42,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ConfigProvider.php",
+          "tokens_estimated": 66,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/CacheProvider.php",
+          "tokens_estimated": 82,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastServiceProvider.php",
+          "tokens_estimated": 65,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Mail/MailServiceProvider.php",
+          "tokens_estimated": 62,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/AuthServiceProvider.php",
+          "tokens_estimated": 70,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ChronosProvider.php",
+          "tokens_estimated": 68,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DatabaseProvider.php",
+          "tokens_estimated": 74,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DebugLoggerProvider.php",
+          "tokens_estimated": 72,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DebugWhoopsProvider.php",
+          "tokens_estimated": 83,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DispatcherProvider.php",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 131,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ErrorHandlerProvider.php",
+          "tokens_estimated": 74,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EventsManagerProvider.php",
+          "tokens_estimated": 74,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/FilesystemProvider.php",
+          "tokens_estimated": 75,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/FilterProvider.php",
+          "tokens_estimated": 66,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/HashServiceProvider.php",
+          "tokens_estimated": 71,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/LogServiceProvider.php",
+          "tokens_estimated": 68,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ModelProvider.php",
+          "tokens_estimated": 112,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/QueueServiceProvider.php",
+          "tokens_estimated": 76,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/RequestProvider.php",
+          "tokens_estimated": 76,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ResponseProvider.php",
+          "tokens_estimated": 67,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/SessionProvider.php",
+          "tokens_estimated": 136,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/SqidsProvider.php",
+          "tokens_estimated": 60,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ViewProvider.php",
+          "tokens_estimated": 63,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Mail/MailServiceProviderTest.php",
+          "tokens_estimated": 46,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Mail/MailServiceProviderTest.php",
+          "tokens_estimated": 10,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Cache/CacheRepositoryTest.php",
+          "tokens_estimated": 13,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 12563,
+        "output_tokens_estimated": 6363,
+        "reads_count": 30,
+        "writes_count": 33,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 28
+      }
+    },
+    {
+      "id": "session-2026-05-29-2344",
+      "started": "2026-05-29T14:44:10.685Z",
+      "ended": "2026-05-29T15:13:20.025Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 4010,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/laravel-framework/src/Illuminate/Validation/Validator.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 2910,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 401,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+          "tokens_estimated": 428,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ConfigProvider.php",
+          "tokens_estimated": 101,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/CacheProvider.php",
+          "tokens_estimated": 169,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastServiceProvider.php",
+          "tokens_estimated": 193,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Mail/MailServiceProvider.php",
+          "tokens_estimated": 222,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/AuthServiceProvider.php",
+          "tokens_estimated": 189,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ChronosProvider.php",
+          "tokens_estimated": 232,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DatabaseProvider.php",
+          "tokens_estimated": 332,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DebugLoggerProvider.php",
+          "tokens_estimated": 118,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DebugWhoopsProvider.php",
+          "tokens_estimated": 166,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DispatcherProvider.php",
+          "tokens_estimated": 373,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 360,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ErrorHandlerProvider.php",
+          "tokens_estimated": 108,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EventsManagerProvider.php",
+          "tokens_estimated": 144,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/FilesystemProvider.php",
+          "tokens_estimated": 167,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/FilterProvider.php",
+          "tokens_estimated": 101,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/HashServiceProvider.php",
+          "tokens_estimated": 213,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/LogServiceProvider.php",
+          "tokens_estimated": 118,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ModelProvider.php",
+          "tokens_estimated": 282,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/QueueServiceProvider.php",
+          "tokens_estimated": 249,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/RequestProvider.php",
+          "tokens_estimated": 124,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ResponseProvider.php",
+          "tokens_estimated": 102,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/SessionProvider.php",
+          "tokens_estimated": 510,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/SqidsProvider.php",
+          "tokens_estimated": 136,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ViewProvider.php",
+          "tokens_estimated": 105,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Mail/MailServiceProviderTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Foundation/Application.php",
+          "tokens_estimated": 253,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/RouteServiceProvider.php",
+          "tokens_estimated": 215,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/TranslateProvider.php",
+          "tokens_estimated": 404,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/BladeViewProvider.php",
+          "tokens_estimated": 879,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/VoltViewProvider.php",
+          "tokens_estimated": 774,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/PasskeyServiceProvider.php",
+          "tokens_estimated": 628,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 1627,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 132,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 130,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 2003,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 471,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Foundation/Container.php",
+          "tokens_estimated": 42,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ConfigProvider.php",
+          "tokens_estimated": 66,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/CacheProvider.php",
+          "tokens_estimated": 82,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Broadcasting/BroadcastServiceProvider.php",
+          "tokens_estimated": 65,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Mail/MailServiceProvider.php",
+          "tokens_estimated": 62,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/AuthServiceProvider.php",
+          "tokens_estimated": 70,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ChronosProvider.php",
+          "tokens_estimated": 68,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DatabaseProvider.php",
+          "tokens_estimated": 74,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DebugLoggerProvider.php",
+          "tokens_estimated": 72,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DebugWhoopsProvider.php",
+          "tokens_estimated": 83,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/DispatcherProvider.php",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 131,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ErrorHandlerProvider.php",
+          "tokens_estimated": 74,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EventsManagerProvider.php",
+          "tokens_estimated": 74,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/FilesystemProvider.php",
+          "tokens_estimated": 75,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/FilterProvider.php",
+          "tokens_estimated": 66,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/HashServiceProvider.php",
+          "tokens_estimated": 71,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/LogServiceProvider.php",
+          "tokens_estimated": 68,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ModelProvider.php",
+          "tokens_estimated": 112,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/QueueServiceProvider.php",
+          "tokens_estimated": 76,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/RequestProvider.php",
+          "tokens_estimated": 76,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ResponseProvider.php",
+          "tokens_estimated": 67,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/SessionProvider.php",
+          "tokens_estimated": 136,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/SqidsProvider.php",
+          "tokens_estimated": 60,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/ViewProvider.php",
+          "tokens_estimated": 63,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Mail/MailServiceProviderTest.php",
+          "tokens_estimated": 46,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Mail/MailServiceProviderTest.php",
+          "tokens_estimated": 10,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Cache/CacheRepositoryTest.php",
+          "tokens_estimated": 13,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Container/ProviderMigrationE02bTest.php",
+          "tokens_estimated": 527,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/Foundation/Application.php",
+          "tokens_estimated": 363,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/RouteServiceProvider.php",
+          "tokens_estimated": 106,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/TranslateProvider.php",
+          "tokens_estimated": 128,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 15716,
+        "output_tokens_estimated": 7487,
+        "reads_count": 36,
+        "writes_count": 37,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 34
       }
     }
   ],
