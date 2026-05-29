@@ -41,3 +41,9 @@ test('bcrypt() output is a one-way hash, not reversible ciphertext', function ()
     expect($hash)->toStartWith('$2');
     expect($hash)->not->toContain('secret');
 });
+
+test('the leaky security() helper is removed (no Phalcon Security return-type leak)', function () {
+    // Laravel has no security() helper; Phare's returned a raw Phalcon\Encryption\Security
+    // (mixed return-type leak, zero callers). Removed to close the Area-E leak.
+    expect(function_exists('security'))->toBeFalse();
+});
