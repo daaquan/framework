@@ -263,7 +263,7 @@
 ## src/Phare/Container/
 
 - `BoundMethod.php` — Laravel-parity helper for autowired invocation of Closures, method (~1263 tok)
-- `Container.php` — Phalcon standard services (~12350 tok)
+- `Container.php` — Service container; composition over Phalcon Di (holds inner `new Di()`, implements DiInterface+ArrayAccess by delegation — NOT `extends Di` as of E01a 2026-05-29) (~12500 tok)
 - `ContextualBindingBuilder.php` — ContextualBindingBuilder: needs (~107 tok)
 - `ContextualBindingNeedsBuilder.php` — ContextualBindingNeedsBuilder: give, giveTagged, giveConfig (~316 tok)
 
@@ -838,6 +838,7 @@
 
 - `AfterResolvingAttributeTest.php` — AfterResolvingAttributeTest: test_register_callback_stores_under_attribute_class, test_fire_invokes_registered_callback_with_attribute_instance_obj... (~1496 tok)
 - `ContainerCompatibilityTest.php` — Interface: ContainerCompatibilityLoggerInterface (11 methods) (~3015 tok)
+- `ContainerCompositionTest.php` — Characterization tests (8) pinning bind/singleton/alias/isShared/getShared/DiInterface behavior pre-E01 refactor (~400 tok)
 - `ContainerTest.php` — Interface: LoggerInterface (4 methods) (~1618 tok)
 - `ContextualBindingEdgeTest.php` — Interface: EdgeTransport (7 methods) (~806 tok)
 - `PSR11AndArrayAccessTest.php` (~307 tok)
