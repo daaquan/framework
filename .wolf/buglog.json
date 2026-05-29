@@ -7,7 +7,7 @@
       "error_message": "Wrong reference: false should be true",
       "file": "tasks/prd.json",
       "root_cause": "Used \"false\" instead of \"true\"",
-      "fix": "Changed false → true",
+      "fix": "Changed false \u2192 true",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -23,7 +23,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 4→4 lines (2 removed)",
+      "fix": "Rewrote 4\u21924 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -38,7 +38,7 @@
       "timestamp": "2026-05-19T08:52:10.424Z",
       "error_message": "Missing error handling in unknown",
       "file": "docs/audit-area-a.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -55,7 +55,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 6→6 lines (2 removed) | Also: \"passes\": false,; \"notes\": \"\"",
+      "fix": "Rewrote 6\u21926 lines (2 removed) | Also: \"passes\": false,; \"notes\": \"\"",
       "tags": [
         "auto-detected",
         "refactor",
@@ -87,7 +87,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 13→13 lines (2 removed)",
+      "fix": "Rewrote 13\u219213 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -103,7 +103,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 13→13 lines (2 removed)",
+      "fix": "Rewrote 13\u219213 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -119,7 +119,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 5→5 lines (2 removed)",
+      "fix": "Rewrote 5\u21925 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -135,7 +135,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 6→6 lines (2 removed) | Also: \"passes\": false,; \"notes\": \"\"",
+      "fix": "Rewrote 6\u21926 lines (2 removed) | Also: \"passes\": false,; \"notes\": \"\"",
       "tags": [
         "auto-detected",
         "refactor",
@@ -151,7 +151,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14→14 lines (2 removed)",
+      "fix": "Rewrote 14\u219214 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -167,7 +167,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 6→6 lines (2 removed)",
+      "fix": "Rewrote 6\u21926 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -182,7 +182,7 @@
       "timestamp": "2026-05-27T01:52:53.828Z",
       "error_message": "Missing error handling in unknown",
       "file": "docs/audit-area-c.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -199,7 +199,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14→14 lines (2 removed)",
+      "fix": "Rewrote 14\u219214 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -214,7 +214,7 @@
       "timestamp": "2026-05-27T01:53:46.918Z",
       "error_message": "Missing error handling in unknown",
       "file": "tasks/progress.txt",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block | Also: ## 2026-05-27 - US-C03 Audit Hashing; - Diffed `src/Phare/Hashing/` (6 files) + `Providers/HashSer",
       "tags": [
         "auto-detected",
@@ -230,7 +230,7 @@
       "timestamp": "2026-05-27T02:00:26.662Z",
       "error_message": "Missing error handling in name",
       "file": "docs/audit-area-c.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -247,7 +247,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 6→6 lines (2 removed)",
+      "fix": "Rewrote 6\u21926 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -263,7 +263,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14→14 lines (2 removed)",
+      "fix": "Rewrote 14\u219214 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -295,7 +295,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14→14 lines (2 removed)",
+      "fix": "Rewrote 14\u219214 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -311,7 +311,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 13→13 lines (2 removed)",
+      "fix": "Rewrote 13\u219213 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -326,7 +326,7 @@
       "timestamp": "2026-05-27T15:30:40.548Z",
       "error_message": "Missing error handling in unknown",
       "file": "tasks/progress.txt",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -343,7 +343,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 13→13 lines (2 removed)",
+      "fix": "Rewrote 13\u219213 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -359,7 +359,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 13→13 lines (2 removed)",
+      "fix": "Rewrote 13\u219213 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -374,7 +374,7 @@
       "timestamp": "2026-05-27T15:48:12.064Z",
       "error_message": "Missing error handling in deserialize",
       "file": "tasks/progress.txt",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -390,7 +390,7 @@
       "timestamp": "2026-05-28T06:34:43.199Z",
       "error_message": "Missing error handling in unknown",
       "file": "docs/audit-area-d.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -407,7 +407,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14→14 lines (2 removed)",
+      "fix": "Rewrote 14\u219214 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -439,7 +439,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14→14 lines (2 removed)",
+      "fix": "Rewrote 14\u219214 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -471,7 +471,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14→14 lines (2 removed)",
+      "fix": "Rewrote 14\u219214 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -487,7 +487,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14→14 lines (2 removed)",
+      "fix": "Rewrote 14\u219214 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -503,7 +503,7 @@
       "error_message": "Significant refactor of ",
       "file": "tasks/prd.json",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 13→13 lines (2 removed) | Also: \"passes\": false,; \"notes\": \"\"",
+      "fix": "Rewrote 13\u219213 lines (2 removed) | Also: \"passes\": false,; \"notes\": \"\"",
       "tags": [
         "auto-detected",
         "refactor",
@@ -519,7 +519,7 @@
       "error_message": "ScheduleRunCommand success counter always reflects last event only",
       "file": "src/Phare/Console/Scheduling/ScheduleRunCommand.php",
       "root_cause": "Line 43: `count(array_filter($results, fn ($r) => $result['success']))` captures outer loop variable `$result` (from the foreach on line 28) instead of the lambda parameter `$r`. After the loop ends, `$result` holds the last iteration's value, so all events are counted as success or failure based solely on the last event.",
-      "fix": "Change `fn ($r) => $result['success']` to `fn ($r) => $r['success']` — use the lambda parameter.",
+      "fix": "Change `fn ($r) => $result['success']` to `fn ($r) => $r['success']` \u2014 use the lambda parameter.",
       "tags": [
         "audit",
         "correctness",
@@ -662,7 +662,7 @@
       "error_message": "Significant refactor of ",
       "file": "src/Phare/Support/helpers.php",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 7→13 lines (2 removed)",
+      "fix": "Rewrote 7\u219213 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -715,7 +715,7 @@
       "error_message": "Significant refactor of ",
       "file": "src/Phare/Providers/EncrypterProvider.php",
       "root_cause": "12 lines replaced/restructured",
-      "fix": "Rewrote 19→13 lines (12 removed)",
+      "fix": "Rewrote 19\u219213 lines (12 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -750,7 +750,7 @@
       "error_message": "Significant refactor of ",
       "file": "src/Phare/Hashing/HashManager.php",
       "root_cause": "4 lines replaced/restructured",
-      "fix": "Rewrote 19→63 lines (4 removed)",
+      "fix": "Rewrote 19\u219263 lines (4 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -767,7 +767,16 @@
       "file": "src/Phare/Hashing/HashManager.php",
       "root_cause": "Constructor called the GLOBAL config() helper (-> app('config')) to read hashing.driver, ignoring the container passed into the constructor. A HashManager given its own container with config bound still reached for the global app and threw when no global app was booted. Also createXxxDriver() did bare new XHasher() ignoring hashing.* config (silent-config-dropthrough, C03 family) so Argon2 ran at weak 1024/2/2.",
       "fix": "Read $this->config (hydrated by Manager base from the injected container) via new configValue()/configArray() helpers instead of the global config() helper. Factories now array_merge strong defaults (argon 65536/4/1, bcrypt rounds 12) with bound config. Shipped config/hashing.php (Laravel parity).",
-      "tags": ["hashing", "config", "DI", "silent-config-dropthrough", "C03", "argon2", "phase0-6", "TDD"],
+      "tags": [
+        "hashing",
+        "config",
+        "DI",
+        "silent-config-dropthrough",
+        "C03",
+        "argon2",
+        "phase0-6",
+        "TDD"
+      ],
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-29T21:40:00+00:00"
@@ -779,10 +788,37 @@
       "file": "tests/Validation/ValidatorTest.php",
       "root_cause": "This Pest 2 / PHPUnit setup does not honor the @dataProvider docblock annotation for plain PHPUnit\\Framework\\TestCase classes; the test method was invoked with zero arguments.",
       "fix": "Removed @dataProvider; iterate a private case-array helper with a foreach inside one test method, asserting with a per-case $label message.",
-      "tags": ["testing", "pest", "phpunit", "dataprovider", "validation", "A06", "gotcha"],
+      "tags": [
+        "testing",
+        "pest",
+        "phpunit",
+        "dataprovider",
+        "validation",
+        "A06",
+        "gotcha"
+      ],
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-29T22:05:00+00:00"
+    },
+    {
+      "id": "bug-049",
+      "timestamp": "2026-05-29T14:05:00.000Z",
+      "error_message": "Call to undefined method or service 'phalconDi'; new worktree src edits not loaded by ./bin/pest",
+      "file": ".claude/worktrees/e01-container-composition/vendor (symlink)",
+      "root_cause": "Worktree's vendor is a symlink to /opt/framework/vendor. Composer autoloader computes $baseDir via dirname(realpath(vendorDir)) = /opt/framework, so PSR-4 + classmap resolve Phare\\ to MAIN's src/Phare, NOT the worktree's src. Edits made in the worktree src are never loaded by ./bin/pest.",
+      "fix": "Run Pest with an override bootstrap that requires vendor/autoload.php then spl_autoload_register a worktree-first loader (prepend=true) mapping Phare\\ -> worktree/src/Phare and Tests\\ -> worktree/tests. e.g. vendor/pestphp/pest/bin/pest --bootstrap /tmp/wt_bootstrap.php. Do NOT rebuild vendor as a real dir with symlinked packages \u2014 that crashes Pest (exit 255, no output).",
+      "tags": [
+        "worktree",
+        "composer",
+        "autoloader",
+        "symlink",
+        "pest",
+        "phalcon"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-29T14:05:00.000Z"
     }
   ]
 }
