@@ -59,3 +59,8 @@ it('getshared delegates to phalcon store', function () {
 
     expect($c->getShared('svc'))->toBeInstanceOf(stdClass::class);
 });
+
+it('exposes inner phalcon di accessor', function () {
+    $c = new Container();
+    expect($c->phalconDi())->toBeInstanceOf(DiInterface::class);
+});

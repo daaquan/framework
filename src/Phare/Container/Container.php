@@ -223,6 +223,25 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
     protected array $scopedInstances = [];
 
     /**
+     * Inner Phalcon service-store backend.
+     */
+    protected DiInterface $phalconDi;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->phalconDi = $this;
+    }
+
+    /**
+     * Inner Phalcon service-store backend accessor.
+     */
+    public function phalconDi(): DiInterface
+    {
+        return $this->phalconDi;
+    }
+
+    /**
      * Alias a type to a shortened name.
      */
     public function alias(string $abstract, string $alias): void
@@ -606,7 +625,7 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
 
             $getter = $shared ? 'getShared' : 'get';
 
-            $instance = $this->$getter($abstract, $parameters);
+            $instance = $this->phalconDi->$getter($abstract, $parameters);
 
             // Shared singletons return the cached instance — Laravel parity skips
             // resolving callbacks here so they fire once on the initial build.
@@ -628,9 +647,9 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
                 // Fall through to our own resolve() call below.
             } else {
                 try {
-                    $service = $this->getService($abstract);
+                    $service = $this->phalconDi->getService($abstract);
                     if ($service->isShared()) {
-                        $instance = $this->getShared($abstract, $parameters);
+                        $instance = $this->phalconDi->getShared($abstract, $parameters);
                         $instance = $this->applyExtenders($abstract, $instance);
                         $this->resolved[$abstract] = true;
                         $this->resolvedInstances[$abstract] = $instance;
@@ -1069,7 +1088,7 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
 
     protected function resolveInstance(string $abstract, $instance, bool $shared)
     {
-        $this->set($abstract, $instance, $shared);
+        $this->phalconDi->set($abstract, $instance, $shared);
 
         if ($shared) {
             $this->resolved[$abstract] = true;
@@ -1173,7 +1192,6 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
                 return $this->contextual[$key][$abstract];
             }
         }
-
     }
 
     /**
@@ -1280,7 +1298,7 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
         $alias = $this->getAlias($id);
         if (!$this->bound($alias) && !class_exists($alias) && !interface_exists($alias)) {
             try {
-                $hasService = parent::has($alias);
+                $hasService = $this->phalconDi->has($alias);
             } catch (\Throwable) {
                 $hasService = false;
             }
@@ -1288,6 +1306,7 @@ class Container extends Di implements ContractsContainer, PsrContainerInterface
                 throw new ServiceNotFoundException("Service [{$id}] not found in container.");
             }
         }
+
         return $this->make($id);
     }
 
