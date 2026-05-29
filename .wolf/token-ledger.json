@@ -2,9 +2,9 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 1380818,
+    "total_tokens_estimated": 1382233,
     "total_reads": 567,
-    "total_writes": 383,
+    "total_writes": 386,
     "total_sessions": 114,
     "anatomy_hits": 422,
     "anatomy_misses": 145,
@@ -5987,6 +5987,37 @@
         "writes_count": 53,
         "repeated_reads_blocked": 3,
         "anatomy_lookups": 35
+      }
+    },
+    {
+      "id": "session-2026-05-29-0608",
+      "started": "2026-05-29T21:08:40.196Z",
+      "ended": "2026-05-29T21:12:19.472Z",
+      "reads": [],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 610,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 646,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 159,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 0,
+        "output_tokens_estimated": 1415,
+        "reads_count": 0,
+        "writes_count": 3,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 0
       }
     }
   ],
