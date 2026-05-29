@@ -774,3 +774,16 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 23:05 | E01 Task 1 review fix: convert class/PHPUnit-style test to Pest it() idiom matching ContainerTest.php (inline new Container(), expect()) | tests/Container/ContainerCompositionTest.php | 8 passed, pint clean, amended to fa3bc22 | ~2k |
 | 23:17 | E01 Task3: Container now composes inner Phalcon Di (no longer extends), implements DiInterface+ArrayAccess by delegation | src/Phare/Container/Container.php, tests/Container/ContainerCompositionTest.php | 1338 pass, phpstan 5200 (0 new), commit 7ff94d1 | ~14k |
 | 23:27 | E01a SHIPPED: Container composition (no extends Di; implements DiInterface+ArrayAccess by delegation) — 4 tasks TDD+2-stage review | src/Phare/Container/Container.php, AbstractApplication.php, tests/Container/ContainerCompositionTest.php | suite 1326→1338, phpstan -6, green | ~60k |
+| 23:36 | Session end: 42 writes across 9 files (2026-05-29-e01-container-composition.md, anatomy.md, cerebrum.md, ContainerCompositionTest.php, memory.md) | 29 reads | ~90990 tok |
+| 23:41 | Session end: 42 writes across 9 files (2026-05-29-e01-container-composition.md, anatomy.md, cerebrum.md, ContainerCompositionTest.php, memory.md) | 29 reads | ~90990 tok |
+
+## Session: 2026-05-29 23:44
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 23:47 | Edited tests/Validation/ValidatorTest.php | modified test_present_rule() | ~1519 |
+| 23:48 | Edited src/Phare/Validation/Validator.php | expanded (+19 lines) | ~123 |
+| 23:48 | Edited src/Phare/Validation/Validator.php | modified isImplicitRule() | ~121 |
+| 23:48 | Edited src/Phare/Validation/Validator.php | added 15 condition(s) | ~1869 |
+| 23:48 | Edited src/Phare/Validation/Validator.php | expanded (+18 lines) | ~440 |
+| 23:50 | A06 validation batch: implicit-rules refactor + 18 rules (present/filled/accepted/declined, gt/gte/lt/lte/multiple_of, date_format/before/after, required_if/unless/with/with_all/without/without_all) | Validator.php, ValidatorTest.php | TDD RED→GREEN, suite 1338→1347, phpstan 0 new, pint clean | ~12k |

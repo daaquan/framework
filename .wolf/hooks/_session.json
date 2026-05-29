@@ -1,135 +1,421 @@
 {
-  "session_id": "session-2026-05-29-2145",
-  "started": "2026-05-29T12:45:12.438Z",
+  "session_id": "session-2026-05-29-2208",
+  "started": "2026-05-29T13:08:55.020Z",
   "files_read": {
-    "/opt/framework/src/Phare/Hashing/ArgonHasher.php": {
-      "count": 1,
-      "tokens": 470,
-      "first_read": "2026-05-29T12:47:57.462Z"
+    "/opt/framework/src/Phare/Container/Container.php": {
+      "count": 2,
+      "tokens": 12350,
+      "first_read": "2026-05-29T13:28:48.451Z"
     },
-    "/opt/framework/src/Phare/Hashing/HashManager.php": {
-      "count": 1,
-      "tokens": 771,
-      "first_read": "2026-05-29T12:47:57.708Z"
-    },
-    "/opt/laravel-framework/src/Illuminate/Hashing/HashManager.php": {
+    "/opt/framework/src/Phare/Contracts/Container/Container.php": {
       "count": 1,
       "tokens": 0,
-      "first_read": "2026-05-29T12:48:15.248Z"
+      "first_read": "2026-05-29T13:28:48.723Z"
     },
-    "/opt/framework/src/Phare/Hashing/Argon2idHasher.php": {
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Contracts/Foundation/Container.php": {
       "count": 1,
-      "tokens": 45,
-      "first_read": "2026-05-29T12:48:27.710Z"
+      "tokens": 401,
+      "first_read": "2026-05-29T13:28:56.557Z"
     },
-    "/opt/framework/src/Phare/Hashing/Argon2iHasher.php": {
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php": {
+      "count": 6,
+      "tokens": 4599,
+      "first_read": "2026-05-29T13:29:45.348Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php": {
+      "count": 51,
+      "tokens": 13211,
+      "first_read": "2026-05-29T13:30:11.381Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Support/ServiceProvider.php": {
       "count": 1,
-      "tokens": 44,
-      "first_read": "2026-05-29T12:48:28.177Z"
+      "tokens": 428,
+      "first_read": "2026-05-29T13:37:11.465Z"
     },
-    "/opt/framework/src/Phare/Hashing/BcryptHasher.php": {
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Bootstrap/RegisterProviders.php": {
       "count": 1,
-      "tokens": 351,
-      "first_read": "2026-05-29T12:48:28.653Z"
+      "tokens": 111,
+      "first_read": "2026-05-29T13:37:39.283Z"
     },
-    "/opt/framework/tests/Hashing/HashManagerTest.php": {
+    "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md": {
+      "count": 3,
+      "tokens": 11233,
+      "first_read": "2026-05-29T13:39:28.257Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md": {
+      "count": 3,
+      "tokens": 5494,
+      "first_read": "2026-05-29T13:40:03.212Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/phpunit.xml.dist": {
       "count": 1,
-      "tokens": 1496,
-      "first_read": "2026-05-29T12:48:57.537Z"
+      "tokens": 474,
+      "first_read": "2026-05-29T13:45:54.835Z"
     },
-    "/opt/framework/src/Phare/Support/helpers.php": {
+    "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md": {
+      "count": 3,
+      "tokens": 8698,
+      "first_read": "2026-05-29T13:47:26.639Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php": {
+      "count": 8,
+      "tokens": 646,
+      "first_read": "2026-05-29T13:48:19.851Z"
+    },
+    "/opt/framework/tests/Container/ContainerTest.php": {
       "count": 1,
-      "tokens": 6551,
-      "first_read": "2026-05-29T12:49:35.561Z"
+      "tokens": 1618,
+      "first_read": "2026-05-29T13:49:05.019Z"
     },
-    "/opt/laravel-framework/config/hashing.php": {
+    "/opt/framework/tests/Container/ContainerCompatibilityTest.php": {
+      "count": 1,
+      "tokens": 3015,
+      "first_read": "2026-05-29T13:49:05.315Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/PSR11AndArrayAccessTest.php": {
+      "count": 3,
+      "tokens": 307,
+      "first_read": "2026-05-29T13:49:21.520Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerTest.php": {
+      "count": 1,
+      "tokens": 1618,
+      "first_read": "2026-05-29T13:50:16.586Z"
+    },
+    "/opt/framework/tests/Container/ContainerCompositionTest.php": {
       "count": 1,
       "tokens": 0,
-      "first_read": "2026-05-29T12:51:49.537Z"
+      "first_read": "2026-05-29T13:53:29.839Z"
     },
-    "/opt/framework/src/Phare/Validation/Validator.php": {
+    "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/buglog.json": {
       "count": 1,
-      "tokens": 2608,
-      "first_read": "2026-05-29T12:54:39.706Z"
+      "tokens": 0,
+      "first_read": "2026-05-29T14:01:20.219Z"
     },
-    "/opt/framework/tests/Validation/ValidatorTest.php": {
+    "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Di/Di.php": {
+      "count": 4,
+      "tokens": 0,
+      "first_read": "2026-05-29T14:06:21.225Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Di/DiInterface.php": {
       "count": 2,
       "tokens": 0,
-      "first_read": "2026-05-29T12:55:01.545Z"
+      "first_read": "2026-05-29T14:13:03.282Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Micro.php": {
+      "count": 1,
+      "tokens": 540,
+      "first_read": "2026-05-29T14:28:07.358Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Web.php": {
+      "count": 1,
+      "tokens": 248,
+      "first_read": "2026-05-29T14:28:07.802Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/Cache.php": {
+      "count": 1,
+      "tokens": 1416,
+      "first_read": "2026-05-29T14:28:23.720Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Testing/TestCase.php": {
+      "count": 1,
+      "tokens": 562,
+      "first_read": "2026-05-29T14:28:32.301Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Support/helpers.php": {
+      "count": 1,
+      "tokens": 6551,
+      "first_read": "2026-05-29T14:28:36.377Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Providers/EncrypterProvider.php": {
+      "count": 1,
+      "tokens": 360,
+      "first_read": "2026-05-29T14:28:44.664Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/Lifecycle/InstanceAndExtendTest.php": {
+      "count": 1,
+      "tokens": 663,
+      "first_read": "2026-05-29T14:29:50.159Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/Lifecycle/ForgetTest.php": {
+      "count": 1,
+      "tokens": 357,
+      "first_read": "2026-05-29T14:30:03.914Z"
+    },
+    "/opt/framework/.claude/worktrees/e01-container-composition/vendor/phalcon/ide-stubs/src/Mvc/Micro.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-29T14:30:29.156Z"
     }
   },
   "files_written": [
     {
-      "file": "/opt/framework/tests/Hashing/HashManagerTest.php",
-      "action": "edit",
-      "tokens": 658,
-      "at": "2026-05-29T12:50:14.553Z"
-    },
-    {
-      "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
-      "action": "edit",
-      "tokens": 230,
-      "at": "2026-05-29T12:51:20.445Z"
-    },
-    {
-      "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
-      "action": "edit",
-      "tokens": 496,
-      "at": "2026-05-29T12:51:29.976Z"
-    },
-    {
-      "file": "/opt/framework/config/hashing.php",
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
       "action": "create",
-      "tokens": 581,
-      "at": "2026-05-29T12:52:06.155Z"
+      "tokens": 8617,
+      "at": "2026-05-29T13:34:30.908Z"
     },
     {
-      "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
       "action": "edit",
-      "tokens": 180,
-      "at": "2026-05-29T12:52:30.251Z"
+      "tokens": 707,
+      "at": "2026-05-29T13:38:13.950Z"
     },
     {
-      "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
       "action": "edit",
-      "tokens": 907,
-      "at": "2026-05-29T12:55:44.482Z"
+      "tokens": 149,
+      "at": "2026-05-29T13:38:23.379Z"
     },
     {
-      "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
       "action": "edit",
-      "tokens": 141,
-      "at": "2026-05-29T12:56:04.972Z"
+      "tokens": 14,
+      "at": "2026-05-29T13:38:43.474Z"
     },
     {
-      "file": "/opt/framework/src/Phare/Validation/Validator.php",
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
       "action": "edit",
-      "tokens": 1007,
-      "at": "2026-05-29T12:56:37.863Z"
+      "tokens": 80,
+      "at": "2026-05-29T13:38:52.271Z"
     },
     {
-      "file": "/opt/framework/src/Phare/Validation/Validator.php",
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
       "action": "edit",
-      "tokens": 371,
-      "at": "2026-05-29T12:56:44.852Z"
+      "tokens": 128,
+      "at": "2026-05-29T13:38:58.799Z"
     },
     {
-      "file": "/opt/framework/src/Phare/Validation/Validator.php",
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md",
       "action": "edit",
-      "tokens": 1169,
-      "at": "2026-05-29T12:57:59.999Z"
+      "tokens": 446,
+      "at": "2026-05-29T13:39:16.072Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+      "action": "edit",
+      "tokens": 98,
+      "at": "2026-05-29T13:39:33.311Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+      "action": "edit",
+      "tokens": 671,
+      "at": "2026-05-29T13:40:14.774Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+      "action": "create",
+      "tokens": 648,
+      "at": "2026-05-29T13:46:35.104Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+      "action": "edit",
+      "tokens": 128,
+      "at": "2026-05-29T13:47:38.046Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+      "action": "edit",
+      "tokens": 135,
+      "at": "2026-05-29T13:47:48.671Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+      "action": "create",
+      "tokens": 484,
+      "at": "2026-05-29T13:50:36.400Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/memory.md",
+      "action": "edit",
+      "tokens": 126,
+      "at": "2026-05-29T13:51:03.343Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+      "action": "edit",
+      "tokens": 102,
+      "at": "2026-05-29T13:53:45.827Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 154,
+      "at": "2026-05-29T13:54:25.141Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 37,
+      "at": "2026-05-29T13:54:45.307Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 60,
+      "at": "2026-05-29T13:54:46.816Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 43,
+      "at": "2026-05-29T13:54:54.091Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 18,
+      "at": "2026-05-29T13:55:01.792Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php",
+      "action": "edit",
+      "tokens": 38,
+      "at": "2026-05-29T13:55:12.467Z"
+    },
+    {
+      "file": "/tmp/wt_prepend.php",
+      "action": "create",
+      "tokens": 218,
+      "at": "2026-05-29T13:58:46.100Z"
+    },
+    {
+      "file": "/tmp/wt_bootstrap.php",
+      "action": "create",
+      "tokens": 240,
+      "at": "2026-05-29T13:59:09.216Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+      "action": "edit",
+      "tokens": 416,
+      "at": "2026-05-29T14:03:51.968Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+      "action": "edit",
+      "tokens": 22,
+      "at": "2026-05-29T14:13:17.016Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+      "action": "edit",
+      "tokens": 203,
+      "at": "2026-05-29T14:13:22.458Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 19,
+      "at": "2026-05-29T14:13:30.229Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 25,
+      "at": "2026-05-29T14:13:40.895Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 28,
+      "at": "2026-05-29T14:13:44.643Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 24,
+      "at": "2026-05-29T14:13:48.216Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 836,
+      "at": "2026-05-29T14:14:11.113Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 119,
+      "at": "2026-05-29T14:15:48.879Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 103,
+      "at": "2026-05-29T14:15:53.761Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 62,
+      "at": "2026-05-29T14:15:57.929Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 57,
+      "at": "2026-05-29T14:16:01.603Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 42,
+      "at": "2026-05-29T14:16:05.821Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 50,
+      "at": "2026-05-29T14:24:50.281Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+      "action": "edit",
+      "tokens": 91,
+      "at": "2026-05-29T14:26:43.717Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/cerebrum.md",
+      "action": "edit",
+      "tokens": 528,
+      "at": "2026-05-29T14:26:59.223Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/.wolf/anatomy.md",
+      "action": "edit",
+      "tokens": 56,
+      "at": "2026-05-29T14:27:05.322Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/src/Phare/Container/Container.php",
+      "action": "edit",
+      "tokens": 36,
+      "at": "2026-05-29T14:32:31.793Z"
+    },
+    {
+      "file": "/opt/framework/.claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php",
+      "action": "edit",
+      "tokens": 32,
+      "at": "2026-05-29T14:32:45.902Z"
     }
   ],
   "edit_counts": {
-    "tests/Hashing/HashManagerTest.php": 1,
-    "src/Phare/Hashing/HashManager.php": 3,
-    "config/hashing.php": 1,
-    "tests/Validation/ValidatorTest.php": 2,
-    "src/Phare/Validation/Validator.php": 3
+    ".claude/worktrees/e01-container-composition/docs/superpowers/plans/2026-05-29-e01-container-composition.md": 7,
+    ".claude/worktrees/e01-container-composition/.wolf/anatomy.md": 3,
+    ".claude/worktrees/e01-container-composition/.wolf/cerebrum.md": 4,
+    ".claude/worktrees/e01-container-composition/tests/Container/ContainerCompositionTest.php": 6,
+    ".claude/worktrees/e01-container-composition/.wolf/memory.md": 2,
+    ".claude/worktrees/e01-container-composition/src/Phare/Container/Container.php": 17,
+    ".claude/worktrees/e01-container-composition/src/Phare/Foundation/AbstractApplication.php": 1,
+    "../../tmp/wt_prepend.php": 1,
+    "../../tmp/wt_bootstrap.php": 1
   },
-  "anatomy_hits": 8,
-  "anatomy_misses": 3,
-  "repeated_reads_warned": 1,
+  "anatomy_hits": 20,
+  "anatomy_misses": 9,
+  "repeated_reads_warned": 75,
   "cerebrum_warnings": 0,
-  "stop_count": 1
+  "stop_count": 2
 }
