@@ -6,6 +6,7 @@ use Phare\Auth\Sanctum\PersonalAccessToken;
 use Phare\Auth\Sanctum\Sanctum;
 use Phare\Auth\Sanctum\SanctumGuard;
 use Phare\Encryption\Encrypter;
+use Phare\Security\Csrf;
 
 function paramHasSensitive(string $class, string $method, string $param): bool
 {
@@ -33,6 +34,8 @@ it('marks secret-bearing parameters with #[\\SensitiveParameter]', function () {
         [Sanctum::class, 'findToken', 'token'],
         [Sanctum::class, 'hasValidToken', 'token'],
         [NewAccessToken::class, '__construct', 'plainTextToken'],
+        [Csrf::class, 'verifyToken', 'token'],
+        [Csrf::class, 'storeToken', 'token'],
     ];
 
     foreach ($cases as [$class, $method, $param]) {
