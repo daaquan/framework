@@ -842,3 +842,18 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 00:16 | Edited tests/Unit/Database/DatabaseManagerTest.php | 5→6 lines | ~73 |
 | 00:17 | E02b: migrated final 5 providers (Route/Translate/Blade/Volt/Passkey) to ServiceProvider base; fixed test doubles for enriched Application/Container contract | src/Phare/Providers/*, tests/* | 1352 passed | ~30k |
 | 00:20 | E02b: provider migration COMPLETE (29/29 off Phalcon SP iface); enriched Application contract (extends Container + path/env methods); migrated last 5 + fixed 6 test doubles/mocks for enriched contract | Application.php, 5 providers, 6 test files, new E02b test | suite 1347→1352, phpstan providers 34→11, pint clean | ~107k (subagent) |
+| 00:21 | Session end: 53 writes across 42 files (ValidatorTest.php, Validator.php, Container.php, ConfigProvider.php, CacheProvider.php) | 43 reads | ~27830 tok |
+
+## Session: 2026-05-29 06:06
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-05-29 06:08
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 06:10 | Edited tests/Validation/ValidatorTest.php | modified test_in_array_rule() | ~570 |
+| 06:10 | Edited src/Phare/Validation/Validator.php | added 6 condition(s) | ~603 |
+| 06:11 | Edited src/Phare/Validation/Validator.php | 2→7 lines | ~149 |
+| 06:12 | A06 array-batch: array:keys, distinct(+strict/ignore_case), in_array:field, prohibited/prohibited_if/prohibited_unless (flat-model adaptations) | Validator.php, ValidatorTest.php | TDD RED→GREEN, suite 1352→1355, phpstan 62→62 (0 new), pint clean | ~9k |

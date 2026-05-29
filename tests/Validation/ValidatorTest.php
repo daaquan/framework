@@ -342,9 +342,43 @@ class ValidatorTest extends TestCase
         $this->assertTrue((new Validator(['a' => 'x', 'b' => ''], ['b' => 'required_without_all:a,c']))->passes());
     }
 
+    public function test_in_array_rule()
+    {
+        $data = ['roles' => ['admin', 'editor']];
+        $this->assertTrue((new Validator($data + ['role' => 'admin'], ['role' => 'in_array:roles.*']))->passes());
+        $this->assertTrue((new Validator($data + ['role' => 'guest'], ['role' => 'in_array:roles.*']))->fails());
+    }
+
+    public function test_prohibited_if_rule()
+    {
+        $this->assertTrue((new Validator(['type' => 'guest', 'vat' => 'X1'], ['vat' => 'prohibited_if:type,guest']))->fails());
+        $this->assertTrue((new Validator(['type' => 'member', 'vat' => 'X1'], ['vat' => 'prohibited_if:type,guest']))->passes());
+        $this->assertTrue((new Validator(['type' => 'guest', 'vat' => ''], ['vat' => 'prohibited_if:type,guest']))->passes());
+    }
+
+    public function test_prohibited_unless_rule()
+    {
+        $this->assertTrue((new Validator(['type' => 'member', 'vat' => 'X1'], ['vat' => 'prohibited_unless:type,member']))->passes());
+        $this->assertTrue((new Validator(['type' => 'guest', 'vat' => 'X1'], ['vat' => 'prohibited_unless:type,member']))->fails());
+    }
+
     private function formatRuleCases(): array
     {
         return [
+            // distinct
+            'distinct pass' => ['distinct', ['a', 'b', 'c'], true],
+            'distinct fail dup' => ['distinct', ['a', 'b', 'a'], false],
+            'distinct strict pass' => ['distinct:strict', [1, '1'], true],
+            'distinct loose fail' => ['distinct', [1, '1'], false],
+            'distinct ignore_case fail' => ['distinct:ignore_case', ['A', 'a'], false],
+            // array with allowed keys
+            'array keys pass' => ['array:name,age', ['name' => 'x', 'age' => 1], true],
+            'array keys fail extra' => ['array:name,age', ['name' => 'x', 'extra' => 1], false],
+            'array no params pass' => ['array', ['anything' => 1], true],
+            'array non-array fail' => ['array', 'scalar', false],
+            // prohibited (empty skips → pass; non-empty → fail)
+            'prohibited empty pass' => ['prohibited', '', true],
+            'prohibited filled fail' => ['prohibited', 'x', false],
             // multiple_of
             'multiple_of pass' => ['multiple_of:5', 10, true],
             'multiple_of fail' => ['multiple_of:5', 7, false],
