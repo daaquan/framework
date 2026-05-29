@@ -169,6 +169,21 @@ class Validator
             'date' => "The {$attribute} is not a valid date.",
             'url' => "The {$attribute} format is invalid.",
             'regex' => "The {$attribute} format is invalid.",
+            'alpha' => "The {$attribute} must only contain letters.",
+            'alpha_num' => "The {$attribute} must only contain letters and numbers.",
+            'alpha_dash' => "The {$attribute} must only contain letters, numbers, dashes and underscores.",
+            'digits' => "The {$attribute} must be {$param0} digits.",
+            'digits_between' => "The {$attribute} must be between {$param0} and {$param1} digits.",
+            'size' => "The {$attribute} must be {$param0}.",
+            'starts_with' => "The {$attribute} must start with one of the following: {$param0}.",
+            'ends_with' => "The {$attribute} must end with one of the following: {$param0}.",
+            'uuid' => "The {$attribute} must be a valid UUID.",
+            'json' => "The {$attribute} must be a valid JSON string.",
+            'ip' => "The {$attribute} must be a valid IP address.",
+            'ipv4' => "The {$attribute} must be a valid IPv4 address.",
+            'ipv6' => "The {$attribute} must be a valid IPv6 address.",
+            'lowercase' => "The {$attribute} must be lowercase.",
+            'uppercase' => "The {$attribute} must be uppercase.",
         ];
 
         return $messages[$rule] ?? "The {$attribute} field is invalid.";
@@ -289,6 +304,126 @@ class Validator
     protected function validateNullable(string $attribute, $value, array $parameters): bool
     {
         return true; // Always passes, handled in validateRule
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateAlpha(string $attribute, mixed $value, array $parameters): bool
+    {
+        return is_string($value) && preg_match('/^[\pL\pM]+$/u', $value) > 0;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateAlphaNum(string $attribute, mixed $value, array $parameters): bool
+    {
+        return (is_string($value) || is_numeric($value))
+            && preg_match('/^[\pL\pM\pN]+$/u', (string)$value) > 0;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateAlphaDash(string $attribute, mixed $value, array $parameters): bool
+    {
+        return (is_string($value) || is_numeric($value))
+            && preg_match('/^[\pL\pM\pN_-]+$/u', (string)$value) > 0;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateDigits(string $attribute, mixed $value, array $parameters): bool
+    {
+        $value = (string)$value;
+
+        return ctype_digit($value) && strlen($value) === (int)$parameters[0];
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateDigitsBetween(string $attribute, mixed $value, array $parameters): bool
+    {
+        $value = (string)$value;
+        $length = strlen($value);
+
+        return ctype_digit($value)
+            && $length >= (int)$parameters[0]
+            && $length <= (int)$parameters[1];
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateSize(string $attribute, mixed $value, array $parameters): bool
+    {
+        return $this->getSize($attribute, $value) == $parameters[0];
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateStartsWith(string $attribute, mixed $value, array $parameters): bool
+    {
+        foreach ($parameters as $needle) {
+            if ($needle !== '' && str_starts_with((string)$value, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateEndsWith(string $attribute, mixed $value, array $parameters): bool
+    {
+        foreach ($parameters as $needle) {
+            if ($needle !== '' && str_ends_with((string)$value, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateUuid(string $attribute, mixed $value, array $parameters): bool
+    {
+        return is_string($value) && preg_match(
+            '/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iD',
+            $value
+        ) > 0;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateJson(string $attribute, mixed $value, array $parameters): bool
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        json_decode($value);
+
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateIp(string $attribute, mixed $value, array $parameters): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_IP) !== false;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateIpv4(string $attribute, mixed $value, array $parameters): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateIpv6(string $attribute, mixed $value, array $parameters): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateLowercase(string $attribute, mixed $value, array $parameters): bool
+    {
+        return is_string($value) && mb_strtolower($value, 'UTF-8') === $value;
+    }
+
+    /** @param list<string> $parameters */
+    protected function validateUppercase(string $attribute, mixed $value, array $parameters): bool
+    {
+        return is_string($value) && mb_strtoupper($value, 'UTF-8') === $value;
     }
 
     protected function getSize(string $attribute, $value): int|float
