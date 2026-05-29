@@ -16,6 +16,36 @@
       "count": 1,
       "tokens": 282,
       "first_read": "2026-05-29T21:13:23.237Z"
+    },
+    "/opt/framework/src/Phare/Encryption/Encrypter.php": {
+      "count": 1,
+      "tokens": 1473,
+      "first_read": "2026-05-29T21:27:37.847Z"
+    },
+    "/opt/framework/src/Phare/Auth/Manager.php": {
+      "count": 4,
+      "tokens": 1579,
+      "first_read": "2026-05-29T21:28:31.094Z"
+    },
+    "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php": {
+      "count": 2,
+      "tokens": 478,
+      "first_read": "2026-05-29T21:28:53.037Z"
+    },
+    "/opt/framework/src/Phare/Auth/Sanctum/PersonalAccessToken.php": {
+      "count": 1,
+      "tokens": 591,
+      "first_read": "2026-05-29T21:29:06.180Z"
+    },
+    "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php": {
+      "count": 2,
+      "tokens": 768,
+      "first_read": "2026-05-29T21:29:12.563Z"
+    },
+    "/opt/framework/src/Phare/Auth/Sanctum/NewAccessToken.php": {
+      "count": 1,
+      "tokens": 164,
+      "first_read": "2026-05-29T21:29:29.010Z"
     }
   },
   "files_written": [
@@ -48,17 +78,108 @@
       "action": "edit",
       "tokens": 7,
       "at": "2026-05-29T21:13:44.027Z"
+    },
+    {
+      "file": "/opt/framework/tests/Encryption/SensitiveParameterTest.php",
+      "action": "create",
+      "tokens": 409,
+      "at": "2026-05-29T21:27:58.944Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+      "action": "edit",
+      "tokens": 29,
+      "at": "2026-05-29T21:28:10.858Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+      "action": "edit",
+      "tokens": 28,
+      "at": "2026-05-29T21:28:15.183Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+      "action": "edit",
+      "tokens": 23,
+      "at": "2026-05-29T21:28:18.462Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+      "action": "edit",
+      "tokens": 27,
+      "at": "2026-05-29T21:28:22.021Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Manager.php",
+      "action": "edit",
+      "tokens": 24,
+      "at": "2026-05-29T21:28:37.288Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Manager.php",
+      "action": "edit",
+      "tokens": 24,
+      "at": "2026-05-29T21:28:46.326Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Manager.php",
+      "action": "edit",
+      "tokens": 28,
+      "at": "2026-05-29T21:28:50.098Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php",
+      "action": "edit",
+      "tokens": 24,
+      "at": "2026-05-29T21:28:59.835Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php",
+      "action": "edit",
+      "tokens": 28,
+      "at": "2026-05-29T21:29:03.397Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Sanctum/PersonalAccessToken.php",
+      "action": "edit",
+      "tokens": 22,
+      "at": "2026-05-29T21:29:09.880Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php",
+      "action": "edit",
+      "tokens": 28,
+      "at": "2026-05-29T21:29:19.343Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php",
+      "action": "edit",
+      "tokens": 28,
+      "at": "2026-05-29T21:29:26.401Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Auth/Sanctum/NewAccessToken.php",
+      "action": "edit",
+      "tokens": 32,
+      "at": "2026-05-29T21:29:32.929Z"
     }
   ],
   "edit_counts": {
     "tests/Validation/ValidatorTest.php": 1,
     "src/Phare/Validation/Validator.php": 2,
     "tests/Unit/Support/HelpersHashTest.php": 1,
-    "src/Phare/Support/helpers.php": 1
+    "src/Phare/Support/helpers.php": 1,
+    "tests/Encryption/SensitiveParameterTest.php": 1,
+    "src/Phare/Encryption/Encrypter.php": 4,
+    "src/Phare/Auth/Manager.php": 3,
+    "src/Phare/Auth/Sanctum/SanctumGuard.php": 2,
+    "src/Phare/Auth/Sanctum/PersonalAccessToken.php": 1,
+    "src/Phare/Auth/Sanctum/Sanctum.php": 2,
+    "src/Phare/Auth/Sanctum/NewAccessToken.php": 1
   },
-  "anatomy_hits": 3,
+  "anatomy_hits": 9,
   "anatomy_misses": 0,
-  "repeated_reads_warned": 0,
+  "repeated_reads_warned": 5,
   "cerebrum_warnings": 0,
-  "stop_count": 1
+  "stop_count": 2
 }
