@@ -1,5 +1,6 @@
 <?php
 
+use Phalcon\Di\Di;
 use Phalcon\Di\DiInterface;
 use Phare\Container\Container;
 
@@ -63,4 +64,19 @@ it('getshared delegates to phalcon store', function () {
 it('exposes inner phalcon di accessor', function () {
     $c = new Container();
     expect($c->phalconDi())->toBeInstanceOf(DiInterface::class);
+});
+
+it('no longer extends the Phalcon Di class', function () {
+    $parent = (new ReflectionClass(Container::class))->getParentClass();
+    expect($parent === false || $parent->getName() !== Di::class)->toBeTrue();
+});
+
+it('holds a distinct inner Phalcon Di instance', function () {
+    $c = new Container();
+    expect($c->phalconDi())->not->toBe($c);
+    expect($c->phalconDi())->toBeInstanceOf(Di::class);
+});
+
+it('still satisfies ArrayAccess (load-bearing for app() helper)', function () {
+    expect(new Container())->toBeInstanceOf(ArrayAccess::class);
 });
