@@ -2,16 +2,15 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 use Pheanstalk\Pheanstalk;
 use Pheanstalk\Values\TubeName;
 
-class QueueServiceProvider implements ServiceProviderInterface
+class QueueServiceProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('queue', function () {
             $connection = config('queue.default', 'beanstalkd');
             $config = config("queue.connections.$connection");

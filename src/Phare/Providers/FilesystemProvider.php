@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phare\Filesystem\FilesystemManager;
-use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
-class FilesystemProvider implements ServiceProviderInterface
+class FilesystemProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('filesystem.manager', function ($app) {
             return new FilesystemManager($app);
         });

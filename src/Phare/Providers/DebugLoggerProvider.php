@@ -2,15 +2,14 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
-use Phare\Contracts\Foundation\Application;
 use Phare\Debug\DebugLogger;
+use Phare\Support\ServiceProvider;
 
-class DebugLoggerProvider implements ServiceProviderInterface
+class DebugLoggerProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        $app = $this->app;
         $app->singleton('debugLogger', function () use ($app) {
             return new DebugLogger($app);
         });
