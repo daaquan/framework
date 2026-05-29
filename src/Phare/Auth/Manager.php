@@ -73,7 +73,7 @@ class Manager
     /**
      * Authenticate user
      */
-    public function attempt(array $credentials = []): bool
+    public function attempt(#[\SensitiveParameter] array $credentials = []): bool
     {
         $this->dispatchEvent(new Attempting($credentials));
 
@@ -165,7 +165,7 @@ class Manager
         return $this->user()?->getAuthIdentifier();
     }
 
-    public function validate(array $credentials = []): bool
+    public function validate(#[\SensitiveParameter] array $credentials = []): bool
     {
         $this->dispatchEvent(new Attempting($credentials));
         $user = $this->retrieveUserByCredentials($credentials);
@@ -207,7 +207,7 @@ class Manager
     /**
      * Retrieve a user by credentials
      */
-    protected function retrieveUserByCredentials(array $credentials): ?User
+    protected function retrieveUserByCredentials(#[\SensitiveParameter] array $credentials): ?User
     {
         $class = $this->modelClass();
 

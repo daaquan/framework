@@ -8,7 +8,7 @@ class NewAccessToken
 
     public string $plainTextToken;
 
-    public function __construct(PersonalAccessToken $accessToken, string $plainTextToken)
+    public function __construct(PersonalAccessToken $accessToken, #[\SensitiveParameter] string $plainTextToken)
     {
         $this->accessToken = $accessToken;
         $this->plainTextToken = $plainTextToken;

@@ -31,7 +31,7 @@ class PersonalAccessToken extends Model
         return $this->morphTo();
     }
 
-    public function findToken(string $token): ?static
+    public function findToken(#[\SensitiveParameter] string $token): ?static
     {
         if (str_contains($token, '|')) {
             [$id, $token] = explode('|', $token, 2);

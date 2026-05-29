@@ -68,7 +68,7 @@ class Sanctum
         );
     }
 
-    public static function findToken(string $token): ?PersonalAccessToken
+    public static function findToken(#[\SensitiveParameter] string $token): ?PersonalAccessToken
     {
         if (strpos($token, '|') === false) {
             return static::$personalAccessTokenModel::where('token', hash('sha256', $token))->first();
@@ -83,7 +83,7 @@ class Sanctum
         return null;
     }
 
-    public static function hasValidToken(mixed $user, string $token): bool
+    public static function hasValidToken(mixed $user, #[\SensitiveParameter] string $token): bool
     {
         $accessToken = static::findToken($token);
 

@@ -861,3 +861,19 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 06:13 | Edited tests/Unit/Support/HelpersHashTest.php | modified function() | ~142 |
 | 06:13 | Edited src/Phare/Support/helpers.php | removed 9 lines | ~7 |
 | 06:14 | E-area helper leaks closed: removed dead leaky security(): mixed helper (Phalcon Security, 0 callers, non-parity); encrypter() already fixed | helpers.php, HelpersHashTest.php | TDD RED→GREEN, suite 1355→1356, phpstan helpers 52→52, pint clean | ~6k |
+| 06:14 | Session end: 5 writes across 4 files (ValidatorTest.php, Validator.php, HelpersHashTest.php, helpers.php) | 3 reads | ~8739 tok |
+| 06:27 | Created tests/Encryption/SensitiveParameterTest.php | — | ~382 |
+| 06:28 | Edited src/Phare/Encryption/Encrypter.php | inline fix | ~27 |
+| 06:28 | Edited src/Phare/Encryption/Encrypter.php | inline fix | ~26 |
+| 06:28 | Edited src/Phare/Encryption/Encrypter.php | inline fix | ~22 |
+| 06:28 | Edited src/Phare/Encryption/Encrypter.php | inline fix | ~25 |
+| 06:28 | Edited src/Phare/Auth/Manager.php | inline fix | ~22 |
+| 06:28 | Edited src/Phare/Auth/Manager.php | inline fix | ~22 |
+| 06:28 | Edited src/Phare/Auth/Manager.php | inline fix | ~27 |
+| 06:28 | Edited src/Phare/Auth/Sanctum/SanctumGuard.php | inline fix | ~22 |
+| 06:29 | Edited src/Phare/Auth/Sanctum/SanctumGuard.php | inline fix | ~27 |
+| 06:29 | Edited src/Phare/Auth/Sanctum/PersonalAccessToken.php | inline fix | ~21 |
+| 06:29 | Edited src/Phare/Auth/Sanctum/Sanctum.php | inline fix | ~26 |
+| 06:29 | Edited src/Phare/Auth/Sanctum/Sanctum.php | inline fix | ~26 |
+| 06:29 | Edited src/Phare/Auth/Sanctum/NewAccessToken.php | inline fix | ~30 |
+| 06:30 | #[\SensitiveParameter] sweep: Encrypter+Auth\Manager+Sanctum secret params (11 sites) | Encrypter.php, Manager.php, 4 Sanctum files, new SensitiveParameterTest | TDD RED→GREEN, suite 1356→1357, phpstan 55→55, pint clean | ~7k |
