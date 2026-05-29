@@ -1,8 +1,9 @@
 <?php
 
-use Phare\Events\Dispatcher;
 use Phare\Container\Container;
 use Phare\Contracts\Foundation\Application as ApplicationContract;
+use Phare\Eloquent\Concerns\HasEvents;
+use Phare\Events\Dispatcher;
 
 class EventModelTestApplication extends Container implements ApplicationContract
 {
@@ -13,7 +14,42 @@ class EventModelTestApplication extends Container implements ApplicationContract
 
     public function basePath(string $path = ''): string
     {
-        return '/tmp'.$path;
+        return '/tmp' . $path;
+    }
+
+    public function bootstrapPath(string $path = ''): string
+    {
+        return '/tmp/bootstrap' . $path;
+    }
+
+    public function configPath(string $path = ''): string
+    {
+        return '/tmp/config' . $path;
+    }
+
+    public function databasePath(string $path = ''): string
+    {
+        return '/tmp/database' . $path;
+    }
+
+    public function languagePath(string $path = ''): string
+    {
+        return '/tmp/lang' . $path;
+    }
+
+    public function resourcePath(string $path = ''): string
+    {
+        return '/tmp/resources' . $path;
+    }
+
+    public function storagePath(string $path = ''): string
+    {
+        return '/tmp/storage' . $path;
+    }
+
+    public function routesIsCached(): bool
+    {
+        return false;
     }
 
     public function environment(...$environments)
@@ -31,15 +67,12 @@ class EventModelTestApplication extends Container implements ApplicationContract
         return true;
     }
 
-    public function bootstrapWith(array $bootstrappers)
-    {
-        return null;
-    }
+    public function bootstrapWith(array $bootstrappers) {}
 }
 
 class EventedModel
 {
-    use \Phare\Eloquent\Concerns\HasEvents;
+    use HasEvents;
 
     public function triggerEvent(string $event, bool $halt = false): mixed
     {

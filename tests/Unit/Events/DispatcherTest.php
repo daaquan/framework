@@ -3,8 +3,8 @@
 use Phalcon\Di\Di;
 use Phare\Container\Container;
 use Phare\Contracts\Foundation\Application as ApplicationContract;
-use Phare\Events\Dispatcher;
 use Phare\Events\Contracts\ShouldDispatchAfterCommit;
+use Phare\Events\Dispatcher;
 use Phare\Support\Facades\Event as EventFacade;
 
 class EventTestApplication extends Container implements ApplicationContract
@@ -16,7 +16,42 @@ class EventTestApplication extends Container implements ApplicationContract
 
     public function basePath(string $path = ''): string
     {
-        return '/tmp'.$path;
+        return '/tmp' . $path;
+    }
+
+    public function bootstrapPath(string $path = ''): string
+    {
+        return '/tmp/bootstrap' . $path;
+    }
+
+    public function configPath(string $path = ''): string
+    {
+        return '/tmp/config' . $path;
+    }
+
+    public function databasePath(string $path = ''): string
+    {
+        return '/tmp/database' . $path;
+    }
+
+    public function languagePath(string $path = ''): string
+    {
+        return '/tmp/lang' . $path;
+    }
+
+    public function resourcePath(string $path = ''): string
+    {
+        return '/tmp/resources' . $path;
+    }
+
+    public function storagePath(string $path = ''): string
+    {
+        return '/tmp/storage' . $path;
+    }
+
+    public function routesIsCached(): bool
+    {
+        return false;
     }
 
     public function environment(...$environments)
@@ -34,10 +69,7 @@ class EventTestApplication extends Container implements ApplicationContract
         return true;
     }
 
-    public function bootstrapWith(array $bootstrappers)
-    {
-        return null;
-    }
+    public function bootstrapWith(array $bootstrappers) {}
 }
 
 class SampleEvent
@@ -49,7 +81,7 @@ class SampleEventListener
 {
     public function handle(SampleEvent $event): string
     {
-        return 'handled:'.$event->name;
+        return 'handled:' . $event->name;
     }
 }
 
@@ -64,7 +96,7 @@ class SampleEventSubscriber
 
     public function onSampleEvent(SampleEvent $event): string
     {
-        return 'subscriber:'.$event->name;
+        return 'subscriber:' . $event->name;
     }
 }
 
@@ -77,7 +109,7 @@ class CallbackTransactionManager
 {
     public array $callbacks = [];
 
-    public function addCallback(\Closure $callback): void
+    public function addCallback(Closure $callback): void
     {
         $this->callbacks[] = $callback;
     }
@@ -127,7 +159,7 @@ test('until returns first non null response', function () {
 
 test('wildcard listeners receive event name and payload array', function () {
     $this->dispatcher->listen('user.*', function (string $eventName, array $payload) {
-        return $eventName.'-'.$payload[0];
+        return $eventName . '-' . $payload[0];
     });
 
     $result = $this->dispatcher->dispatch('user.created', ['42']);
@@ -136,7 +168,7 @@ test('wildcard listeners receive event name and payload array', function () {
 });
 
 test('push and flush dispatch queued event payload', function () {
-    $this->dispatcher->listen('jobs.created', fn (string $name) => 'job:'.$name);
+    $this->dispatcher->listen('jobs.created', fn (string $name) => 'job:' . $name);
     $this->dispatcher->push('jobs.created', ['alpha']);
 
     $result = $this->dispatcher->flush('jobs.created');
@@ -175,7 +207,7 @@ test('it subscribes subscriber mappings', function () {
 });
 
 test('event helper dispatches through events service', function () {
-    $this->dispatcher->listen(SampleEvent::class, fn (SampleEvent $event) => 'helper:'.$event->name);
+    $this->dispatcher->listen(SampleEvent::class, fn (SampleEvent $event) => 'helper:' . $event->name);
 
     $result = event(new SampleEvent('ok'));
 
@@ -183,7 +215,7 @@ test('event helper dispatches through events service', function () {
 });
 
 test('event facade dispatches through bound dispatcher', function () {
-    $this->dispatcher->listen(SampleEvent::class, fn (SampleEvent $event) => 'facade:'.$event->name);
+    $this->dispatcher->listen(SampleEvent::class, fn (SampleEvent $event) => 'facade:' . $event->name);
 
     $result = EventFacade::dispatch(new SampleEvent('ok'));
 
@@ -192,7 +224,7 @@ test('event facade dispatches through bound dispatcher', function () {
 
 test('it infers event types from closure listener parameter', function () {
     $this->dispatcher->listen(function (SampleEvent $event) {
-        return 'closure:'.$event->name;
+        return 'closure:' . $event->name;
     });
 
     $result = $this->dispatcher->dispatch(new SampleEvent('typed'));
