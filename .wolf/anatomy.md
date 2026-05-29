@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T12:39:43.637Z
-> Files: 531 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T12:57:59.986Z
+> Files: 533 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -47,6 +47,7 @@
 
 - `broadcasting.php` — Declares of (~462 tok)
 - `environments.php` (~708 tok)
+- `hashing.php` (~542 tok)
 - `sanctum.php` (~638 tok)
 
 ## database/migrations/
@@ -539,7 +540,7 @@
 - `ArgonHasher.php` — ArgonHasher: make, check, needsRehash, info (~470 tok)
 - `BcryptHasher.php` — BcryptHasher: make, check, needsRehash, info + 1 more (~351 tok)
 - `HasherInterface.php` — Hash the given value. (~181 tok)
-- `HashManager.php` — HashManager: getDefaultDriver, setDefaultDriver, make, check + 3 more (~771 tok)
+- `HashManager.php` — Strong Argon2 cost factors applied when no config is bound. (~1215 tok)
 
 ## src/Phare/Http/
 
@@ -768,7 +769,7 @@
 
 - `MessageBag.php` — MessageBag: add, merge, has, first + 13 more (~863 tok)
 - `ValidationException.php` — ValidationException: getValidator, errors, getStatus, setStatus + 6 more (~517 tok)
-- `Validator.php` — Validator: passes, fails, errors, validated + 3 more (~2608 tok)
+- `Validator.php` — Validator: passes, fails, errors, validated + 1 more (~4010 tok)
 
 ## src/Phare/View/
 
@@ -895,7 +896,7 @@
 ## tests/Hashing/
 
 - `HasherTest.php` (~318 tok)
-- `HashManagerTest.php` — make: check, needsRehash, info + 3 more (~1496 tok)
+- `HashManagerTest.php` — make: check, needsRehash, info + 3 more (~2048 tok)
 
 ## tests/Unit/Auth/
 
@@ -911,3 +912,7 @@
 - `HelpersHashTest.php` — Declares refreshHashHelperApp (~282 tok)
 - `MacroableTest.php` — Declares each (~347 tok)
 - `ServiceProviderTest.php` — Container subclass that records boot-lifecycle callbacks for assertions. (~404 tok)
+
+## tests/Validation/
+
+- `ValidatorTest.php` — ValidatorTest: test_validator_passes_with_valid_data, test_validator_fails_with_invalid_data, test_v (~2910 tok)

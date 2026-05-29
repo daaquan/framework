@@ -751,3 +751,21 @@
 ## Session summary 2026-05-29
 Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch security/phase0-laravel13-parity, 2 commits (17e0ef5, fbfca8d). Tests 1218->1321. All TDD, phpstan 0 regression. Deferred: E01 (Container un-inherit, XL), E02 lazy deferred-resolution. Pending decision: composer php ^8.2->^8.3.
 | 21:43 | Session end: 11 writes across 10 files (MacroableTest.php, RepositoryMacroTest.php, Macroable.php, Repository.php, CommandIoTest.php) | 5 reads | ~12338 tok |
+
+## Session: 2026-05-29 21:45
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 21:50 | Edited tests/Hashing/HashManagerTest.php | added 3 condition(s) | ~615 |
+| 21:51 | Edited src/Phare/Hashing/HashManager.php | modified __construct() | ~215 |
+| 21:51 | Edited src/Phare/Hashing/HashManager.php | added 2 condition(s) | ~463 |
+| 21:52 | Created config/hashing.php | — | ~542 |
+| 21:52 | Edited src/Phare/Hashing/HashManager.php | modified __construct() | ~168 |
+| 21:40 | #6 Argon2 weak-defaults fix: factories merge strong defaults (65536/4/1, bcrypt 12) over bound config; ship config/hashing.php; fixed latent ctor global-config() bug | src/Phare/Hashing/HashManager.php, config/hashing.php, tests/Hashing/HashManagerTest.php | 1321→1325 green, phpstan 0 regression, pint clean | ~8k |
+| 21:55 | Edited tests/Validation/ValidatorTest.php | modified test_static_make_method() | ~847 |
+| 21:56 | Edited tests/Validation/ValidatorTest.php | modified test_format_rules() | ~131 |
+| 21:56 | Edited src/Phare/Validation/Validator.php | added 3 condition(s) | ~940 |
+| 21:56 | Edited src/Phare/Validation/Validator.php | expanded (+15 lines) | ~347 |
+| 21:57 | Edited src/Phare/Validation/Validator.php | modified validateAlpha() | ~1091 |
+| 22:05 | A06 Phase-2: +15 DB-free validation rules (alpha/alpha_num/alpha_dash/digits/digits_between/size/starts_with/ends_with/uuid/json/ip/ipv4/ipv6/lowercase/uppercase) + default msgs, TDD | src/Phare/Validation/Validator.php, tests/Validation/ValidatorTest.php | 1325→1326 green, phpstan 62=62 (0 regression), pint clean | ~10k |
+| 21:59 | Session end: 10 writes across 5 files (HashManagerTest.php, HashManager.php, hashing.php, ValidatorTest.php, Validator.php) | 11 reads | ~18076 tok |
