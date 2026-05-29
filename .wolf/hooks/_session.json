@@ -1,117 +1,135 @@
 {
-  "session_id": "session-2026-05-29-2125",
-  "started": "2026-05-29T12:25:41.667Z",
+  "session_id": "session-2026-05-29-2145",
+  "started": "2026-05-29T12:45:12.438Z",
   "files_read": {
-    "/opt/framework/src/Phare/Config/Repository.php": {
+    "/opt/framework/src/Phare/Hashing/ArgonHasher.php": {
       "count": 1,
-      "tokens": 2011,
-      "first_read": "2026-05-29T12:32:31.160Z"
+      "tokens": 470,
+      "first_read": "2026-05-29T12:47:57.462Z"
     },
-    "/opt/framework/src/Phare/Console/Command.php": {
+    "/opt/framework/src/Phare/Hashing/HashManager.php": {
       "count": 1,
-      "tokens": 1615,
-      "first_read": "2026-05-29T12:35:42.117Z"
+      "tokens": 771,
+      "first_read": "2026-05-29T12:47:57.708Z"
     },
-    "/opt/framework/src/Phare/Console/Output/SymfonyOutput.php": {
+    "/opt/laravel-framework/src/Illuminate/Hashing/HashManager.php": {
       "count": 1,
-      "tokens": 202,
-      "first_read": "2026-05-29T12:35:50.524Z"
+      "tokens": 0,
+      "first_read": "2026-05-29T12:48:15.248Z"
     },
-    "/opt/framework/tests/Console/AgentFriendlyTest.php": {
+    "/opt/framework/src/Phare/Hashing/Argon2idHasher.php": {
       "count": 1,
-      "tokens": 939,
-      "first_read": "2026-05-29T12:36:37.150Z"
+      "tokens": 45,
+      "first_read": "2026-05-29T12:48:27.710Z"
     },
-    "/opt/framework/src/Phare/Foundation/AbstractApplication.php": {
+    "/opt/framework/src/Phare/Hashing/Argon2iHasher.php": {
       "count": 1,
-      "tokens": 4590,
-      "first_read": "2026-05-29T12:38:33.121Z"
+      "tokens": 44,
+      "first_read": "2026-05-29T12:48:28.177Z"
+    },
+    "/opt/framework/src/Phare/Hashing/BcryptHasher.php": {
+      "count": 1,
+      "tokens": 351,
+      "first_read": "2026-05-29T12:48:28.653Z"
+    },
+    "/opt/framework/tests/Hashing/HashManagerTest.php": {
+      "count": 1,
+      "tokens": 1496,
+      "first_read": "2026-05-29T12:48:57.537Z"
+    },
+    "/opt/framework/src/Phare/Support/helpers.php": {
+      "count": 1,
+      "tokens": 6551,
+      "first_read": "2026-05-29T12:49:35.561Z"
+    },
+    "/opt/laravel-framework/config/hashing.php": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-29T12:51:49.537Z"
+    },
+    "/opt/framework/src/Phare/Validation/Validator.php": {
+      "count": 1,
+      "tokens": 2608,
+      "first_read": "2026-05-29T12:54:39.706Z"
+    },
+    "/opt/framework/tests/Validation/ValidatorTest.php": {
+      "count": 2,
+      "tokens": 0,
+      "first_read": "2026-05-29T12:55:01.545Z"
     }
   },
   "files_written": [
     {
-      "file": "/opt/framework/tests/Unit/Support/MacroableTest.php",
-      "action": "create",
-      "tokens": 372,
-      "at": "2026-05-29T12:31:49.053Z"
-    },
-    {
-      "file": "/opt/framework/tests/Unit/Config/RepositoryMacroTest.php",
-      "action": "create",
-      "tokens": 177,
-      "at": "2026-05-29T12:31:55.595Z"
-    },
-    {
-      "file": "/opt/framework/src/Phare/Support/Traits/Macroable.php",
-      "action": "create",
-      "tokens": 746,
-      "at": "2026-05-29T12:32:12.212Z"
-    },
-    {
-      "file": "/opt/framework/src/Phare/Contracts/Config/Repository.php",
-      "action": "create",
-      "tokens": 241,
-      "at": "2026-05-29T12:32:17.884Z"
-    },
-    {
-      "file": "/opt/framework/src/Phare/Config/Repository.php",
+      "file": "/opt/framework/tests/Hashing/HashManagerTest.php",
       "action": "edit",
-      "tokens": 84,
-      "at": "2026-05-29T12:32:36.375Z"
+      "tokens": 658,
+      "at": "2026-05-29T12:50:14.553Z"
     },
     {
-      "file": "/opt/framework/tests/Console/CommandIoTest.php",
+      "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+      "action": "edit",
+      "tokens": 230,
+      "at": "2026-05-29T12:51:20.445Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
+      "action": "edit",
+      "tokens": 496,
+      "at": "2026-05-29T12:51:29.976Z"
+    },
+    {
+      "file": "/opt/framework/config/hashing.php",
       "action": "create",
-      "tokens": 370,
-      "at": "2026-05-29T12:36:52.298Z"
+      "tokens": 581,
+      "at": "2026-05-29T12:52:06.155Z"
     },
     {
-      "file": "/opt/framework/src/Phare/Console/Command.php",
+      "file": "/opt/framework/src/Phare/Hashing/HashManager.php",
       "action": "edit",
-      "tokens": 284,
-      "at": "2026-05-29T12:37:04.652Z"
+      "tokens": 180,
+      "at": "2026-05-29T12:52:30.251Z"
     },
     {
-      "file": "/opt/framework/phpunit.xml.dist",
+      "file": "/opt/framework/tests/Validation/ValidatorTest.php",
       "action": "edit",
-      "tokens": 40,
-      "at": "2026-05-29T12:37:33.166Z"
+      "tokens": 907,
+      "at": "2026-05-29T12:55:44.482Z"
     },
     {
-      "file": "/opt/framework/tests/Unit/Support/ServiceProviderTest.php",
+      "file": "/opt/framework/tests/Validation/ValidatorTest.php",
       "action": "edit",
-      "tokens": 210,
-      "at": "2026-05-29T12:39:21.673Z"
+      "tokens": 141,
+      "at": "2026-05-29T12:56:04.972Z"
     },
     {
-      "file": "/opt/framework/src/Phare/Contracts/Support/DeferrableProvider.php",
-      "action": "create",
-      "tokens": 64,
-      "at": "2026-05-29T12:39:35.173Z"
-    },
-    {
-      "file": "/opt/framework/src/Phare/Support/ServiceProvider.php",
+      "file": "/opt/framework/src/Phare/Validation/Validator.php",
       "action": "edit",
-      "tokens": 393,
-      "at": "2026-05-29T12:39:43.648Z"
+      "tokens": 1007,
+      "at": "2026-05-29T12:56:37.863Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Validation/Validator.php",
+      "action": "edit",
+      "tokens": 371,
+      "at": "2026-05-29T12:56:44.852Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Validation/Validator.php",
+      "action": "edit",
+      "tokens": 1169,
+      "at": "2026-05-29T12:57:59.999Z"
     }
   ],
   "edit_counts": {
-    "tests/Unit/Support/MacroableTest.php": 1,
-    "tests/Unit/Config/RepositoryMacroTest.php": 1,
-    "src/Phare/Support/Traits/Macroable.php": 1,
-    "src/Phare/Contracts/Config/Repository.php": 1,
-    "src/Phare/Config/Repository.php": 1,
-    "tests/Console/CommandIoTest.php": 1,
-    "src/Phare/Console/Command.php": 1,
-    "phpunit.xml.dist": 1,
-    "tests/Unit/Support/ServiceProviderTest.php": 1,
-    "src/Phare/Contracts/Support/DeferrableProvider.php": 1,
-    "src/Phare/Support/ServiceProvider.php": 1
+    "tests/Hashing/HashManagerTest.php": 1,
+    "src/Phare/Hashing/HashManager.php": 3,
+    "config/hashing.php": 1,
+    "tests/Validation/ValidatorTest.php": 2,
+    "src/Phare/Validation/Validator.php": 3
   },
-  "anatomy_hits": 5,
-  "anatomy_misses": 0,
-  "repeated_reads_warned": 0,
+  "anatomy_hits": 8,
+  "anatomy_misses": 3,
+  "repeated_reads_warned": 1,
   "cerebrum_warnings": 0,
-  "stop_count": 2
+  "stop_count": 1
 }
