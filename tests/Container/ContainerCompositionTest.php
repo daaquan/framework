@@ -68,7 +68,7 @@ it('exposes inner phalcon di accessor', function () {
 
 it('no longer extends the Phalcon Di class', function () {
     $parent = (new ReflectionClass(Container::class))->getParentClass();
-    expect($parent === false || $parent->getName() !== Di::class)->toBeTrue();
+    expect($parent)->toBeFalse();
 });
 
 it('holds a distinct inner Phalcon Di instance', function () {

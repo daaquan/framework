@@ -111,11 +111,11 @@ class Container implements ArrayAccess, ContractsContainer, DiInterface, PsrCont
     ];
 
     /**
-     * Map of alias => abstract. Inherited from Phalcon\Di\Di untyped, so we cannot add a type here.
+     * Map of alias => abstract.
      *
      * @var array<string, string>
      */
-    protected $aliases = [];
+    protected array $aliases = [];
 
     protected array $bindings = [
         'concrete' => [],
