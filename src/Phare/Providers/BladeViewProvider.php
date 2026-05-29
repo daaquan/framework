@@ -2,12 +2,11 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Flash\Session as FlashSession;
 use Phalcon\Html\Escaper;
 use Phalcon\Mvc\Dispatcher;
 use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 use Phare\View\Blade;
 use Phare\View\BladeOne;
 use Phare\View\BladeView;
@@ -18,10 +17,12 @@ use Phare\View\BladeView as View;
  * @see https://tailwind-elements.com/quick-start/
  * @see https://heroicons.com/
  */
-class BladeViewProvider implements ServiceProviderInterface
+class BladeViewProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        /** @var Application $app */
+        $app = $this->app;
         $app->singleton('blade', function () use ($app) {
             $blade = new Blade(
                 $app->resourcePath('views'),

@@ -5,6 +5,7 @@ use Phare\Container\Container;
 use Phare\Contracts\Foundation\Application as ApplicationContract;
 use Phare\Contracts\Foundation\Bus\Dispatchable;
 use Phare\Contracts\Foundation\Bus\PendingDispatch;
+use Phare\Queue\DatabaseQueue;
 use Phare\Queue\Job;
 use Phare\Queue\QueueManager;
 
@@ -17,7 +18,42 @@ class DispatchableTestApplication extends Container implements ApplicationContra
 
     public function basePath(string $path = ''): string
     {
-        return '/tmp'.$path;
+        return '/tmp' . $path;
+    }
+
+    public function bootstrapPath(string $path = ''): string
+    {
+        return '/tmp/bootstrap' . $path;
+    }
+
+    public function configPath(string $path = ''): string
+    {
+        return '/tmp/config' . $path;
+    }
+
+    public function databasePath(string $path = ''): string
+    {
+        return '/tmp/database' . $path;
+    }
+
+    public function languagePath(string $path = ''): string
+    {
+        return '/tmp/lang' . $path;
+    }
+
+    public function resourcePath(string $path = ''): string
+    {
+        return '/tmp/resources' . $path;
+    }
+
+    public function storagePath(string $path = ''): string
+    {
+        return '/tmp/storage' . $path;
+    }
+
+    public function routesIsCached(): bool
+    {
+        return false;
     }
 
     public function environment(...$environments)
@@ -35,10 +71,7 @@ class DispatchableTestApplication extends Container implements ApplicationContra
         return true;
     }
 
-    public function bootstrapWith(array $bootstrappers)
-    {
-        return null;
-    }
+    public function bootstrapWith(array $bootstrappers) {}
 }
 
 class DispatchableQueueJob extends Job
@@ -82,7 +115,7 @@ test('dispatchable dispatch returns pending dispatch and enqueues on resolve', f
 
     $pending->resolve();
 
-    /** @var \Phare\Queue\DatabaseQueue $connection */
+    /** @var DatabaseQueue $connection */
     $connection = $this->queue->connection('database');
     $jobs = $connection->getJobs();
 
@@ -106,7 +139,7 @@ test('dispatchable dispatchIf and dispatchUnless honor conditions', function () 
     $dispatchIfTrue->resolve();
     $dispatchUnlessFalse->resolve();
 
-    /** @var \Phare\Queue\DatabaseQueue $connection */
+    /** @var DatabaseQueue $connection */
     $connection = $this->queue->connection('database');
     expect($connection->getJobs())->toHaveCount(2);
 });
@@ -116,4 +149,3 @@ test('dispatchable dispatchSync executes handle immediately', function () {
 
     expect($result)->toBeNull();
 });
-

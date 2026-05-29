@@ -2,19 +2,20 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Translate\InterpolatorFactory;
 use Phalcon\Translate\TranslateFactory;
 use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
-class TranslateProvider implements ServiceProviderInterface
+class TranslateProvider extends ServiceProvider
 {
     /**
      * Registers a service provider.
      */
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        /** @var Application $app */
+        $app = $this->app;
         $app->singleton('translate', function () use ($app) {
             $path = $app->languagePath($app['config']->path('app.locale', 'en'));
 

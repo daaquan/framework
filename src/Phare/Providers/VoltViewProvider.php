@@ -2,16 +2,17 @@
 
 namespace Phare\Providers;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phalcon\Mvc\View;
 use Phalcon\Mvc\View\Engine\Volt;
 use Phare\Foundation\AbstractApplication as Application;
+use Phare\Support\ServiceProvider;
 
-class VoltViewProvider implements ServiceProviderInterface
+class VoltViewProvider extends ServiceProvider
 {
-    public function register(Application|DiInterface $app): void
+    public function register(): void
     {
+        /** @var Application $app */
+        $app = $this->app;
         $app->singleton('volt', function (View $view) use ($app) {
             $volt = new Volt($view, $app);
             $volt->setOptions([

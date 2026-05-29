@@ -47,6 +47,11 @@ class SimpleApplication implements Application
         return $this->basePath('bootstrap' . ($path ? '/' . ltrim($path, '/') : ''));
     }
 
+    public function languagePath(string $path = ''): string
+    {
+        return $this->basePath('lang' . ($path ? '/' . ltrim($path, '/') : ''));
+    }
+
     public function environment(...$environments): string|bool
     {
         if ($environments === []) {
@@ -296,5 +301,30 @@ class SimpleApplication implements Application
     public function has(string $id): bool
     {
         return $this->bound($id);
+    }
+
+    public function isShared(string $abstract): bool
+    {
+        return isset($this->bindings[$abstract]) && $this->bindings[$abstract]['shared'];
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->bound($offset);
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->make($offset);
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->instance($offset, $value);
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->forgetInstance($offset);
     }
 }

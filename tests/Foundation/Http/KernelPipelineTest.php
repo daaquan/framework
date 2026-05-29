@@ -228,6 +228,41 @@ class KernelPipelineFakeApplication extends Container implements Application
         return '/tmp';
     }
 
+    public function bootstrapPath(string $path = ''): string
+    {
+        return '/tmp/bootstrap' . $path;
+    }
+
+    public function configPath(string $path = ''): string
+    {
+        return '/tmp/config' . $path;
+    }
+
+    public function databasePath(string $path = ''): string
+    {
+        return '/tmp/database' . $path;
+    }
+
+    public function languagePath(string $path = ''): string
+    {
+        return '/tmp/lang' . $path;
+    }
+
+    public function resourcePath(string $path = ''): string
+    {
+        return '/tmp/resources' . $path;
+    }
+
+    public function storagePath(string $path = ''): string
+    {
+        return '/tmp/storage' . $path;
+    }
+
+    public function routesIsCached(): bool
+    {
+        return false;
+    }
+
     public function environment(...$environments)
     {
         return 'testing';
