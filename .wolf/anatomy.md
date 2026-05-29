@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T21:13:44.017Z
-> Files: 543 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T21:29:32.917Z
+> Files: 544 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -98,7 +98,7 @@
 - `Authenticatable.php` — Interface Authenticatable (~243 tok)
 - `AuthenticationException.php` — Declares AuthenticationException (~80 tok)
 - `AuthManager.php` — Owns the configured auth guards and resolves them on demand. (~1123 tok)
-- `Manager.php` — Indicates if the logout method has been called. (~1573 tok)
+- `Manager.php` — Indicates if the logout method has been called. (~1592 tok)
 
 ## src/Phare/Auth/Events/
 
@@ -133,10 +133,10 @@
 ## src/Phare/Auth/Sanctum/
 
 - `HasApiTokens.php` — Trait: HasApiTokens (~594 tok)
-- `NewAccessToken.php` — NewAccessToken: toArray, __toString (~164 tok)
-- `PersonalAccessToken.php` — Model — table: personal_access_tokens, 5 fields, 6 casts, 1 rels (~591 tok)
-- `Sanctum.php` — Sanctum: usePersonalAccessTokenModel, personalAccessTokenModel, actingAs, createToken + 4 more (~768 tok)
-- `SanctumGuard.php` — SanctumGuard: user, validate, check, guest + 2 more (~478 tok)
+- `NewAccessToken.php` — NewAccessToken: toArray, __toString (~170 tok)
+- `PersonalAccessToken.php` — Model — table: personal_access_tokens, 5 fields, 1 rels (~597 tok)
+- `Sanctum.php` — Sanctum: usePersonalAccessTokenModel, personalAccessTokenModel, actingAs + 6 more (~780 tok)
+- `SanctumGuard.php` — SanctumGuard: user, validate, check, guest + 2 more (~490 tok)
 - `SanctumServiceProvider.php` — Service provider: SanctumServiceProvider (~238 tok)
 
 ## src/Phare/Auth/Sanctum/Middleware/
@@ -454,7 +454,7 @@
 ## src/Phare/Encryption/
 
 - `DecryptException.php` — Declares DecryptException (~26 tok)
-- `Encrypter.php` — Encrypter: encrypt, decrypt, encryptString, decryptString + 4 more (~1473 tok)
+- `Encrypter.php` — Encrypter: encrypt, decrypt, encryptString, decryptString + 3 more (~1497 tok)
 - `EncryptException.php` — Declares EncryptException (~26 tok)
 
 ## src/Phare/Events/
@@ -895,6 +895,10 @@
 - `EloquentBuilderTest.php` (~2070 tok)
 - `EventLifecycleTest.php` — EventLifecycleObserver: creating, updated (~2187 tok)
 - `MassAssignmentTest.php` — Model — 1 fields (~522 tok)
+
+## tests/Encryption/
+
+- `SensitiveParameterTest.php` — Declares paramHasSensitive (~382 tok)
 
 ## tests/Foundation/Http/
 
