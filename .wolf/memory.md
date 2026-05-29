@@ -877,3 +877,9 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 06:29 | Edited src/Phare/Auth/Sanctum/Sanctum.php | inline fix | ~26 |
 | 06:29 | Edited src/Phare/Auth/Sanctum/NewAccessToken.php | inline fix | ~30 |
 | 06:30 | #[\SensitiveParameter] sweep: Encrypter+Auth\Manager+Sanctum secret params (11 sites) | Encrypter.php, Manager.php, 4 Sanctum files, new SensitiveParameterTest | TDD RED→GREEN, suite 1356→1357, phpstan 55→55, pint clean | ~7k |
+| 06:30 | Session end: 19 writes across 11 files (ValidatorTest.php, Validator.php, HelpersHashTest.php, helpers.php, SensitiveParameterTest.php) | 9 reads | ~14546 tok |
+| 06:31 | Edited tests/Encryption/SensitiveParameterTest.php | added 1 import(s) | ~15 |
+| 06:31 | Edited tests/Encryption/SensitiveParameterTest.php | 2→4 lines | ~44 |
+| 06:31 | Edited src/Phare/Security/Csrf.php | inline fix | ~20 |
+| 06:31 | Edited src/Phare/Security/Csrf.php | inline fix | ~21 |
+| 06:32 | C05: #[\SensitiveParameter] on Csrf::verifyToken/storeToken $token | Csrf.php, SensitiveParameterTest | TDD RED→GREEN, suite 1357, phpstan 1→1, pint clean | ~3k |

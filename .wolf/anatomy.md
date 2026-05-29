@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T21:29:32.917Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T21:31:38.364Z
 > Files: 544 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
@@ -701,7 +701,7 @@
 
 ## src/Phare/Security/
 
-- `Csrf.php` — Generate a new CSRF token. (~662 tok)
+- `Csrf.php` — Generate a new CSRF token. (~674 tok)
 - `Xss.php` — Xss: clean, escape, stripTags, removeDangerousPatterns + 10 more (~1510 tok)
 
 ## src/Phare/Session/
@@ -898,7 +898,7 @@
 
 ## tests/Encryption/
 
-- `SensitiveParameterTest.php` — Declares paramHasSensitive (~382 tok)
+- `SensitiveParameterTest.php` — Declares paramHasSensitive (~413 tok)
 
 ## tests/Foundation/Http/
 

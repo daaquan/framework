@@ -46,7 +46,7 @@ class Csrf
     /**
      * Verify if the given token matches the session token.
      */
-    public function verifyToken(string $token): bool
+    public function verifyToken(#[\SensitiveParameter] string $token): bool
     {
         $sessionToken = $this->getSessionToken();
 
@@ -60,7 +60,7 @@ class Csrf
     /**
      * Store the token in the session.
      */
-    protected function storeToken(string $token): void
+    protected function storeToken(#[\SensitiveParameter] string $token): void
     {
         $session = $this->app->make('session');
         $session->set($this->sessionKey, $token);
