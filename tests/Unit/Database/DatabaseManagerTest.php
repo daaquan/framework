@@ -3,6 +3,9 @@
 use Mockery as m;
 use Phare\Container\Container;
 use Phare\Contracts\Foundation\Application;
+use Phare\Database\Events\TransactionBeginning;
+use Phare\Database\Events\TransactionCommitted;
+use Phare\Database\Events\TransactionCommitting;
 use Phare\Database\MySql\DatabaseManager;
 use Phare\Events\Dispatcher;
 
@@ -75,7 +78,42 @@ class TestDatabaseApplication extends Container implements Application
 
     public function basePath(string $path = ''): string
     {
-        return '/tmp'.$path;
+        return '/tmp' . $path;
+    }
+
+    public function bootstrapPath(string $path = ''): string
+    {
+        return '/tmp/bootstrap' . $path;
+    }
+
+    public function configPath(string $path = ''): string
+    {
+        return '/tmp/config' . $path;
+    }
+
+    public function databasePath(string $path = ''): string
+    {
+        return '/tmp/database' . $path;
+    }
+
+    public function languagePath(string $path = ''): string
+    {
+        return '/tmp/lang' . $path;
+    }
+
+    public function resourcePath(string $path = ''): string
+    {
+        return '/tmp/resources' . $path;
+    }
+
+    public function storagePath(string $path = ''): string
+    {
+        return '/tmp/storage' . $path;
+    }
+
+    public function routesIsCached(): bool
+    {
+        return false;
     }
 
     public function environment(...$environments)
@@ -93,10 +131,7 @@ class TestDatabaseApplication extends Container implements Application
         return true;
     }
 
-    public function bootstrapWith(array $bootstrappers)
-    {
-        return null;
-    }
+    public function bootstrapWith(array $bootstrappers) {}
 }
 
 afterEach(function () {
@@ -105,6 +140,7 @@ afterEach(function () {
 
 it('builds sqlite paths inside the database directory for relative names', function () {
     $app = m::mock(Application::class);
+    $app->shouldReceive('bound')->andReturn(false);
     $app->shouldReceive('databasePath')
         ->once()
         ->with('testing.sqlite')
@@ -118,6 +154,7 @@ it('builds sqlite paths inside the database directory for relative names', funct
 
 it('respects sqlite file names that already include the extension', function () {
     $app = m::mock(Application::class);
+    $app->shouldReceive('bound')->andReturn(false);
     $app->shouldReceive('databasePath')
         ->once()
         ->with('example.sqlite')
@@ -133,6 +170,7 @@ it('accepts absolute sqlite paths verbatim', function () {
     $absolutePath = '/var/tmp/custom.sqlite';
 
     $app = m::mock(Application::class);
+    $app->shouldReceive('bound')->andReturn(false);
     $app->shouldReceive('databasePath')->never();
 
     $manager = new TestableDatabaseManager($app, []);
@@ -143,6 +181,7 @@ it('accepts absolute sqlite paths verbatim', function () {
 
 it('supports in-memory sqlite databases without touching the filesystem', function () {
     $app = m::mock(Application::class);
+    $app->shouldReceive('bound')->andReturn(false);
     $app->shouldReceive('databasePath')->never();
 
     $manager = new TestableDatabaseManager($app, []);
@@ -176,13 +215,13 @@ it('dispatches database transaction lifecycle events', function () {
     $app->singleton('events', fn () => $dispatcher);
 
     $captured = [];
-    $dispatcher->listen(\Phare\Database\Events\TransactionBeginning::class, function ($event) use (&$captured) {
+    $dispatcher->listen(TransactionBeginning::class, function ($event) use (&$captured) {
         $captured[] = ['beginning', $event->connectionName];
     });
-    $dispatcher->listen(\Phare\Database\Events\TransactionCommitting::class, function ($event) use (&$captured) {
+    $dispatcher->listen(TransactionCommitting::class, function ($event) use (&$captured) {
         $captured[] = ['committing', $event->connectionName];
     });
-    $dispatcher->listen(\Phare\Database\Events\TransactionCommitted::class, function ($event) use (&$captured) {
+    $dispatcher->listen(TransactionCommitted::class, function ($event) use (&$captured) {
         $captured[] = ['committed', $event->connectionName];
     });
 
