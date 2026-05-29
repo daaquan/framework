@@ -1,5 +1,7 @@
 <?php
 
+use Phalcon\Config\Config;
+use Phare\Container\Container;
 use Phare\Hashing\HasherInterface;
 use Phare\Hashing\HashManager;
 
@@ -167,4 +169,62 @@ it('forgetDrivers() rebuilds hasher instances lazily', function () {
     $this->hashManager->forgetDrivers();
 
     expect($this->hashManager->driver('bcrypt'))->not->toBe($first);
+});
+
+it('resolves argon driver with strong defaults when no config is bound', function () {
+    if (!defined('PASSWORD_ARGON2I')) {
+        $this->markTestSkipped('Argon2i not supported on this system');
+    }
+
+    $hash = $this->hashManager->driver('argon')->make('password');
+    $options = password_get_info($hash)['options'];
+
+    expect($options['memory_cost'])->toBe(65536);
+    expect($options['time_cost'])->toBe(4);
+    expect($options['threads'])->toBe(1);
+});
+
+it('resolves argon2id driver with strong defaults when no config is bound', function () {
+    if (!defined('PASSWORD_ARGON2ID')) {
+        $this->markTestSkipped('Argon2id not supported on this system');
+    }
+
+    $hash = $this->hashManager->driver('argon2id')->make('password');
+    $options = password_get_info($hash)['options'];
+
+    expect($options['memory_cost'])->toBe(65536);
+    expect($options['time_cost'])->toBe(4);
+    expect($options['threads'])->toBe(1);
+});
+
+it('argon factory honors bound config over strong defaults', function () {
+    if (!defined('PASSWORD_ARGON2I')) {
+        $this->markTestSkipped('Argon2i not supported on this system');
+    }
+
+    $config = new Config([
+        'hashing' => ['argon' => ['memory' => 32768, 'time' => 3, 'threads' => 2]],
+    ]);
+    $container = new Container();
+    $container->instance('config', $config);
+
+    $manager = new HashManager($container);
+    $options = password_get_info($manager->driver('argon')->make('password'))['options'];
+
+    expect($options['memory_cost'])->toBe(32768);
+    expect($options['time_cost'])->toBe(3);
+    expect($options['threads'])->toBe(2);
+});
+
+it('bcrypt factory honors bound config rounds', function () {
+    $config = new Config([
+        'hashing' => ['bcrypt' => ['rounds' => 6]],
+    ]);
+    $container = new Container();
+    $container->instance('config', $config);
+
+    $manager = new HashManager($container);
+    $info = $manager->info($manager->driver('bcrypt')->make('password'));
+
+    expect($info['options']['cost'])->toBe(6);
 });
