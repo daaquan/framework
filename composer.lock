@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a2ebba522b7f49633983ecdf852bea41",
+    "content-hash": "8e33a30c58d9a7ace7d91046ba40ac69",
     "packages": [
         {
             "name": "pda/pheanstalk",
@@ -2348,8 +2348,8 @@
             "version": "2.2.x-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/ba534bfcfc2ccf798b26ca3f14b15c9fa2dad40e",
-                "reference": "ba534bfcfc2ccf798b26ca3f14b15c9fa2dad40e",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/f0b83c28119ccbadffacd96c41deed6f065edd95",
+                "reference": "f0b83c28119ccbadffacd96c41deed6f065edd95",
                 "shasum": ""
             },
             "require": {
@@ -2373,6 +2373,17 @@
             "license": [
                 "MIT"
             ],
+            "authors": [
+                {
+                    "name": "Ondřej Mirtes"
+                },
+                {
+                    "name": "Markus Staab"
+                },
+                {
+                    "name": "Vincent Langlet"
+                }
+            ],
             "description": "PHPStan - PHP Static Analysis Tool",
             "keywords": [
                 "dev",
@@ -2395,7 +2406,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-03-17T21:11:56+00:00"
+            "time": "2026-05-29T14:18:21+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -4749,7 +4760,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.2",
+        "php": "^8.3",
         "ext-curl": "*",
         "ext-json": "*",
         "ext-mbstring": "*",

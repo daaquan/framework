@@ -4,7 +4,7 @@ Phare 是基于 [Phalcon](https://phalcon.io/) C 扩展构建的轻量级 PHP �
 它用 Laravel 风格的约定封装了 Phalcon 的底层 API，提供服务容器、
 Eloquent 风格 ORM、中间件管道、控制台命令和辅助函数。
 
-**运行要求:** PHP 8.2+ · `ext-phalcon ^5.9.2`
+**运行要求:** PHP 8.3+ · `ext-phalcon ^5.9.2`
 
 ## 特性
 

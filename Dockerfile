@@ -1,6 +1,6 @@
 FROM php:8.4-cli
 
-# Suppress incompatible-pointer-types errors during Phalcon compilation for PHP 8.2+
+# Suppress incompatible-pointer-types errors during Phalcon compilation for PHP 8.3+
 ENV CFLAGS="-Wno-incompatible-pointer-types"
 
 RUN apt-get update -y && \
