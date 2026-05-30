@@ -36,6 +36,16 @@
       "count": 1,
       "tokens": 12500,
       "first_read": "2026-05-30T01:07:50.686Z"
+    },
+    "/opt/framework/composer.json": {
+      "count": 1,
+      "tokens": 662,
+      "first_read": "2026-05-30T01:17:11.086Z"
+    },
+    "/opt/framework/Dockerfile": {
+      "count": 1,
+      "tokens": 187,
+      "first_read": "2026-05-30T01:17:19.598Z"
     }
   },
   "files_written": [
@@ -146,6 +156,18 @@
       "action": "edit",
       "tokens": 44,
       "at": "2026-05-30T01:10:58.892Z"
+    },
+    {
+      "file": "/opt/framework/composer.json",
+      "action": "edit",
+      "tokens": 7,
+      "at": "2026-05-30T01:17:16.509Z"
+    },
+    {
+      "file": "/opt/framework/Dockerfile",
+      "action": "edit",
+      "tokens": 24,
+      "at": "2026-05-30T01:17:24.070Z"
     }
   ],
   "edit_counts": {
@@ -158,11 +180,13 @@
     "tests/Unit/Mail/MailableEscapingTest.php": 1,
     "src/Phare/Mail/Mailable.php": 1,
     "tests/Unit/Support/Facades/FacadeBaseTest.php": 2,
-    "src/Phare/Support/Facades/Facade.php": 5
+    "src/Phare/Support/Facades/Facade.php": 5,
+    "composer.json": 1,
+    "Dockerfile": 1
   },
-  "anatomy_hits": 7,
+  "anatomy_hits": 9,
   "anatomy_misses": 0,
   "repeated_reads_warned": 0,
   "cerebrum_warnings": 0,
-  "stop_count": 3
+  "stop_count": 4
 }
