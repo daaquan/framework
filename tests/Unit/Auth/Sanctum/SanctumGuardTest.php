@@ -1,13 +1,17 @@
 <?php
 
+use Phalcon\Http\Request;
 use Phalcon\Http\RequestInterface;
+use Phare\Auth\Sanctum\Middleware\EnsureFrontendRequestsAreStateful;
 use Phare\Auth\Sanctum\PersonalAccessToken;
 use Phare\Auth\Sanctum\SanctumGuard;
 
 class SanctumGuardTestToken extends PersonalAccessToken
 {
     public bool $expired = false;
+
     public bool $touched = false;
+
     public mixed $tokenable = null;
 
     public function isExpired(): bool
@@ -59,69 +63,33 @@ class TestableSanctumGuard extends SanctumGuard
     }
 }
 
-/**
- * Create a minimal RequestInterface stub that only needs getHeader().
- * Using an anonymous class avoids the PHP 8.4 deprecation that Mockery triggers
- * when generating a full proxy for Phalcon\Http\RequestInterface (implicitly
- * nullable parameter in ::get()).
- *
- * All method signatures match the interface exactly (no declared return types
- * where the interface omits them, no extra methods).
- */
-function makeSanctumRequest(string $authHeader): RequestInterface
+class TestableStatefulMiddleware extends EnsureFrontendRequestsAreStateful
 {
-    return new class($authHeader) implements RequestInterface {
-        public function __construct(private string $authHeader) {}
-        public function getHeader(string $header): string { return $header === 'Authorization' ? $this->authHeader : ''; }
-        public function get(?string $name = null, $filters = null, $defaultValue = null, bool $notAllowEmpty = false, bool $noRecursive = false) { return null; }
-        public function getPost(?string $name = null, $filters = null, $defaultValue = null, bool $notAllowEmpty = false, bool $noRecursive = false) { return null; }
-        public function getPut(?string $name = null, $filters = null, $defaultValue = null, bool $notAllowEmpty = false, bool $noRecursive = false) { return null; }
-        public function getQuery(?string $name = null, $filters = null, $defaultValue = null, bool $notAllowEmpty = false, bool $noRecursive = false) { return null; }
-        public function getServer(string $name): ?string { return null; }
-        public function has(string $name): bool { return false; }
-        public function hasPost(string $name): bool { return false; }
-        public function hasPut(string $name): bool { return false; }
-        public function hasQuery(string $name): bool { return false; }
-        public function hasServer(string $name): bool { return false; }
-        public function hasHeader(string $header): bool { return false; }
-        public function getHeaders(): array { return []; }
-        public function getHTTPReferer(): string { return ''; }
-        public function getAcceptableContent(): array { return []; }
-        public function getBestAccept(): string { return ''; }
-        public function getClientAddress(bool $trustForwardedHeader = false) { return false; }
-        public function getClientCharsets(): array { return []; }
-        public function getBestCharset(): string { return ''; }
-        public function getLanguages(): array { return []; }
-        public function getBestLanguage(): string { return ''; }
-        public function getBasicAuth(): ?array { return null; }
-        public function getDigestAuth(): array { return []; }
-        public function getMethod(): string { return 'GET'; }
-        public function getURI(bool $onlyPath = false): string { return '/'; }
-        public function getHttpHost(): string { return ''; }
-        public function getPort(): int { return 80; }
-        public function getScheme(): string { return 'http'; }
-        public function isAjax(): bool { return false; }
-        public function isSoap(): bool { return false; }
-        public function isGet(): bool { return false; }
-        public function isPost(): bool { return false; }
-        public function isPut(): bool { return false; }
-        public function isHead(): bool { return false; }
-        public function isDelete(): bool { return false; }
-        public function isOptions(): bool { return false; }
-        public function isPurge(): bool { return false; }
-        public function isTrace(): bool { return false; }
-        public function isConnect(): bool { return false; }
-        public function isMethod($methods, bool $strict = false): bool { return false; }
-        public function isSecure(): bool { return false; }
-        public function getRawBody(): string { return ''; }
-        public function getJsonRawBody(bool $associative = false) { return null; }
-        public function getServerAddress(): string { return ''; }
-        public function getServerName(): string { return ''; }
-        public function getContentType(): ?string { return null; }
-        public function getUserAgent(): string { return ''; }
-        public function getUploadedFiles(bool $onlySuccessful = false, bool $namedKeys = false): array { return []; }
-        public function hasFiles(): bool { return false; }
-        public function numFiles(bool $onlySuccessful = false): int { return 0; }
+    public function __construct(private array $domains) {}
+
+    public function isFromFrontend(RequestInterface $request): bool
+    {
+        return $this->fromFrontend($request);
+    }
+
+    protected function statefulDomains(): array
+    {
+        return $this->domains;
+    }
+}
+
+function makeSanctumRequest(string $authHeader = '', array $headers = []): RequestInterface
+{
+    return new class($authHeader, $headers) extends Request
+    {
+        public function __construct(private string $authHeader, private array $headers) {}
+
+        public function getHeader(string $header): string
+        {
+            return $header === 'Authorization'
+                ? $this->authHeader
+                : (string)($this->headers[$header] ?? '');
+        }
     };
 }
 
@@ -204,4 +172,18 @@ test('sanctum guard handles malformed bearer token', function () {
     $guard = new TestableSanctumGuard($request);
 
     expect($guard->user())->toBeNull();
+});
+
+test('stateful middleware ignores malformed origin headers', function () {
+    $request = makeSanctumRequest('');
+    $middleware = new TestableStatefulMiddleware(['example.com']);
+
+    expect($middleware->isFromFrontend($request))->toBeFalse();
+});
+
+test('stateful middleware matches referer and subdomains case-insensitively', function () {
+    $request = makeSanctumRequest(headers: ['referer' => 'https://API.Example.com/account']);
+    $middleware = new TestableStatefulMiddleware(['example.com']);
+
+    expect($middleware->isFromFrontend($request))->toBeTrue();
 });

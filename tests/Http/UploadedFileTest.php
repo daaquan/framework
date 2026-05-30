@@ -98,6 +98,13 @@ it('stores file with custom name', function () {
     expect($path)->toBe('uploads/custom_name.txt');
 });
 
+it('rejects path traversal storage names', function () {
+    $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK, true);
+
+    expect(fn () => $file->storeAs('uploads', '../evil.txt'))->toThrow(InvalidArgumentException::class);
+    expect(fn () => $file->move($this->tempDir, 'nested/evil.txt'))->toThrow(InvalidArgumentException::class);
+});
+
 it('stores file with generated name', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK, true);
     $path = $file->store('uploads');

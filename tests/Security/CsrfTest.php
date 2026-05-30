@@ -84,6 +84,13 @@ it('generates meta tag', function () {
     expect($metaTag)->toBe('<meta name="csrf-token" content="' . $token . '">');
 });
 
+it('escapes token output for HTML attributes', function () {
+    $this->app->make('session')->set('_csrf_token', '" onclick="alert(1)');
+
+    expect($this->csrf->field())->toBe('<input type="hidden" name="_token" value="&quot; onclick=&quot;alert(1)">');
+    expect($this->csrf->metaTag())->toBe('<meta name="csrf-token" content="&quot; onclick=&quot;alert(1)">');
+});
+
 it('uses hash_equals for timing attack protection', function () {
     $token = $this->csrf->generateToken();
 

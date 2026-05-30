@@ -19,22 +19,44 @@ class EnsureFrontendRequestsAreStateful implements Middleware
 
     protected function fromFrontend(RequestInterface $request): bool
     {
-        $domain = parse_url($request->getHeader('referer'), PHP_URL_HOST) ??
-                  parse_url($request->getHeader('origin'), PHP_URL_HOST);
+        $domain = $this->hostFromHeader($request->getHeader('referer'))
+            ?? $this->hostFromHeader($request->getHeader('origin'));
 
-        if (is_null($domain)) {
+        if ($domain === null) {
             return false;
         }
 
-        $statefulDomains = config('sanctum.stateful', []);
+        $statefulDomains = $this->statefulDomains();
 
         foreach ($statefulDomains as $statefulDomain) {
+            $statefulDomain = strtolower(trim((string)$statefulDomain));
+
+            if ($statefulDomain === '') {
+                continue;
+            }
+
             if ($domain === $statefulDomain || str_ends_with($domain, '.' . $statefulDomain)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    protected function hostFromHeader(string $header): ?string
+    {
+        if ($header === '') {
+            return null;
+        }
+
+        $host = parse_url($header, PHP_URL_HOST);
+
+        return is_string($host) && $host !== '' ? strtolower($host) : null;
+    }
+
+    protected function statefulDomains(): array
+    {
+        return config('sanctum.stateful', []);
     }
 
     protected function configureSecureCookieSession(): void
