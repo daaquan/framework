@@ -76,3 +76,13 @@
 
 - **2026-05-29 — Phase 0 security fixes (audit-summary §8) done via TDD.** Completed all 6: C07 (hash reset tokens — added `TokenRepositoryInterface`/`DatabaseTokenRepository`/`CanResetPassword`), C02 (logout removes auth key only), C03 (bcrypt 10→12 + `#[\SensitiveParameter]`), E02 (ServiceProvider `$app` → container contract, no Phalcon), E06 (`bcrypt()`→`app('hash')`, removed dead lying `hash()` helper), C04 (`encrypter` slot → Phare `Encrypter`, helpers rewired). Suite 1218→1289 green. **Each change measured phpstan baseline before/after = zero regression** (project has many pre-existing level-8 errors; not a clean gate, so compare counts, don't expect 0). One audit claim was a false positive (regenerateId — see Key Learnings).
 - **2026-05-29 — Reset-token broker got a repository seam instead of inline PDO.** Why: no sqlite/DB in this env, so DB-coupled code is untestable; the `TokenRepositoryInterface` lets the broker be unit-tested with an in-memory fake while `DatabaseTokenRepository` keeps the real PDO path. Matches Laravel's `DatabaseTokenRepository` layering. PasswordBroker had no callers (orphaned), so signature change was safe.
+
+## Key Learnings (appended 2026-05-31)
+- Canonical view stack = `Phare\View\ViewServiceProvider` (binds `view` -> `Factory`, has `make()`). `Phare\Providers\BladeViewProvider` is LEGACY (binds `BladeView`, no `make()`). Apps must register the canonical one in `config/app.php` providers.
+- `view()` helper calls `app('view')->make()` — only Factory has it. Controllers return a `Phare\View\View`; it reaches HTTP output only via the `dispatch:afterExecuteRoute` bridge in ViewServiceProvider (Phalcon `useImplicitView(false)` only emits a returned ResponseInterface OR string).
+- BladeOne is DOT-native: `getTemplateFile()` treats a name containing `/` as a literal path with NO `.blade.php` appended. Factory normalizes dots->slashes, so `BladeEngine` must convert slashes back to dots or nested views (`auth.login`) 404.
+- `flashSession`/`escaper` are NOT Phalcon defaults — they were registered by BladeViewProvider; the canonical provider must register them too. Resolving `flashSession` pulls in the session manager, absent in bare containers — share `$flash` inside try/catch.
+
+## Do-Not-Repeat (2026-05-31)
+- After swapping providers, ALWAYS purge `bootstrap/cache/config.php`. A `git stash` of `config/app.php` during a test run regenerated the cache with the OLD provider list and produced phantom 500s (`BladeView::make()`) long after the source was restored. Wasted several restart cycles.
+- pdo_sqlite is NOT installed on this box (only pgsql). App Pest suite has 3 pre-existing AuthTest failures from "could not find driver" — NOT caused by view changes.

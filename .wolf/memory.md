@@ -962,3 +962,5 @@ SHIPPED main e15f896 (from 5403303). Suite 1326→1376 (+50 tests), phpstan 0-re
 - #4: composer php ^8.2→^8.3.
 Bugs logged: bug-050 (BladeOne compiled-dir teardown), bug-051 (Faker\Factory import collision), bug-052 (Mailable XSS).
 NEXT: D-area method-name lies (BroadcastManager queue()=sync/sendNow()=alias, Mailer send()=fake) OR D06 Scheduler counter stub OR #5 audit-ref 13.2.0→13.7.0. B01 still sqlite-gated (XL).
+| 10:20 | Session end: 20 writes across 12 files (ViewHelperTest.php, helpers.php, ViewServiceProvider.php, ViewServiceProviderWiringTest.php, VoltViewProvider.php) | 9 reads | ~27561 tok |
+| 00:29 | Fix A07 half-migration breaking app views (phpfan.net): bind ViewServiceProvider, port flash/daisyui/escaper, add View->response bridge, BladeEngine slash->dot for nested views | ViewServiceProvider.php, Engines/BladeEngine.php, ViewServiceProviderWiringTest.php | 92 view tests pass, all routes 200/302 | ~38k |

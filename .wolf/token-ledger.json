@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 1526197,
-    "total_reads": 625,
-    "total_writes": 518,
+    "total_tokens_estimated": 1553758,
+    "total_reads": 634,
+    "total_writes": 538,
     "total_sessions": 116,
-    "anatomy_hits": 476,
+    "anatomy_hits": 485,
     "anatomy_misses": 149,
     "repeated_reads_blocked": 231,
-    "estimated_savings_vs_bare_cli": 2288703
+    "estimated_savings_vs_bare_cli": 2290503
   },
   "sessions": [
     {
@@ -7030,6 +7030,177 @@
       "id": "session-2026-05-30-0945",
       "started": "2026-05-30T00:45:22.500Z",
       "ended": "2026-05-30T01:18:33.366Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6517,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/ViewServiceProvider.php",
+          "tokens_estimated": 648,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/VoltViewProvider.php",
+          "tokens_estimated": 772,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/BladeViewProvider.php",
+          "tokens_estimated": 877,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Mail/Mailable.php",
+          "tokens_estimated": 1420,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+          "tokens_estimated": 576,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Container/Container.php",
+          "tokens_estimated": 12500,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/composer.json",
+          "tokens_estimated": 662,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/Dockerfile",
+          "tokens_estimated": 187,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewHelperTest.php",
+          "tokens_estimated": 345,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 146,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 13,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/ViewServiceProvider.php",
+          "tokens_estimated": 32,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 0,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 34,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewServiceProviderWiringTest.php",
+          "tokens_estimated": 203,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/VoltViewProvider.php",
+          "tokens_estimated": 146,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/BladeViewProvider.php",
+          "tokens_estimated": 168,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Mail/MailableEscapingTest.php",
+          "tokens_estimated": 368,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Mail/Mailable.php",
+          "tokens_estimated": 215,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/Facades/FacadeBaseTest.php",
+          "tokens_estimated": 660,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+          "tokens_estimated": 56,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+          "tokens_estimated": 580,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/Facades/FacadeBaseTest.php",
+          "tokens_estimated": 245,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+          "tokens_estimated": 36,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+          "tokens_estimated": 44,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/composer.json",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/Dockerfile",
+          "tokens_estimated": 24,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 24159,
+        "output_tokens_estimated": 3402,
+        "reads_count": 9,
+        "writes_count": 20,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 9
+      }
+    },
+    {
+      "id": "session-2026-05-30-0945",
+      "started": "2026-05-30T00:45:22.500Z",
+      "ended": "2026-05-30T01:20:09.486Z",
       "reads": [
         {
           "file": "/opt/framework/src/Phare/Support/helpers.php",
