@@ -929,3 +929,7 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 10:00 | Edited src/Phare/Providers/VoltViewProvider.php | expanded (+9 lines) | ~136 |
 | 10:00 | Edited src/Phare/Providers/BladeViewProvider.php | expanded (+8 lines) | ~157 |
 | 10:01 | A07 last leak: deleted redundant Providers\ViewProvider (dead bare Phalcon View bind); docblocked VoltViewProvider+BladeViewProvider as legacy/opt-in; D08 fully closed | ViewProvider.php (del), VoltViewProvider.php, BladeViewProvider.php, wiring test | suite 1366→1367, phpstan 11→11, pint clean | ~6k |
+| 10:02 | Session end: 9 writes across 6 files (ViewHelperTest.php, helpers.php, ViewServiceProvider.php, ViewServiceProviderWiringTest.php, VoltViewProvider.php) | 4 reads | ~9901 tok |
+| 10:04 | Created tests/Unit/Mail/MailableEscapingTest.php | — | ~343 |
+| 10:04 | Edited src/Phare/Mail/Mailable.php | modified renderView() | ~200 |
+| 10:05 | D05 CRITICAL: Mailable::renderView XSS fixed — {{ }} now HTML-escaped, {!! !!} raw opt-in (was raw str_replace, XSS every mail body) | Mailable.php, new MailableEscapingTest | TDD RED→GREEN, suite 1367→1371, phpstan 19→19, pint clean, bug-052 | ~7k |
