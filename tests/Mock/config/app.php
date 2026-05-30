@@ -25,6 +25,7 @@ use Phare\Support\Facades\Log;
 use Phare\Support\Facades\Request;
 use Phare\Support\Facades\Response;
 use Phare\Support\Facades\Security;
+use Phare\View\ViewServiceProvider;
 
 return [
 
@@ -187,6 +188,7 @@ return [
         RouteServiceProvider::class,
         RequestProvider::class,
         ResponseProvider::class,
+        ViewServiceProvider::class,
         EventServiceProvider::class,
         SessionProvider::class,
         AuthServiceProvider::class,

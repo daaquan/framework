@@ -9,7 +9,17 @@ class ViewServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton('view', function ($app) {
-            $factory = new Factory($app);
+            $views = $app->bound('__views_path')
+                ? $app->make('__views_path')
+                : $app->resourcePath('views');
+            $storage = $app->bound('__storage_path')
+                ? $app->make('__storage_path')
+                : $app->storagePath('framework/views');
+
+            $blade = new Blade($views, $storage, Blade::MODE_DEBUG);
+            $engine = new Engines\BladeEngine($blade);
+
+            $factory = new Factory($app, $engine);
 
             // Register common view extensions
             $factory->addExtension('.blade.php', 'blade');
