@@ -6,7 +6,17 @@ use Phalcon\Mvc\View;
 use Phalcon\Mvc\View\Engine\Volt;
 use Phare\Foundation\AbstractApplication as Application;
 use Phare\Support\ServiceProvider;
+use Phare\View\ViewServiceProvider;
 
+/**
+ * Legacy/opt-in Volt view stack (Phalcon Volt template engine).
+ *
+ * Rebinds the 'view' slot to a Phalcon\Mvc\View driven by Volt. NOT a default —
+ * the canonical functional view stack is {@see ViewServiceProvider}
+ * (Factory + Contracts\View\Engine/BladeEngine). Register only when an app
+ * explicitly wants Volt instead of Blade; do not co-register with the canonical
+ * provider (both claim 'view').
+ */
 class VoltViewProvider extends ServiceProvider
 {
     public function register(): void

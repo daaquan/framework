@@ -924,3 +924,8 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 09:48 | Edited src/Phare/Support/helpers.php | — | ~0 |
 | 09:48 | Edited src/Phare/Support/helpers.php | inline fix | ~32 |
 | 09:49 | A07 follow-up: global view() helper rewired to canonical Factory stack (was Blade/Stack-2-coupled, broken under canonical); removed dead dup in ViewServiceProvider | helpers.php, ViewServiceProvider.php, new ViewHelperTest | suite 1364→1366, phpstan 56→51, pint clean, bug-051 | ~8k |
+| 09:49 | Session end: 6 writes across 3 files (ViewHelperTest.php, helpers.php, ViewServiceProvider.php) | 2 reads | ~7735 tok |
+| 10:00 | Edited tests/Unit/View/ViewServiceProviderWiringTest.php | modified it() | ~189 |
+| 10:00 | Edited src/Phare/Providers/VoltViewProvider.php | expanded (+9 lines) | ~136 |
+| 10:00 | Edited src/Phare/Providers/BladeViewProvider.php | expanded (+8 lines) | ~157 |
+| 10:01 | A07 last leak: deleted redundant Providers\ViewProvider (dead bare Phalcon View bind); docblocked VoltViewProvider+BladeViewProvider as legacy/opt-in; D08 fully closed | ViewProvider.php (del), VoltViewProvider.php, BladeViewProvider.php, wiring test | suite 1366→1367, phpstan 11→11, pint clean | ~6k |

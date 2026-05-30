@@ -1,6 +1,7 @@
 <?php
 
 use Phare\Container\Container;
+use Phare\Providers\ViewProvider;
 use Phare\View\Factory;
 use Phare\View\ViewServiceProvider;
 
@@ -32,4 +33,11 @@ it('binds a functional Factory to the view slot', function () {
     $factory = $this->app->make('view');
     expect($factory)->toBeInstanceOf(Factory::class);
     expect($factory->make('greet', ['who' => 'Sam'])->render())->toBe('Hi Sam');
+});
+
+it('drops the redundant bare-Phalcon ViewProvider (A07 leak)', function () {
+    // The canonical view provider is Phare\View\ViewServiceProvider. The old
+    // Phare\Providers\ViewProvider only did singleton('view', Phalcon\Mvc\View::class)
+    // with no engine wiring — a dead Phalcon-typed competitor for the 'view' slot.
+    expect(class_exists(ViewProvider::class))->toBeFalse();
 });

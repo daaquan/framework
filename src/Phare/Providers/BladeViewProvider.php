@@ -11,8 +11,17 @@ use Phare\View\Blade;
 use Phare\View\BladeOne;
 use Phare\View\BladeView;
 use Phare\View\BladeView as View;
+use Phare\View\ViewServiceProvider;
 
 /**
+ * Legacy/opt-in Blade view stack (Phalcon\Mvc dispatch-event rendering).
+ *
+ * Rebinds the 'view' slot to a BladeView (extends Phalcon\Mvc\View) and renders
+ * via a dispatch:afterExecuteRoute event. Superseded by the canonical
+ * {@see ViewServiceProvider} (Factory + Contracts\View\Engine/
+ * BladeEngine), which renders BladeOne without the Phalcon\Mvc\View coupling.
+ * Do not co-register with the canonical provider (both claim 'view').
+ *
  * @see https://daisyui.com/components/
  * @see https://tailwind-elements.com/quick-start/
  * @see https://heroicons.com/
