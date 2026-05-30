@@ -933,3 +933,12 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 10:04 | Created tests/Unit/Mail/MailableEscapingTest.php | — | ~343 |
 | 10:04 | Edited src/Phare/Mail/Mailable.php | modified renderView() | ~200 |
 | 10:05 | D05 CRITICAL: Mailable::renderView XSS fixed — {{ }} now HTML-escaped, {!! !!} raw opt-in (was raw str_replace, XSS every mail body) | Mailable.php, new MailableEscapingTest | TDD RED→GREEN, suite 1367→1371, phpstan 19→19, pint clean, bug-052 | ~7k |
+| 10:05 | Session end: 11 writes across 8 files (ViewHelperTest.php, helpers.php, ViewServiceProvider.php, ViewServiceProviderWiringTest.php, VoltViewProvider.php) | 5 reads | ~11904 tok |
+| 10:08 | Created tests/Unit/Support/Facades/FacadeBaseTest.php | — | ~616 |
+| 10:08 | Edited src/Phare/Support/Facades/Facade.php | expanded (+7 lines) | ~53 |
+| 10:08 | Edited src/Phare/Support/Facades/Facade.php | added 4 condition(s) | ~541 |
+| 10:08 | Edited src/Phare/Support/Facades/Facade.php | modified if() | ~75 |
+| 10:09 | Edited tests/Unit/Support/Facades/FacadeBaseTest.php | modified ping() | ~229 |
+| 10:10 | Edited src/Phare/Support/Facades/Facade.php | 6→6 lines | ~34 |
+| 10:10 | Edited src/Phare/Support/Facades/Facade.php | modified if() | ~42 |
+| 10:12 | Facade base expanded: swap/clearResolvedInstance(s)/resolved + swap-cache; fixed mis-typed $app docblock | Facade.php, new FacadeBaseTest | TDD RED→GREEN, suite 1371→1376, phpstan 5→4, pint clean | ~9k |
