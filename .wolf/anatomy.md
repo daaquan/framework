@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T00:48:29.773Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T01:00:57.308Z
 > Files: 555 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
@@ -628,7 +628,7 @@
 ## src/Phare/Providers/
 
 - `AuthServiceProvider.php` — AuthServiceProvider: register (~161 tok)
-- `BladeViewProvider.php` — BladeViewProvider: register (~877 tok)
+- `BladeViewProvider.php` — Legacy/opt-in Blade view stack (Phalcon\Mvc dispatch-event rendering). (~999 tok)
 - `CacheProvider.php` — CacheProvider: register (~141 tok)
 - `ChronosProvider.php` — ChronosProvider: register (~204 tok)
 - `ConfigProvider.php` — ConfigProvider: register (~73 tok)
@@ -653,7 +653,7 @@
 - `SqidsProvider.php` — SqidsProvider: register (~108 tok)
 - `TranslateProvider.php` — Registers a service provider. (~401 tok)
 - `ViewProvider.php` — ViewProvider: register (~77 tok)
-- `VoltViewProvider.php` — VoltViewProvider: register (~772 tok)
+- `VoltViewProvider.php` — Legacy/opt-in Volt view stack (Phalcon Volt template engine). (~886 tok)
 
 ## src/Phare/Queue/
 
@@ -966,7 +966,7 @@
 
 - `EngineContractTest.php` (~108 tok)
 - `ViewHelperTest.php` — Declares refreshViewHelperApp (~322 tok)
-- `ViewServiceProviderWiringTest.php` (~363 tok)
+- `ViewServiceProviderWiringTest.php` (~472 tok)
 - `ViewTest.php` — implements: render (~1842 tok)
 
 ## tests/Unit/View/Engines/
