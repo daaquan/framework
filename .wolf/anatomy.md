@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T01:04:35.907Z
-> Files: 556 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T01:10:58.878Z
+> Files: 557 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -743,7 +743,7 @@
 - `DB.php` — DB: getFacadeAccessor (~561 tok)
 - `DebugLogger.php` — DebugLogger: getFacadeAccessor (~208 tok)
 - `Event.php` — Event: Event (~359 tok)
-- `Facade.php` — The application instance being facaded. (~576 tok)
+- `Facade.php` — The application instance being facaded. (~1063 tok)
 - `Log.php` — Log: getFacadeAccessor (~204 tok)
 - `Request.php` — Request: getFacadeAccessor (~735 tok)
 - `Response.php` — Response: getFacadeAccessor (~177 tok)
@@ -962,6 +962,10 @@
 - `HelpersHashTest.php` — Declares refreshHashHelperApp (~401 tok)
 - `MacroableTest.php` — Declares each (~347 tok)
 - `ServiceProviderTest.php` — Container subclass that records boot-lifecycle callbacks for assertions. (~404 tok)
+
+## tests/Unit/Support/Facades/
+
+- `FacadeBaseTest.php` — FooService: ping, ping, ping, ping (~670 tok)
 
 ## tests/Unit/View/
 
