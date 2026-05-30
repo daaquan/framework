@@ -235,12 +235,21 @@ abstract class Mailable
 
     protected function renderView(string $view): string
     {
-        // Simple template rendering - in a full implementation this would
-        // integrate with the view system
+        // Simple template rendering. Mirrors Blade escaping semantics:
+        //   {{ $var }}   → HTML-escaped (XSS-safe default)
+        //   {!! $var !!} → raw, unescaped (explicit developer opt-in)
         $content = $view;
 
         foreach ($this->data as $key => $value) {
-            $content = str_replace('{{ $' . $key . ' }}', (string)$value, $content);
+            $raw = (string)$value;
+
+            // Raw first so an escaped value can never form a {!! !!} marker.
+            $content = str_replace('{!! $' . $key . ' !!}', $raw, $content);
+            $content = str_replace(
+                '{{ $' . $key . ' }}',
+                htmlspecialchars($raw, ENT_QUOTES, 'UTF-8'),
+                $content
+            );
         }
 
         return $content;

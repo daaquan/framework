@@ -51,6 +51,8 @@
 
 - **A07 D08 dual-stack RESOLVED 2026-05-30 (functional canonical):** `Phare\View\View::render()` was a debug-string stub (`"View: {name} with data: {json}"`). Now delegates to new `Phare\Contracts\View\Engine` (`render(view,data): string`), adapter `Phare\View\Engines\BladeEngine` wraps `Blade`(BladeOne `run()`). `Factory` ctor gains `?Engine`, injects into every `View` it makes. `ViewServiceProvider::register()` builds Blade from `resourcePath('views')`/`storagePath('framework/views')` (test seams `__views_path`/`__storage_path`), wraps in BladeEngine, passes to Factory; registered in `tests/Mock/config/app.php`. `View::render()` throws `RuntimeException('No view engine bound.')` when no engine. **TemplateEngine::include* call View::render()** → those 4 tests needed a fake echo-engine injected. Suite 1357→1364. **STILL out of scope (NOT done):** ~30 missing Blade directives, `<x-component>` tag compiler, multi-engine EngineResolver, Volt consolidation, AND the global `view()` helper (helpers.php:215 returns `Blade`, Stack-2-coupled) + competing `'view'` rebinds in BladeViewProvider/VoltViewProvider/ViewProvider remain. Design+plan: docs/superpowers/{specs/2026-05-30-a07-view-dual-stack-design.md, plans/2026-05-30-a07-view-dual-stack.md}.
 
+- **D05 Mailable XSS FIXED 2026-05-30 (CRITICAL):** `Mailable::renderView` interpolated `{{ $var }}` via raw `str_replace` with no escaping → XSS in every mail body. Now `{{ }}`=htmlspecialchars(ENT_QUOTES,UTF-8) escaped, `{!! !!}`=raw opt-in (replaced first). Blade semantics. See [[buglog bug-052]]. Other Area-D stubs remain (fake drivers, etc.).
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->

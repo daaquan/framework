@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T01:00:57.308Z
-> Files: 555 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T01:04:35.907Z
+> Files: 556 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -576,7 +576,7 @@
 ## src/Phare/Mail/
 
 - `HtmlMailable.php` — Mail: HtmlMailable (~152 tok)
-- `Mailable.php` — Mail: Mailable (~1420 tok)
+- `Mailable.php` — Mailable: to, cc, bcc, replyTo + 22 more (~1518 tok)
 - `Mailer.php` — Mailer: send, raw, html, getConfig + 2 more (~600 tok)
 - `MailException.php` — Declares MailException (~20 tok)
 - `MailManager.php` — MailManager: mailer, getDefaultMailer, __call (~655 tok)
@@ -949,6 +949,7 @@
 
 ## tests/Unit/Mail/
 
+- `MailableEscapingTest.php` — EscapingTestMailable: build (~343 tok)
 - `MailServiceProviderTest.php` (~664 tok)
 
 ## tests/Unit/Queue/
