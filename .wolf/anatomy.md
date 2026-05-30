@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T00:28:28.834Z
-> Files: 545 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T00:31:31.587Z
+> Files: 546 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -82,6 +82,7 @@
 - `2026-05-11-phase5-finalize.md` — Phase 5 Finalize: Log channel-stack + Manager base extraction (~9051 tok)
 - `2026-05-11-phase6-container-edges.md` — Phase 6 Implementation Plan: Laravel 13 Container Edge Behaviors (~5586 tok)
 - `2026-05-29-e01-container-composition.md` — E01 design+plan: drop `Container extends Phalcon\Di\Di` via composition seam (inner Di + implements DiInterface by delegation); E01b/provider-migration scoped out (~4200 tok)
+- `2026-05-30-a07-view-dual-stack.md` — A07 View Dual-Stack Resolution — Implementation Plan (~4821 tok)
 
 ## docs/superpowers/specs/
 
