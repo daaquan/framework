@@ -1,6 +1,7 @@
 <?php
 
 use Phare\Container\Container;
+use Phare\Contracts\View\Engine;
 use Phare\View\Factory;
 use Phare\View\View;
 
@@ -241,4 +242,19 @@ test('factory composer can access container through view', function () {
     $view = $this->factory->make('test.view');
 
     expect($view->get('from_service'))->toBe('service_data');
+});
+
+test('factory injects its engine into the views it makes', function () {
+    $engine = new class() implements Engine
+    {
+        public function render(string $view, array $data = []): string
+        {
+            return "E:{$view}";
+        }
+    };
+
+    $factory = new Factory(new Container(), $engine);
+    $view = $factory->make('dashboard', ['x' => 1]);
+
+    expect($view->render())->toBe('E:dashboard');
 });
