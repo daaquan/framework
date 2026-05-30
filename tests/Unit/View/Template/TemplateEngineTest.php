@@ -1,9 +1,24 @@
 <?php
 
 use Phare\Container\Container;
+use Phare\Contracts\View\Engine;
 use Phare\View\Factory;
 use Phare\View\Template\TemplateEngine;
 use Phare\View\View;
+
+/**
+ * Echo engine: returns the view name so include* assertions can match it.
+ */
+function templateEngineEcho(): Engine
+{
+    return new class() implements Engine
+    {
+        public function render(string $view, array $data = []): string
+        {
+            return "rendered:{$view}:" . json_encode($data);
+        }
+    };
+}
 
 beforeEach(function () {
     $this->container = new Container();
@@ -156,7 +171,7 @@ test('template engine handles include method', function () {
         public function __construct($container)
         {
             parent::__construct($container);
-            $this->mockView = new View($container);
+            $this->mockView = new View($container, templateEngineEcho());
             $this->mockView->setView('partial');
         }
 
@@ -193,7 +208,7 @@ test('template engine includeFirst returns first existing view', function () {
 
         public function make(string $view, array $data = [], array $mergeData = []): View
         {
-            $mockView = new View($this->container);
+            $mockView = new View($this->container, templateEngineEcho());
             $mockView->setView($view);
 
             return $mockView;
@@ -213,7 +228,7 @@ test('template engine includeUnless includes when condition is false', function 
     {
         public function make(string $view, array $data = [], array $mergeData = []): View
         {
-            $mockView = new View($this->container);
+            $mockView = new View($this->container, templateEngineEcho());
             $mockView->setView($view);
 
             return $mockView;
@@ -235,7 +250,7 @@ test('template engine includeWhen includes when condition is true', function () 
     {
         public function make(string $view, array $data = [], array $mergeData = []): View
         {
-            $mockView = new View($this->container);
+            $mockView = new View($this->container, templateEngineEcho());
             $mockView->setView($view);
 
             return $mockView;
