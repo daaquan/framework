@@ -1,12 +1,95 @@
 {
   "session_id": "session-2026-05-30-0945",
   "started": "2026-05-30T00:45:22.500Z",
-  "files_read": {},
-  "files_written": [],
-  "edit_counts": {},
-  "anatomy_hits": 0,
+  "files_read": {
+    "/opt/framework/src/Phare/Support/helpers.php": {
+      "count": 1,
+      "tokens": 6517,
+      "first_read": "2026-05-30T00:47:49.918Z"
+    },
+    "/opt/framework/src/Phare/View/ViewServiceProvider.php": {
+      "count": 1,
+      "tokens": 648,
+      "first_read": "2026-05-30T00:48:03.035Z"
+    },
+    "/opt/framework/src/Phare/Providers/VoltViewProvider.php": {
+      "count": 1,
+      "tokens": 772,
+      "first_read": "2026-05-30T01:00:40.001Z"
+    },
+    "/opt/framework/src/Phare/Providers/BladeViewProvider.php": {
+      "count": 1,
+      "tokens": 877,
+      "first_read": "2026-05-30T01:00:50.345Z"
+    }
+  },
+  "files_written": [
+    {
+      "file": "/opt/framework/tests/Unit/View/ViewHelperTest.php",
+      "action": "create",
+      "tokens": 345,
+      "at": "2026-05-30T00:47:29.278Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/helpers.php",
+      "action": "edit",
+      "tokens": 146,
+      "at": "2026-05-30T00:47:56.026Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/helpers.php",
+      "action": "edit",
+      "tokens": 13,
+      "at": "2026-05-30T00:47:59.524Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/View/ViewServiceProvider.php",
+      "action": "edit",
+      "tokens": 32,
+      "at": "2026-05-30T00:48:09.041Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/helpers.php",
+      "action": "edit",
+      "tokens": 0,
+      "at": "2026-05-30T00:48:25.197Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/helpers.php",
+      "action": "edit",
+      "tokens": 34,
+      "at": "2026-05-30T00:48:29.784Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/View/ViewServiceProviderWiringTest.php",
+      "action": "edit",
+      "tokens": 203,
+      "at": "2026-05-30T01:00:17.103Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/VoltViewProvider.php",
+      "action": "edit",
+      "tokens": 146,
+      "at": "2026-05-30T01:00:46.133Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Providers/BladeViewProvider.php",
+      "action": "edit",
+      "tokens": 168,
+      "at": "2026-05-30T01:00:57.320Z"
+    }
+  ],
+  "edit_counts": {
+    "tests/Unit/View/ViewHelperTest.php": 1,
+    "src/Phare/Support/helpers.php": 4,
+    "src/Phare/View/ViewServiceProvider.php": 1,
+    "tests/Unit/View/ViewServiceProviderWiringTest.php": 1,
+    "src/Phare/Providers/VoltViewProvider.php": 1,
+    "src/Phare/Providers/BladeViewProvider.php": 1
+  },
+  "anatomy_hits": 4,
   "anatomy_misses": 0,
   "repeated_reads_warned": 0,
   "cerebrum_warnings": 0,
-  "stop_count": 0
+  "stop_count": 1
 }
