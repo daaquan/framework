@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T00:39:28.718Z
-> Files: 554 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T00:48:29.773Z
+> Files: 555 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -728,7 +728,7 @@
 - `Chronos.php` — Chronos: parse, now, copy, diffForHumans + 1 more (~848 tok)
 - `DataTransferObject.php` — DataTransferObject: fill, toArray, only, except + 1 more (~538 tok)
 - `Env.php` — Indicates if the putenv function is enabled. (~365 tok)
-- `helpers.php` — array_any: config, config_set_path, env + 38 more (~6517 tok)
+- `helpers.php` — Get the view factory, or build a renderable view (canonical Factory stack). (~6588 tok)
 - `HigherOrderTapProxy.php` — The target being tapped. (~175 tok)
 - `Manager.php` — Laravel-parity abstract manager for multi-driver services. (~1123 tok)
 - `ServiceProvider.php` — Get the services provided by the provider (used by deferred providers). (~428 tok)
@@ -789,7 +789,7 @@
 - `MessageLocker.php` — Class MessageLocker (~4454 tok)
 - `View.php` — Add a piece of data to the view. (~790 tok)
 - `ViewComposer.php` — Bind data to the view. (~134 tok)
-- `ViewServiceProvider.php` — Register view composers. (~648 tok)
+- `ViewServiceProvider.php` — Register view composers. (~537 tok)
 
 ## src/Phare/View/Concerns/
 
@@ -965,6 +965,7 @@
 ## tests/Unit/View/
 
 - `EngineContractTest.php` (~108 tok)
+- `ViewHelperTest.php` — Declares refreshViewHelperApp (~322 tok)
 - `ViewServiceProviderWiringTest.php` (~363 tok)
 - `ViewTest.php` — implements: render (~1842 tok)
 
