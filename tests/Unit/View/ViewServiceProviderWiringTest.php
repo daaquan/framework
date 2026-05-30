@@ -11,6 +11,8 @@ beforeEach(function () {
     @mkdir($this->tmpViews, 0777, true);
     @mkdir($this->tmpStorage . '/framework/views', 0777, true);
     file_put_contents($this->tmpViews . '/greet.blade.php', 'Hi {{ $who }}');
+    @mkdir($this->tmpViews . '/auth', 0777, true);
+    file_put_contents($this->tmpViews . '/auth/login.blade.php', 'Login {{ $who }}');
 
     $this->app = new Container();
     $this->app->instance('__views_path', $this->tmpViews);
@@ -19,6 +21,8 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    array_map('unlink', glob($this->tmpViews . '/auth/*') ?: []);
+    @rmdir($this->tmpViews . '/auth');
     array_map('unlink', glob($this->tmpViews . '/*') ?: []);
     array_map('unlink', glob($this->tmpStorage . '/framework/views/*') ?: []);
     @rmdir($this->tmpViews);
@@ -33,6 +37,16 @@ it('binds a functional Factory to the view slot', function () {
     $factory = $this->app->make('view');
     expect($factory)->toBeInstanceOf(Factory::class);
     expect($factory->make('greet', ['who' => 'Sam'])->render())->toBe('Hi Sam');
+});
+
+it('renders nested (dot-notation) views through the BladeEngine bridge', function () {
+    // Regression: Factory normalizes 'auth.login' to 'auth/login'; BladeOne is
+    // dot-native and treats a slash-path as a literal with no extension, so the
+    // engine must convert back to dots or nested views 404 ("Template not found").
+    (new ViewServiceProvider($this->app))->register();
+
+    $factory = $this->app->make('view');
+    expect($factory->make('auth.login', ['who' => 'Sam'])->render())->toBe('Login Sam');
 });
 
 it('drops the redundant bare-Phalcon ViewProvider (A07 leak)', function () {

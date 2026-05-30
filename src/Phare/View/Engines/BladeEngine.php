@@ -14,6 +14,9 @@ class BladeEngine implements Engine
      */
     public function render(string $view, array $data = []): string
     {
-        return $this->blade->run($view, $data);
+        // BladeOne resolves nested views from dot notation (it splits on "."
+        // and appends the file extension). A slash-separated name is treated as
+        // a literal path with no extension, so normalize back to dots here.
+        return $this->blade->run(str_replace('/', '.', $view), $data);
     }
 }
