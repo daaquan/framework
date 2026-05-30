@@ -946,3 +946,19 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 10:17 | Edited composer.json | 8.2 → 8.3 | ~7 |
 | 10:17 | Edited Dockerfile | 8.2 → 8.3 | ~23 |
 | 10:18 | composer #4: php constraint ^8.2→^8.3 (Laravel 13 min PHP); lock re-synced (0 dep changes), Dockerfile comment + README/installation/CLAUDE docs 8.2+→8.3+ | composer.json, composer.lock, Dockerfile, 4 docs | composer valid, suite 1376 green | ~4k |
+| 10:18 | Session end: 20 writes across 12 files (ViewHelperTest.php, helpers.php, ViewServiceProvider.php, ViewServiceProviderWiringTest.php, VoltViewProvider.php) | 9 reads | ~27561 tok |
+
+## Session summary 2026-05-30 (Phare Laravel-13 parity, 30 commits)
+SHIPPED main e15f896 (from 5403303). Suite 1326→1376 (+50 tests), phpstan 0-regression every change, pint clean throughout, DB-free env (sqlite absent).
+- A06 validation: +18 rules (implicit present/filled/accepted/declined, gt/gte/lt/lte/multiple_of, date_format/before/after, required_if/unless/with/with_all/without/without_all) via $implicitRules empty-skip bypass.
+- A06 array-batch: +6 (array:keys, distinct(+strict/ignore_case), in_array:field, prohibited/_if/_unless) — flat-model adaptations (no wildcard).
+- E02: 24 providers → Phare\Support\ServiceProvider (closure-safe $app=$this->app alias). +ArrayAccess on Container contract.
+- E02b: last 5 providers + enriched Application contract (extends Container + path/env methods) → 29/29 off Phalcon SP iface. Fallout: 6 test doubles + DatabaseManager Mockery bound() stubs.
+- Area-E helper: removed dead leaky security(): mixed.
+- SensitiveParameter sweep: 13 sites (Encrypter/Auth/Manager/Sanctum + C05 Csrf).
+- A07 D08 view dual-stack RESOLVED: Contracts\View\Engine + BladeEngine adapter, View::render() delegates (drop debug stub), Factory injects engine, ViewServiceProvider canonical + mock config. Then: global view() helper rewired to Factory stack; deleted redundant Providers\ViewProvider; Volt/BladeViewProvider docblocked legacy. D08 fully closed.
+- D05 CRITICAL: Mailable::renderView XSS fixed — {{ }} html-escaped, {!! !!} raw.
+- E05: Facade base +swap/clearResolvedInstance(s)/resolved + swap-cache.
+- #4: composer php ^8.2→^8.3.
+Bugs logged: bug-050 (BladeOne compiled-dir teardown), bug-051 (Faker\Factory import collision), bug-052 (Mailable XSS).
+NEXT: D-area method-name lies (BroadcastManager queue()=sync/sendNow()=alias, Mailer send()=fake) OR D06 Scheduler counter stub OR #5 audit-ref 13.2.0→13.7.0. B01 still sqlite-gated (XL).
