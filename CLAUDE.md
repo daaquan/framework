@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Phare is a PHP framework built on the Phalcon C extension (`ext-phalcon ^5.9.2`). It wraps Phalcon's low-level APIs with Laravel-like conventions: service container, Eloquent-style ORM, middleware pipeline, console commands, and helper functions. Requires PHP 8.2+.
+Phare is a PHP framework built on the Phalcon C extension (`ext-phalcon ^5.9.2`). It wraps Phalcon's low-level APIs with Laravel-like conventions: service container, Eloquent-style ORM, middleware pipeline, console commands, and helper functions. Requires PHP 8.3+.
 
 ## Commands
 

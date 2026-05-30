@@ -942,3 +942,7 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 10:10 | Edited src/Phare/Support/Facades/Facade.php | 6→6 lines | ~34 |
 | 10:10 | Edited src/Phare/Support/Facades/Facade.php | modified if() | ~42 |
 | 10:12 | Facade base expanded: swap/clearResolvedInstance(s)/resolved + swap-cache; fixed mis-typed $app docblock | Facade.php, new FacadeBaseTest | TDD RED→GREEN, suite 1371→1376, phpstan 5→4, pint clean | ~9k |
+| 10:12 | Session end: 18 writes across 10 files (ViewHelperTest.php, helpers.php, ViewServiceProvider.php, ViewServiceProviderWiringTest.php, VoltViewProvider.php) | 7 reads | ~26681 tok |
+| 10:17 | Edited composer.json | 8.2 → 8.3 | ~7 |
+| 10:17 | Edited Dockerfile | 8.2 → 8.3 | ~23 |
+| 10:18 | composer #4: php constraint ^8.2→^8.3 (Laravel 13 min PHP); lock re-synced (0 dep changes), Dockerfile comment + README/installation/CLAUDE docs 8.2+→8.3+ | composer.json, composer.lock, Dockerfile, 4 docs | composer valid, suite 1376 green | ~4k |

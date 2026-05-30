@@ -4,7 +4,7 @@ Phare は [Phalcon](https://phalcon.io/) C 拡張を基盤とした軽量 PHP �
 Phalcon の低レイヤー API を Laravel ライクな規約でラップし、サービスコンテナ・
 Eloquent 風 ORM・ミドルウェアパイプライン・コンソールコマンド・ヘルパ関数を提供します。
 
-**動作要件:** PHP 8.2+ · `ext-phalcon ^5.9.2`
+**動作要件:** PHP 8.3+ · `ext-phalcon ^5.9.2`
 
 ## 特長
 
