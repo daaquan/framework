@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-29T21:31:38.364Z
-> Files: 544 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T00:28:28.834Z
+> Files: 545 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -87,6 +87,7 @@
 
 - `2026-05-07-container-phase4-attributes-design.md` — Container Phase 4 — Attribute Injection Compatibility (~2187 tok)
 - `2026-05-11-phase6-container-edges-design.md` — Phase 6 Design Spec: Laravel 13 Container Edge Behaviors (~2928 tok)
+- `2026-05-30-a07-view-dual-stack-design.md` — A07 — View Dual-Stack Resolution (D08 CRITICAL) (~1406 tok)
 
 ## src/Phare/Attributes/
 
