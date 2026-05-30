@@ -883,3 +883,31 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 | 06:31 | Edited src/Phare/Security/Csrf.php | inline fix | ~20 |
 | 06:31 | Edited src/Phare/Security/Csrf.php | inline fix | ~21 |
 | 06:32 | C05: #[\SensitiveParameter] on Csrf::verifyToken/storeToken $token | Csrf.php, SensitiveParameterTest | TDD RED→GREEN, suite 1357, phpstan 1→1, pint clean | ~3k |
+| 06:32 | Session end: 23 writes across 12 files (ValidatorTest.php, Validator.php, HelpersHashTest.php, helpers.php, SensitiveParameterTest.php) | 10 reads | ~15316 tok |
+
+## Session: 2026-05-30 09:18
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 09:28 | Created docs/superpowers/specs/2026-05-30-a07-view-dual-stack-design.md | — | ~1499 |
+| 09:31 | Created docs/superpowers/plans/2026-05-30-a07-view-dual-stack.md | — | ~5143 |
+| 09:31 | Created tests/Unit/View/EngineContractTest.php | — | ~108 |
+| 09:31 | Created src/Phare/Contracts/View/Engine.php | — | ~62 |
+| 09:32 | Created tests/Unit/View/Engines/BladeEngineTest.php | — | ~295 |
+| 09:32 | Created src/Phare/View/Engines/BladeEngine.php | — | ~101 |
+| 09:32 | Edited tests/Unit/View/ViewTest.php | modified test() | ~139 |
+| 09:33 | Edited tests/Unit/View/ViewTest.php | modified makeFakeEngine() | ~325 |
+| 09:33 | Edited src/Phare/View/View.php | modified __construct() | ~75 |
+| 09:33 | Edited src/Phare/View/View.php | json_encode() → RuntimeException() | ~92 |
+| 09:34 | Edited tests/Unit/View/Template/TemplateEngineTest.php | modified templateEngineEcho() | ~137 |
+| 09:35 | Edited tests/Unit/View/Template/TemplateEngineTest.php | modified __construct() | ~63 |
+| 09:35 | Edited tests/Unit/View/Template/TemplateEngineTest.php | 4→4 lines | ~39 |
+| 09:36 | Edited src/Phare/View/Factory.php | modified __construct() | ~149 |
+| 09:36 | Edited src/Phare/View/Factory.php | 2→2 lines | ~28 |
+| 09:37 | Created tests/Unit/View/ViewServiceProviderWiringTest.php | — | ~323 |
+| 09:37 | Edited src/Phare/View/ViewServiceProvider.php | modified singleton() | ~195 |
+| 09:37 | Edited tests/Unit/View/ViewServiceProviderWiringTest.php | modified afterEach() | ~87 |
+| 09:38 | Edited tests/Unit/View/ViewServiceProviderWiringTest.php | 3→4 lines | ~70 |
+| 09:39 | Edited tests/Mock/config/app.php | added 1 import(s) | ~19 |
+| 09:39 | Edited tests/Mock/config/app.php | 2→3 lines | ~27 |
+| 09:40 | A07 D08 view dual-stack RESOLVED: Contracts\View\Engine + BladeEngine adapter, View::render() delegates (drop debug stub), Factory injects engine, ViewServiceProvider wires Blade + mock config; 6 tasks TDD | Engine.php, BladeEngine.php, View.php, Factory.php, ViewServiceProvider.php, 4 tests, mock config | suite 1357→1364, phpstan 0-reg, pint clean, bug-050 logged | ~30k |

@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T00:31:31.587Z
-> Files: 546 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-30T00:39:28.718Z
+> Files: 554 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../tmp/
 
@@ -358,6 +358,10 @@
 - `Arrayable.php` — Interface: Arrayable (1 methods) (~70 tok)
 - `DeferrableProvider.php` — Get the services provided by the provider. (~60 tok)
 - `Jsonable.php` — Convert the object to its JSON representation. (~66 tok)
+
+## src/Phare/Contracts/View/
+
+- `Engine.php` — Render a template to a string. (~62 tok)
 
 ## src/Phare/Database/
 
@@ -780,16 +784,20 @@
 - `BladeOne.php` — BladeOne - A Blade Template implementation in a single file (~34897 tok)
 - `BladeOneHtml.php` — trait BladeOneHtml (~13237 tok)
 - `BladeView.php` — BladeView: with, render (~128 tok)
-- `Factory.php` — Create a new view instance. (~1821 tok)
+- `Factory.php` — Create a new view instance. (~1860 tok)
 - `MessageContainer.php` — Class MessageList (~6982 tok)
 - `MessageLocker.php` — Class MessageLocker (~4454 tok)
-- `View.php` — Add a piece of data to the view. (~759 tok)
+- `View.php` — Add a piece of data to the view. (~790 tok)
 - `ViewComposer.php` — Bind data to the view. (~134 tok)
-- `ViewServiceProvider.php` — Register view composers. (~533 tok)
+- `ViewServiceProvider.php` — Register view composers. (~648 tok)
 
 ## src/Phare/View/Concerns/
 
 - `SharesData.php` — The shared view data. (~300 tok)
+
+## src/Phare/View/Engines/
+
+- `BladeEngine.php` — BladeEngine: render (~101 tok)
 
 ## src/Phare/View/Tags/
 
@@ -911,6 +919,10 @@
 - `HasherTest.php` (~318 tok)
 - `HashManagerTest.php` — make: check, needsRehash, info + 3 more (~2048 tok)
 
+## tests/Mock/config/
+
+- `app.php` (~2233 tok)
+
 ## tests/Support/
 
 - `SimpleApplication.php` — SimpleApplication: version, basePath, configPath, databasePath + 50 more (~1995 tok)
@@ -949,6 +961,20 @@
 - `HelpersHashTest.php` — Declares refreshHashHelperApp (~401 tok)
 - `MacroableTest.php` — Declares each (~347 tok)
 - `ServiceProviderTest.php` — Container subclass that records boot-lifecycle callbacks for assertions. (~404 tok)
+
+## tests/Unit/View/
+
+- `EngineContractTest.php` (~108 tok)
+- `ViewServiceProviderWiringTest.php` (~363 tok)
+- `ViewTest.php` — implements: render (~1842 tok)
+
+## tests/Unit/View/Engines/
+
+- `BladeEngineTest.php` (~295 tok)
+
+## tests/Unit/View/Template/
+
+- `TemplateEngineTest.php` — Echo engine: returns the view name so include* assertions can match it. (~2450 tok)
 
 ## tests/Validation/
 
