@@ -26,6 +26,16 @@
       "count": 1,
       "tokens": 1420,
       "first_read": "2026-05-30T01:03:45.140Z"
+    },
+    "/opt/framework/src/Phare/Support/Facades/Facade.php": {
+      "count": 1,
+      "tokens": 576,
+      "first_read": "2026-05-30T01:06:51.639Z"
+    },
+    "/opt/framework/src/Phare/Container/Container.php": {
+      "count": 1,
+      "tokens": 12500,
+      "first_read": "2026-05-30T01:07:50.686Z"
     }
   },
   "files_written": [
@@ -94,6 +104,48 @@
       "action": "edit",
       "tokens": 215,
       "at": "2026-05-30T01:04:35.919Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Support/Facades/FacadeBaseTest.php",
+      "action": "create",
+      "tokens": 660,
+      "at": "2026-05-30T01:08:22.901Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+      "action": "edit",
+      "tokens": 56,
+      "at": "2026-05-30T01:08:35.658Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+      "action": "edit",
+      "tokens": 580,
+      "at": "2026-05-30T01:08:46.634Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+      "action": "edit",
+      "tokens": 80,
+      "at": "2026-05-30T01:08:53.292Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Support/Facades/FacadeBaseTest.php",
+      "action": "edit",
+      "tokens": 245,
+      "at": "2026-05-30T01:09:31.284Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+      "action": "edit",
+      "tokens": 36,
+      "at": "2026-05-30T01:10:54.285Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Support/Facades/Facade.php",
+      "action": "edit",
+      "tokens": 44,
+      "at": "2026-05-30T01:10:58.892Z"
     }
   ],
   "edit_counts": {
@@ -104,11 +156,13 @@
     "src/Phare/Providers/VoltViewProvider.php": 1,
     "src/Phare/Providers/BladeViewProvider.php": 1,
     "tests/Unit/Mail/MailableEscapingTest.php": 1,
-    "src/Phare/Mail/Mailable.php": 1
+    "src/Phare/Mail/Mailable.php": 1,
+    "tests/Unit/Support/Facades/FacadeBaseTest.php": 2,
+    "src/Phare/Support/Facades/Facade.php": 5
   },
-  "anatomy_hits": 5,
+  "anatomy_hits": 7,
   "anatomy_misses": 0,
   "repeated_reads_warned": 0,
   "cerebrum_warnings": 0,
-  "stop_count": 2
+  "stop_count": 3
 }
