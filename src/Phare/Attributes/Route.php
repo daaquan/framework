@@ -10,8 +10,15 @@ class Route
 {
     public const DEFAULT_REGEX = '[\w\-]+';
 
+    /**
+     * @var array<string, string>
+     */
     private array $parameters = [];
 
+    /**
+     * @param array<int, string> $methods
+     * @param array<int, string> $middlewares
+     */
     public function __construct(
         private readonly string $pattern = '',
         private readonly array $methods = ['GET'],
@@ -33,11 +40,17 @@ class Route
         return $this->name;
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getMethods(): array
     {
         return $this->methods;
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getMiddlewares(): array
     {
         return $this->middlewares;
@@ -48,18 +61,20 @@ class Route
      */
     public function hasParams(): bool
     {
-        return preg_match('/{([\w\-%]+)(<(.+)>)?}/', $this->pattern);
+        return preg_match('/{([\w\-%]+)(<(.+)>)?}/', $this->pattern) === 1;
     }
 
     /**
      * Retrieves in key of the array, the names of the parameters as well as the regular
      * expression (if there is one) in value
+     *
+     * @return array<string, string>
      */
     public function fetchParams(): array
     {
         if (empty($this->parameters)) {
             preg_match_all('/{([\w\-%]+)(?:<(.+?)>)?}/', $this->getPattern(), $params);
-            $this->parameters = array_combine($params[1], $params[2]);
+            $this->parameters = array_combine($params[1], $params[2]) ?: [];
         }
 
         return $this->parameters;
