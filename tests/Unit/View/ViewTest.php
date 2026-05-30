@@ -1,6 +1,7 @@
 <?php
 
 use Phare\Container\Container;
+use Phare\Contracts\View\Engine;
 use Phare\View\View;
 
 beforeEach(function () {
@@ -90,24 +91,20 @@ test('view render throws exception when no view is set', function () {
         ->toThrow(InvalidArgumentException::class, 'No view specified.');
 });
 
-test('view render returns string when view is set', function () {
-    $this->view->setView('test.view');
-    $this->view->with('data', 'value');
+test('view render returns the engine output when view is set', function () {
+    $engine = makeFakeEngine();
+    $view = new View($this->container, $engine);
+    $view->setView('test.view')->with('data', 'value');
 
-    $result = $this->view->render();
-
-    expect($result)->toBeString();
-    expect($result)->toContain('test.view');
-    expect($result)->toContain('data');
+    expect($view->render())->toContain('rendered:test.view');
 });
 
 test('view toString returns render result', function () {
-    $this->view->setView('test.view');
+    $engine = makeFakeEngine();
+    $view = new View($this->container, $engine);
+    $view->setView('test.view');
 
-    $string = (string)$this->view;
-
-    expect($string)->toBeString();
-    expect($string)->toContain('test.view');
+    expect((string)$view)->toContain('rendered:test.view');
 });
 
 test('view toString returns empty string on exception', function () {
@@ -190,4 +187,38 @@ test('view handles null and false values correctly', function () {
     expect($this->view->get('false_value'))->toBeFalse();
     expect($this->view->get('zero_value'))->toBe(0);
     expect($this->view->get('empty_string'))->toBe('');
+});
+
+// --- A07 engine delegation ---
+
+function makeFakeEngine(): Engine
+{
+    return new class() implements Engine
+    {
+        public array $calls = [];
+
+        public function render(string $view, array $data = []): string
+        {
+            $this->calls[] = [$view, $data];
+
+            return "rendered:{$view}:" . json_encode($data);
+        }
+    };
+}
+
+test('render delegates to the injected engine', function () {
+    $engine = makeFakeEngine();
+    $view = new View($this->container, $engine);
+    $view->setView('home.index')->with('a', 1);
+
+    expect($view->render())->toBe('rendered:home.index:' . json_encode(['a' => 1]));
+    expect($engine->calls)->toBe([['home.index', ['a' => 1]]]);
+});
+
+test('render throws when no engine is bound', function () {
+    $view = new View($this->container);
+    $view->setView('home.index');
+
+    expect(fn () => $view->render())
+        ->toThrow(RuntimeException::class, 'No view engine bound.');
 });
