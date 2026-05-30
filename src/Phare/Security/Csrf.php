@@ -101,7 +101,7 @@ class Csrf
         $token = $this->getToken();
         $name = $this->getTokenName();
 
-        return '<input type="hidden" name="' . $name . '" value="' . $token . '">';
+        return '<input type="hidden" name="' . $this->escapeAttribute($name) . '" value="' . $this->escapeAttribute($token) . '">';
     }
 
     /**
@@ -111,6 +111,11 @@ class Csrf
     {
         $token = $this->getToken();
 
-        return '<meta name="csrf-token" content="' . $token . '">';
+        return '<meta name="csrf-token" content="' . $this->escapeAttribute($token) . '">';
+    }
+
+    protected function escapeAttribute(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
 }

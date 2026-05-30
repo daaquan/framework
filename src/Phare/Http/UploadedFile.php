@@ -67,6 +67,7 @@ class UploadedFile
 
     public function storeAs(string $path, string $name, string $disk = 'local'): string|false
     {
+        $name = $this->validateStorageName($name);
         $destination = rtrim($path, '/') . '/' . $name;
 
         if ($this->isValid()) {
@@ -82,7 +83,7 @@ class UploadedFile
 
     public function move(string $directory, ?string $name = null): static
     {
-        $name = $name ?? $this->hashName();
+        $name = $this->validateStorageName($name ?? $this->hashName());
         $destination = $directory . '/' . $name;
 
         if ($this->isValid()) {
@@ -171,7 +172,7 @@ class UploadedFile
     public function hashName(?string $path = null): string
     {
         $extension = $this->guessExtension() ?: $this->getClientOriginalExtension();
-        $hash = hash('sha256', uniqid('', true));
+        $hash = bin2hex(random_bytes(32));
 
         if ($path) {
             return $path . '/' . $hash . ($extension ? '.' . $extension : '');
@@ -226,6 +227,10 @@ class UploadedFile
 
     protected function parseSize(string $size): int
     {
+        if (trim($size) === '-1') {
+            return PHP_INT_MAX;
+        }
+
         $unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
         $size = preg_replace('/[^0-9\.]/', '', $size);
 
@@ -234,6 +239,19 @@ class UploadedFile
         }
 
         return round($size);
+    }
+
+    protected function validateStorageName(string $name): string
+    {
+        if ($name === '' || str_contains($name, "\0") || str_contains($name, '/') || str_contains($name, '\\')) {
+            throw new \InvalidArgumentException('The uploaded file storage name must be a plain filename.');
+        }
+
+        if ($name === '.' || $name === '..') {
+            throw new \InvalidArgumentException('The uploaded file storage name must be a plain filename.');
+        }
+
+        return $name;
     }
 
     public function __toString(): string
