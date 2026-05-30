@@ -21,6 +21,11 @@
       "count": 1,
       "tokens": 877,
       "first_read": "2026-05-30T01:00:50.345Z"
+    },
+    "/opt/framework/src/Phare/Mail/Mailable.php": {
+      "count": 1,
+      "tokens": 1420,
+      "first_read": "2026-05-30T01:03:45.140Z"
     }
   },
   "files_written": [
@@ -77,6 +82,18 @@
       "action": "edit",
       "tokens": 168,
       "at": "2026-05-30T01:00:57.320Z"
+    },
+    {
+      "file": "/opt/framework/tests/Unit/Mail/MailableEscapingTest.php",
+      "action": "create",
+      "tokens": 368,
+      "at": "2026-05-30T01:04:23.175Z"
+    },
+    {
+      "file": "/opt/framework/src/Phare/Mail/Mailable.php",
+      "action": "edit",
+      "tokens": 215,
+      "at": "2026-05-30T01:04:35.919Z"
     }
   ],
   "edit_counts": {
@@ -85,11 +102,13 @@
     "src/Phare/View/ViewServiceProvider.php": 1,
     "tests/Unit/View/ViewServiceProviderWiringTest.php": 1,
     "src/Phare/Providers/VoltViewProvider.php": 1,
-    "src/Phare/Providers/BladeViewProvider.php": 1
+    "src/Phare/Providers/BladeViewProvider.php": 1,
+    "tests/Unit/Mail/MailableEscapingTest.php": 1,
+    "src/Phare/Mail/Mailable.php": 1
   },
-  "anatomy_hits": 4,
+  "anatomy_hits": 5,
   "anatomy_misses": 0,
   "repeated_reads_warned": 0,
   "cerebrum_warnings": 0,
-  "stop_count": 1
+  "stop_count": 2
 }
