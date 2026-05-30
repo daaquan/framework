@@ -525,7 +525,7 @@ if (!function_exists('dump')) {
     {
         array_map(static function ($x) {
             $out = (new Dump([], true))->variable($x);
-            echo PHP_SAPI === 'cli' ? helpers . phpstrip_tags($out) . PHP_EOL : $out;
+            echo PHP_SAPI === 'cli' ? strip_tags($out) . PHP_EOL : $out;
         }, $args);
     }
 }
