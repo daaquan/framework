@@ -3,6 +3,7 @@
 namespace Phare\View;
 
 use Phare\Container\Container;
+use Phare\Contracts\View\Engine;
 
 class View
 {
@@ -14,9 +15,12 @@ class View
 
     public Container $container;
 
-    public function __construct(Container $container)
+    protected ?Engine $engine = null;
+
+    public function __construct(Container $container, ?Engine $engine = null)
     {
         $this->container = $container;
+        $this->engine = $engine;
     }
 
     /**
@@ -100,9 +104,11 @@ class View
             throw new \InvalidArgumentException('No view specified.');
         }
 
-        // In a real implementation, this would render the view template
-        // For now, return a simple representation
-        return "View: {$this->view} with data: " . json_encode($this->getData());
+        if ($this->engine === null) {
+            throw new \RuntimeException('No view engine bound.');
+        }
+
+        return $this->engine->render($this->view, $this->getData());
     }
 
     /**
