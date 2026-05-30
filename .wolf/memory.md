@@ -917,3 +917,10 @@ Phase 0 (6 security fixes) + Phase 1 core (E03/E04/E02) shipped on branch securi
 
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
+| 09:47 | Created tests/Unit/View/ViewHelperTest.php | — | ~322 |
+| 09:47 | Edited src/Phare/Support/helpers.php | added 1 condition(s) | ~136 |
+| 09:47 | Edited src/Phare/Support/helpers.php | added 1 import(s) | ~12 |
+| 09:48 | Edited src/Phare/View/ViewServiceProvider.php | removed 18 lines | ~30 |
+| 09:48 | Edited src/Phare/Support/helpers.php | — | ~0 |
+| 09:48 | Edited src/Phare/Support/helpers.php | inline fix | ~32 |
+| 09:49 | A07 follow-up: global view() helper rewired to canonical Factory stack (was Blade/Stack-2-coupled, broken under canonical); removed dead dup in ViewServiceProvider | helpers.php, ViewServiceProvider.php, new ViewHelperTest | suite 1364→1366, phpstan 56→51, pint clean, bug-051 | ~8k |

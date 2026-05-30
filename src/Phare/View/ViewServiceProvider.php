@@ -31,20 +31,6 @@ class ViewServiceProvider extends ServiceProvider
         $this->app->bind(Factory::class, function ($app) {
             return $app['view'];
         });
-
-        // Register view helper function
-        if (!function_exists('view')) {
-            function view(?string $view = null, array $data = [], array $mergeData = [])
-            {
-                $factory = app('view');
-
-                if (func_num_args() === 0) {
-                    return $factory;
-                }
-
-                return $factory->make($view, $data, $mergeData);
-            }
-        }
     }
 
     public function boot(): void

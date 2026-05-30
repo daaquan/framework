@@ -20,7 +20,7 @@ use Phare\Hashing\HashManager;
 use Phare\Http\Response;
 use Phare\Support\Env;
 use Phare\Support\HigherOrderTapProxy;
-use Phare\View\Blade;
+use Phare\View\View;
 
 // Polyfills for PHP 8.4 functions
 if (!function_exists('array_any')) {
@@ -212,12 +212,21 @@ if (!function_exists('abort')) {
 
 // view()
 if (!function_exists('view')) {
-    function view(string $path, array $params = []): Blade
+    /**
+     * Get the view factory, or build a renderable view (canonical Factory stack).
+     *
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $mergeData
+     */
+    function view(?string $view = null, array $data = [], array $mergeData = []): Phare\View\Factory|View
     {
-        app('dispatcher')?->setParameter('bladeView', $path);
-        app('view')?->setVars($params);
+        $factory = app('view');
 
-        return app('blade');
+        if (func_num_args() === 0) {
+            return $factory;
+        }
+
+        return $factory->make($view, $data, $mergeData);
     }
 }
 
