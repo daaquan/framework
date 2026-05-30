@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-13T08:46:27.553Z",
   "lifetime": {
-    "total_tokens_estimated": 1405518,
-    "total_reads": 579,
-    "total_writes": 410,
-    "total_sessions": 114,
-    "anatomy_hits": 434,
-    "anatomy_misses": 145,
-    "repeated_reads_blocked": 216,
-    "estimated_savings_vs_bare_cli": 2262515
+    "total_tokens_estimated": 1442415,
+    "total_reads": 598,
+    "total_writes": 454,
+    "total_sessions": 116,
+    "anatomy_hits": 449,
+    "anatomy_misses": 149,
+    "repeated_reads_blocked": 231,
+    "estimated_savings_vs_bare_cli": 2283303
   },
   "sessions": [
     {
@@ -6244,6 +6244,390 @@
         "writes_count": 19,
         "repeated_reads_blocked": 5,
         "anatomy_lookups": 9
+      }
+    },
+    {
+      "id": "session-2026-05-29-0608",
+      "started": "2026-05-29T21:08:40.196Z",
+      "ended": "2026-05-29T21:32:36.102Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6551,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Providers/EncrypterProvider.php",
+          "tokens_estimated": 332,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/HelpersHashTest.php",
+          "tokens_estimated": 282,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 1473,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 1579,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php",
+          "tokens_estimated": 478,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/PersonalAccessToken.php",
+          "tokens_estimated": 591,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php",
+          "tokens_estimated": 768,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/NewAccessToken.php",
+          "tokens_estimated": 164,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Security/Csrf.php",
+          "tokens_estimated": 662,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/tests/Validation/ValidatorTest.php",
+          "tokens_estimated": 610,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 646,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Validation/Validator.php",
+          "tokens_estimated": 159,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/Support/HelpersHashTest.php",
+          "tokens_estimated": 152,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Encryption/SensitiveParameterTest.php",
+          "tokens_estimated": 409,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 29,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 23,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Encryption/Encrypter.php",
+          "tokens_estimated": 27,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Manager.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/SanctumGuard.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/PersonalAccessToken.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/Sanctum.php",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Auth/Sanctum/NewAccessToken.php",
+          "tokens_estimated": 32,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Encryption/SensitiveParameterTest.php",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Encryption/SensitiveParameterTest.php",
+          "tokens_estimated": 48,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Security/Csrf.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Security/Csrf.php",
+          "tokens_estimated": 22,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 12880,
+        "output_tokens_estimated": 2436,
+        "reads_count": 10,
+        "writes_count": 23,
+        "repeated_reads_blocked": 5,
+        "anatomy_lookups": 10
+      }
+    },
+    {
+      "id": "session-2026-05-30-0918",
+      "started": "2026-05-30T00:18:30.332Z",
+      "ended": "2026-05-30T00:23:48.729Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/View/View.php",
+          "tokens_estimated": 759,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 759,
+        "output_tokens_estimated": 0,
+        "reads_count": 2,
+        "writes_count": 0,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-05-30-0918",
+      "started": "2026-05-30T00:18:30.332Z",
+      "ended": "2026-05-30T00:41:17.686Z",
+      "reads": [
+        {
+          "file": "/opt/framework/src/Phare/View/View.php",
+          "tokens_estimated": 759,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewTest.php",
+          "tokens_estimated": 1578,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/Factory.php",
+          "tokens_estimated": 1821,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/Support/helpers.php",
+          "tokens_estimated": 6517,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/Template/TemplateEngineTest.php",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/ViewServiceProvider.php",
+          "tokens_estimated": 533,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/opt/framework/tests/Mock/config/app.php",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/opt/framework/docs/superpowers/specs/2026-05-30-a07-view-dual-stack-design.md",
+          "tokens_estimated": 1606,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/docs/superpowers/plans/2026-05-30-a07-view-dual-stack.md",
+          "tokens_estimated": 5510,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/EngineContractTest.php",
+          "tokens_estimated": 115,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/Contracts/View/Engine.php",
+          "tokens_estimated": 66,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/Engines/BladeEngineTest.php",
+          "tokens_estimated": 316,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/Engines/BladeEngine.php",
+          "tokens_estimated": 108,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewTest.php",
+          "tokens_estimated": 148,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewTest.php",
+          "tokens_estimated": 348,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/View.php",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/View.php",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/Template/TemplateEngineTest.php",
+          "tokens_estimated": 147,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/Template/TemplateEngineTest.php",
+          "tokens_estimated": 68,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/Template/TemplateEngineTest.php",
+          "tokens_estimated": 41,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/Factory.php",
+          "tokens_estimated": 160,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/Factory.php",
+          "tokens_estimated": 30,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewServiceProviderWiringTest.php",
+          "tokens_estimated": 346,
+          "action": "create"
+        },
+        {
+          "file": "/opt/framework/src/Phare/View/ViewServiceProvider.php",
+          "tokens_estimated": 209,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewServiceProviderWiringTest.php",
+          "tokens_estimated": 93,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Unit/View/ViewServiceProviderWiringTest.php",
+          "tokens_estimated": 75,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Mock/config/app.php",
+          "tokens_estimated": 21,
+          "action": "edit"
+        },
+        {
+          "file": "/opt/framework/tests/Mock/config/app.php",
+          "tokens_estimated": 29,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 11208,
+        "output_tokens_estimated": 9614,
+        "reads_count": 7,
+        "writes_count": 21,
+        "repeated_reads_blocked": 10,
+        "anatomy_lookups": 4
       }
     }
   ],
