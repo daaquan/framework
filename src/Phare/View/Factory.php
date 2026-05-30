@@ -4,6 +4,7 @@ namespace Phare\View;
 
 use Closure;
 use Phare\Container\Container;
+use Phare\Contracts\View\Engine;
 
 class Factory
 {
@@ -19,9 +20,12 @@ class Factory
 
     protected array $paths = [];
 
-    public function __construct(Container $container)
+    protected ?Engine $engine = null;
+
+    public function __construct(Container $container, ?Engine $engine = null)
     {
         $this->container = $container;
+        $this->engine = $engine;
         $this->paths = ['resources/views'];
     }
 
@@ -32,7 +36,7 @@ class Factory
     {
         $path = $this->normalizeName($view);
 
-        $viewInstance = new View($this->container);
+        $viewInstance = new View($this->container, $this->engine);
         $viewInstance->setView($path);
 
         // Add shared data
