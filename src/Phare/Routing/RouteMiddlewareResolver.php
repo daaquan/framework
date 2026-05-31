@@ -18,12 +18,20 @@ class RouteMiddlewareResolver
         $resolved = [];
 
         foreach ($aliases as $alias) {
-            $middleware = $routeMiddleware[$alias] ?? null;
+            // Support parameterised aliases such as "throttle:5,1": split the
+            // base alias from its parameters, resolve the base, then re-attach
+            // the parameters to the concrete class (mirrors the HTTP kernel's
+            // resolveRouteMiddlewareAlias()).
+            [$name, $parameters] = array_pad(explode(':', $alias, 2), 2, null);
+
+            $middleware = $routeMiddleware[$name] ?? null;
             if ($middleware === null) {
-                throw new \RuntimeException("Middleware alias \"{$alias}\" not found.");
+                throw new \RuntimeException("Middleware alias \"{$name}\" not found.");
             }
 
-            $resolved[] = $middleware;
+            $resolved[] = $parameters !== null && $parameters !== ''
+                ? $middleware . ':' . $parameters
+                : $middleware;
         }
 
         return $resolved;
