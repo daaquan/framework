@@ -210,14 +210,35 @@ class Manager
     protected function retrieveUserByCredentials(#[\SensitiveParameter] array $credentials): ?User
     {
         $class = $this->modelClass();
+        $passwordName = $class::getAuthPasswordName();
 
-        $identifier = $class::getAuthIdentifierName();
-        $password = $class::getAuthPasswordName();
+        // Laravel parity: query by every non-password credential, then verify the
+        // password hash separately. Supports login by email (or any column),
+        // not just the auth identifier.
+        $queryable = array_filter(
+            $credentials,
+            fn ($key) => $key !== $passwordName && !str_contains((string)$key, 'password'),
+            ARRAY_FILTER_USE_KEY
+        );
 
-        $user = $this->retrieveUserByIdentifier(Arr::fetch($credentials, $identifier));
+        if ($queryable === []) {
+            return null;
+        }
 
-        $hash = Arr::fetch($credentials, $password);
-        if ($user && password_verify($hash, $user->getAuthPassword())) {
+        $conditions = [];
+        $bind = [];
+        foreach ($queryable as $key => $value) {
+            $conditions[] = "{$key} = :{$key}:";
+            $bind[$key] = $value;
+        }
+
+        $user = $class::findFirst([
+            'conditions' => implode(' AND ', $conditions),
+            'bind' => $bind,
+        ]);
+
+        $hash = Arr::fetch($credentials, $passwordName);
+        if ($user && password_verify((string)$hash, (string)$user->getAuthPassword())) {
             return $user;
         }
 
