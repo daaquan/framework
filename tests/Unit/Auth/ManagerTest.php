@@ -41,12 +41,30 @@ class ManagerTestUser implements AuthenticatableContract
             return null;
         }
 
-        if (is_array($params) && isset($params['bind']['auth_identifier'])) {
-            $identifier = (string)$params['bind']['auth_identifier'];
-            foreach (self::$records as $record) {
-                if ((string)$record->{self::getAuthIdentifierName()} === $identifier) {
-                    return $record;
+        if (is_array($params) && isset($params['bind'])) {
+            $bind = $params['bind'];
+
+            // Legacy single-identifier lookup (retrieveUserByIdentifier).
+            if (isset($bind['auth_identifier'])) {
+                $identifier = (string)$bind['auth_identifier'];
+                foreach (self::$records as $record) {
+                    if ((string)$record->{self::getAuthIdentifierName()} === $identifier) {
+                        return $record;
+                    }
                 }
+
+                return null;
+            }
+
+            // Generic multi-credential lookup (retrieveUserByCredentials).
+            foreach (self::$records as $record) {
+                foreach ($bind as $field => $value) {
+                    if (!property_exists($record, $field) || (string)$record->{$field} !== (string)$value) {
+                        continue 2;
+                    }
+                }
+
+                return $record;
             }
         }
 
@@ -183,6 +201,98 @@ test('logout clears only the auth key and preserves other session data', functio
     expect($this->session->get('auth.user'))->toBeNull();
     expect($this->session->get('cart'))->toBe(['item-1']);
     expect($this->session->get('_csrf_token'))->toBe('tok-123');
+});
+
+class ManagerByIdUser implements AuthenticatableContract
+{
+    public static array $records = [];
+
+    public function __construct(
+        public int $id,
+        public string $email,
+        public string $password,
+    ) {}
+
+    public static function seed(array $records): void
+    {
+        self::$records = $records;
+    }
+
+    public static function findFirst(mixed $params): ?self
+    {
+        if (is_array($params) && isset($params['bind'])) {
+            foreach (self::$records as $record) {
+                foreach ($params['bind'] as $field => $value) {
+                    if (!property_exists($record, $field) || (string)$record->{$field} !== (string)$value) {
+                        continue 2;
+                    }
+                }
+
+                return $record;
+            }
+        }
+
+        return null;
+    }
+
+    public function getAuthIdentifier(): int
+    {
+        return $this->id;
+    }
+
+    public function getAuthPassword(): string
+    {
+        return $this->password;
+    }
+
+    public static function getAuthIdentifierName(): string
+    {
+        return 'id';
+    }
+
+    public static function getAuthPasswordName(): string
+    {
+        return 'password';
+    }
+}
+
+test('attempt authenticates by email while identifier stays the id (Laravel parity)', function () {
+    ManagerByIdUser::seed([
+        new ManagerByIdUser(10, 'alice@example.com', password_hash('secret', PASSWORD_BCRYPT)),
+    ]);
+
+    $config = new Config([
+        'model' => ManagerByIdUser::class,
+        'session_id' => 'auth.user',
+    ]);
+    $manager = new Manager($this->session, $config, $this->events);
+
+    $result = $manager->attempt([
+        'email' => 'alice@example.com',
+        'password' => 'secret',
+    ]);
+
+    expect($result)->toBeTrue();
+    expect($manager->id())->toBe(10);
+    expect($this->session->get('auth.user'))->toBe(10);
+});
+
+test('attempt by email fails on wrong password (Laravel parity)', function () {
+    ManagerByIdUser::seed([
+        new ManagerByIdUser(10, 'alice@example.com', password_hash('secret', PASSWORD_BCRYPT)),
+    ]);
+
+    $config = new Config([
+        'model' => ManagerByIdUser::class,
+        'session_id' => 'auth.user',
+    ]);
+    $manager = new Manager($this->session, $config, $this->events);
+
+    expect($manager->attempt([
+        'email' => 'alice@example.com',
+        'password' => 'wrong',
+    ]))->toBeFalse();
+    expect($this->session->get('auth.user'))->toBeNull();
 });
 
 test('validate checks credentials without mutating session state', function () {
