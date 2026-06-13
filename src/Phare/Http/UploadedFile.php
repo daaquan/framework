@@ -118,7 +118,13 @@ class UploadedFile
 
     public function getSize(): int
     {
-        return $this->size ?? filesize($this->path) ?? 0;
+        if ($this->size !== null) {
+            return $this->size;
+        }
+
+        $size = @filesize($this->path);
+
+        return $size !== false ? $size : 0;
     }
 
     public function getMimeType(): ?string
@@ -171,7 +177,9 @@ class UploadedFile
 
     public function hashName(?string $path = null): string
     {
-        $extension = $this->guessExtension() ?: $this->getClientOriginalExtension();
+        // Prefer a MIME-derived extension; only fall back to a sanitized
+        // client-supplied extension when the MIME type is unknown.
+        $extension = $this->guessExtension() ?: $this->sanitizeExtension($this->getClientOriginalExtension());
         $hash = bin2hex(random_bytes(32));
 
         if ($path) {
@@ -179,6 +187,20 @@ class UploadedFile
         }
 
         return $hash . ($extension ? '.' . $extension : '');
+    }
+
+    /**
+     * Reduce a client-supplied extension to a safe alphanumeric token.
+     */
+    protected function sanitizeExtension(?string $extension): ?string
+    {
+        if ($extension === null || $extension === '') {
+            return null;
+        }
+
+        $clean = preg_replace('/[^A-Za-z0-9]/', '', $extension);
+
+        return $clean === '' ? null : strtolower($clean);
     }
 
     public function getPath(): string

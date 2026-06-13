@@ -73,7 +73,7 @@ class MySqlGrammar extends Grammar
             'timestamp' => 'TIMESTAMP',
             'json' => 'JSON',
             'binary' => 'BLOB',
-            'enum' => 'ENUM(' . implode(',', array_map(fn ($v) => "'{$v}'", $column->getAttributes()['values'] ?? [])) . ')',
+            'enum' => 'ENUM(' . implode(',', array_map(fn ($v) => $this->quoteString((string)$v), $column->getAttributes()['values'] ?? [])) . ')',
             default => 'VARCHAR(255)',
         };
     }
@@ -141,7 +141,7 @@ class MySqlGrammar extends Grammar
     protected function modifyComment(string $sql, ColumnDefinition $column): string
     {
         if ($comment = $column->getAttributes()['comment'] ?? null) {
-            return $sql . " COMMENT '{$comment}'";
+            return $sql . ' COMMENT ' . $this->quoteString((string)$comment);
         }
 
         return $sql;

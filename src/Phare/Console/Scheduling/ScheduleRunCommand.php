@@ -40,7 +40,7 @@ class ScheduleRunCommand extends Command
             }
         }
 
-        $successCount = count(array_filter($results, fn ($r) => $result['success']));
+        $successCount = count(array_filter($results, fn ($r) => $r['success']));
         $totalCount = count($results);
 
         $this->info("Completed {$successCount}/{$totalCount} scheduled commands.");

@@ -66,15 +66,15 @@ class LoadConfiguration implements ServiceProviderInterface
             ->bootstrap($app);
 
         $configs = ['@timestamp' => $this->getConfigFilesModificationTime($app)];
-        foreach (glob($app->configPath() . '/*.php') as $configFile) {
+        foreach (glob($app->configPath() . '/*.php') ?: [] as $configFile) {
             $configFileName = pathinfo($configFile)['filename'];
             $configs[$configFileName] = require $configFile;
         }
 
         $configContent = '<?php return ' . var_export($configs, true) . ';';
         $cacheDir = dirname($this->compiledFilePath);
-        if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0777, true);
+        if (!is_dir($cacheDir) && !mkdir($cacheDir, 0755, true) && !is_dir($cacheDir)) {
+            throw new \RuntimeException("Unable to create config cache directory: {$cacheDir}");
         }
         file_put_contents($this->compiledFilePath, $configContent);
     }
@@ -84,7 +84,7 @@ class LoadConfiguration implements ServiceProviderInterface
      */
     protected function getConfigFilesModificationTime(Application $app): int
     {
-        $configFiles = glob($app->configPath() . '/*.php');
+        $configFiles = glob($app->configPath() . '/*.php') ?: [];
 
         $lastModificationTime = 0;
         foreach ($configFiles as $configFile) {

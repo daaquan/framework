@@ -4,7 +4,10 @@ namespace Phare\Http;
 
 trait FileHelpers
 {
-    public function file(?string $key = null): ?UploadedFile
+    /**
+     * @return UploadedFile|array<int, ?UploadedFile>|null
+     */
+    public function file(?string $key = null): UploadedFile|array|null
     {
         return $this->hasFile($key) ? $this->convertUploadedFiles()[$key] : null;
     }
@@ -23,28 +26,56 @@ trait FileHelpers
 
     protected function convertUploadedFiles(): array
     {
-        static $convertedFiles = null;
+        $convertedFiles = [];
 
-        if ($convertedFiles === null) {
-            $convertedFiles = [];
-
-            if (!empty($_FILES)) {
-                foreach ($_FILES as $key => $file) {
-                    $convertedFiles[$key] = $this->createUploadedFile($file);
-                }
+        if (!empty($_FILES)) {
+            foreach ($_FILES as $key => $file) {
+                $convertedFiles[$key] = $this->createUploadedFile($file);
             }
         }
 
         return $convertedFiles;
     }
 
-    protected function createUploadedFile(array $file): ?UploadedFile
+    /**
+     * @param array<string, mixed> $file
+     * @return UploadedFile|array<int, ?UploadedFile>|null
+     */
+    protected function createUploadedFile(array $file): UploadedFile|array|null
     {
-        if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+        // Multi-file input (e.g. name="docs[]") — PHP nests each key as an array.
+        if (isset($file['error']) && is_array($file['error'])) {
+            return $this->normalizeMultiFile($file);
+        }
+
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
             return null;
         }
 
         return UploadedFile::createFromArray($file);
+    }
+
+    /**
+     * Flatten a PHP multi-file upload array into individual UploadedFile entries.
+     *
+     * @param array<string, array<int, mixed>> $file
+     * @return array<int, ?UploadedFile>
+     */
+    protected function normalizeMultiFile(array $file): array
+    {
+        $files = [];
+
+        foreach (array_keys($file['error']) as $index) {
+            $files[$index] = $this->createUploadedFile([
+                'name' => $file['name'][$index] ?? null,
+                'type' => $file['type'][$index] ?? null,
+                'tmp_name' => $file['tmp_name'][$index] ?? '',
+                'error' => $file['error'][$index] ?? UPLOAD_ERR_NO_FILE,
+                'size' => $file['size'][$index] ?? null,
+            ]);
+        }
+
+        return $files;
     }
 
     public function validateFileUpload(UploadedFile $file, array $rules = []): array
@@ -133,13 +164,14 @@ trait FileHelpers
     {
         $mimeType = $file->getMimeType();
 
+        // SVG is intentionally excluded: it is an XSS vector and getimagesize()
+        // cannot parse it. Raster image types only.
         $validImageTypes = [
             'image/jpeg',
             'image/jpg',
             'image/png',
             'image/gif',
             'image/webp',
-            'image/svg+xml',
         ];
 
         return in_array($mimeType, $validImageTypes);

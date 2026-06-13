@@ -23,7 +23,7 @@ class Authenticate extends MiddlewareContract implements BeforeMiddleware
 
         $this->app->stop();
 
-        $response = $next($request);
+        $response = $this->app['response'];
         $response->setStatusCode(ResponseStatusCode::BAD_UNAUTHORIZED->value, ResponseStatusCode::BAD_UNAUTHORIZED->message());
 
         if ($this->app instanceof Micro) {

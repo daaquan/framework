@@ -7,6 +7,7 @@ use Phare\Console\Output\Output;
 use Phare\Container\Container;
 use Phare\Contracts\Debug\ExceptionHandler as ExceptionHandlerContract;
 use Phare\Http\Response;
+use Phare\Log\LogManager;
 use Phare\Support\Facades\Log;
 use Psr\Log\LogLevel;
 
@@ -100,11 +101,12 @@ class Handler implements ExceptionHandlerContract
         $level = Arr::first($this->levels, static fn ($level, $type) => $e instanceof $type) ?: LogLevel::ERROR;
 
         try {
-            /** @var Log $logger */
+            /** @var LogManager $logger */
             $logger = $this->container->make('log');
-            $logger::log($level, $errorMessage, $context);
-        } catch (\Exception $e) {
-            return;
+            $logger->log($level, $errorMessage, $context);
+        } catch (\Throwable $loggingFailure) {
+            error_log($errorMessage);
+            error_log('Exception logging failed: ' . $loggingFailure->getMessage());
         }
     }
 

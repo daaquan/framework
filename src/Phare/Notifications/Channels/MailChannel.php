@@ -42,7 +42,7 @@ class MailChannel implements ChannelInterface
     protected function getRecipients(mixed $notifiable, MailMessage $message): string
     {
         if ($message->hasTo()) {
-            return $message->getTo()[0] ?? '';
+            return (string)(array_key_first($message->getTo()) ?? '');
         }
 
         if (method_exists($notifiable, 'routeNotificationForMail')) {

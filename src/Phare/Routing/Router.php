@@ -66,7 +66,7 @@ class Router implements RouterContract
     {
         $path = '/' . trim($path, '/');
 
-        [$controller, $action] = explode('@', $handler);
+        [$controller, $action] = $this->parseHandler($handler);
 
         $this->routes[] = [
             'method' => $method,
@@ -78,6 +78,37 @@ class Router implements RouterContract
         ];
 
         return $this;
+    }
+
+    /**
+     * Resolve a route handler into a [controller, action] pair.
+     *
+     * Supports the "Controller@method" string form as well as closures and
+     * invokable objects (stored as the controller with a null action).
+     *
+     * @return array{0: mixed, 1: string|null}
+     */
+    private function parseHandler($handler): array
+    {
+        if ($handler instanceof \Closure || is_object($handler)) {
+            return [$handler, null];
+        }
+
+        if (is_array($handler) && count($handler) === 2) {
+            return [$handler[0], $handler[1]];
+        }
+
+        if (is_string($handler) && str_contains($handler, '@')) {
+            [$controller, $action] = explode('@', $handler, 2);
+
+            if ($controller !== '' && $action !== '') {
+                return [$controller, $action];
+            }
+        }
+
+        throw new \InvalidArgumentException(
+            'Route handler must be a "Controller@method" string, a [class, method] array, a closure, or an invokable object.'
+        );
     }
 
     public function resource($path, $controller, $middleware = [])

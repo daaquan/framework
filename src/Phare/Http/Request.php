@@ -22,7 +22,6 @@ use Phalcon\Filter\Validation\Validator\Regex;
 use Phalcon\Filter\Validation\Validator\StringLength;
 use Phalcon\Filter\Validation\Validator\Uniqueness;
 use Phalcon\Filter\Validation\Validator\Url;
-use Phare\Foundation\Http\Validation\ValidationException;
 use Phare\Validation\Validator;
 
 class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Request
@@ -62,20 +61,36 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
     {
         $this->types = array_flip(self::$validators);
 
-        $this->data = $this->get();
+        $this->data = $this->resolveData();
     }
 
     public static function make(array $data, array $rules = [], array $messages = [], array $customAttributes = []): static
     {
-        return (new static($rules))->validate($data);
+        $request = new static($rules);
+        $request->validate($data);
+
+        return $request;
     }
 
-    private static function getValidator($name, $rules = [])
+    /**
+     * Build the input source, merging a JSON body when one is present.
+     *
+     * @return array<string, mixed>
+     */
+    protected function resolveData(): array
     {
-        if (self::$validators[$name]) {
-            return new self::$validators[$name]($rules);
+        $data = $this->get();
+        $data = is_array($data) ? $data : [];
+
+        if ($this->isJson()) {
+            $json = $this->getJsonRawBody(true);
+
+            if (is_array($json)) {
+                $data = array_merge($data, $json);
+            }
         }
-        throw new ValidationException('Invalid validation rule.');
+
+        return $data;
     }
 
     public function rules(): array
@@ -94,13 +109,15 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         }
 
         foreach ($validator->errors()->toArray() as $field => $messages) {
-            $this->messages = [
+            $this->messages[$field] = [
                 'field' => $field,
                 'type' => $this->firstRuleName($field),
                 'message' => $this->formatValidationMessage($field, (string)end($messages)),
+                'messages' => array_map(
+                    fn ($message) => $this->formatValidationMessage($field, (string)$message),
+                    $messages
+                ),
             ];
-
-            break;
         }
 
         return false;
@@ -150,7 +167,10 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
 
     public function header(string $name, $default = null)
     {
-        return $this->getHeader($name) ?? $default;
+        $value = $this->getHeader($name);
+
+        // Phalcon returns '' (not null) for absent headers; treat that as missing.
+        return $value !== '' ? $value : $default;
     }
 
     public function headers()
@@ -168,14 +188,27 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         return null;
     }
 
-    public function url()
+    public function url(): string
     {
-        return $this->getURI();
+        // Path without the query string, prefixed with scheme + host.
+        return $this->schemeAndHost() . $this->getURI(true);
     }
 
     public function fullUrl(): string
     {
-        return $this->getURI(true);
+        // Full URI including the query string, prefixed with scheme + host.
+        return $this->schemeAndHost() . $this->getURI(false);
+    }
+
+    protected function schemeAndHost(): string
+    {
+        $host = $this->getHttpHost();
+
+        if ($host === '') {
+            return '';
+        }
+
+        return $this->getScheme() . '://' . $host;
     }
 
     public function has(string|array $key): bool
@@ -257,10 +290,32 @@ class Request extends \Phalcon\Http\Request implements \Phare\Contracts\Http\Req
         return false;
     }
 
-    public function route(?string $param = null): mixed
+    public function route(?string $key = null, mixed $default = null): mixed
     {
-        // This would need to be implemented based on your routing system
-        // For now, return null as placeholder
-        return null;
+        $params = $this->resolveRouteParams();
+
+        if ($key === null) {
+            return $params;
+        }
+
+        return $params[$key] ?? $default;
+    }
+
+    /**
+     * Read the matched route parameters bound to the container.
+     *
+     * @return array<string, mixed>
+     */
+    protected function resolveRouteParams(): array
+    {
+        $app = app();
+
+        if ($app === null || !$app->bound('routeParams')) {
+            return [];
+        }
+
+        $params = app('routeParams');
+
+        return is_array($params) ? $params : [];
     }
 }

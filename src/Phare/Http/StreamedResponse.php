@@ -2,8 +2,6 @@
 
 namespace Phare\Http;
 
-use Phalcon\Http\Response;
-
 class StreamedResponse extends Response
 {
     protected \Closure $callback;
