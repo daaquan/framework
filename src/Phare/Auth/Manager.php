@@ -228,8 +228,23 @@ class Manager
         $conditions = [];
         $bind = [];
         foreach ($queryable as $key => $value) {
+            // The column name is interpolated directly into the SQL condition and
+            // is caller-supplied (e.g. Auth::attempt($request->all())). Bound
+            // VALUES are safe, but an unfiltered KEY is an SQL injection vector.
+            // Whitelist keys to a strict SQL identifier (optionally a single
+            // table.column qualifier); reject anything containing operators,
+            // whitespace, quotes, or comment sequences.
+            $key = (string)$key;
+            if (!$this->isValidCredentialColumn($key)) {
+                continue;
+            }
+
             $conditions[] = "{$key} = :{$key}:";
             $bind[$key] = $value;
+        }
+
+        if ($conditions === []) {
+            return null;
         }
 
         $user = $class::findFirst([
@@ -243,6 +258,19 @@ class Manager
         }
 
         return null;
+    }
+
+    /**
+     * Determine whether a credential key is a safe column name to interpolate
+     * into a WHERE condition. Only a bare SQL identifier is permitted — letters,
+     * digits and underscores, starting with a letter or underscore. This rejects
+     * every injection vector (whitespace, operators, quotes, parentheses, commas,
+     * comment markers, sub-selects) while accepting real credential columns such
+     * as `email`, `username` or `user_name`.
+     */
+    protected function isValidCredentialColumn(string $key): bool
+    {
+        return preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $key) === 1;
     }
 
     /**

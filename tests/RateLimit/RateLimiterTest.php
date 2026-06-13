@@ -169,10 +169,17 @@ it('allows custom limit keys', function () {
     expect($limit->key)->toBe('custom-key');
 });
 
-it('cleans rate limiter keys', function () {
+it('normalizes rate limiter keys into a safe collision-free hash', function () {
     $dirtyKey = 'user@example.com&action=login';
     $cleanKey = $this->limiter->cleanRateLimiterKey($dirtyKey);
 
+    // The normalized key is a sha1 hash: no special characters survive and the
+    // mapping is deterministic and collision-free, unlike HTML-entity stripping.
+    expect($cleanKey)->toBe(sha1($dirtyKey));
+    expect($cleanKey)->toMatch('/^[0-9a-f]{40}$/');
     expect($cleanKey)->not->toContain('&');
-    expect($cleanKey)->toContain('user');
+
+    // Distinct signatures must never collapse to the same bucket.
+    expect($this->limiter->cleanRateLimiterKey('user-a'))
+        ->not->toBe($this->limiter->cleanRateLimiterKey('user-b'));
 });

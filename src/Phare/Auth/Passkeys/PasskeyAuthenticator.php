@@ -31,7 +31,7 @@ class PasskeyAuthenticator
     }
 
     /**
-     * @param  array<string, mixed>  $assertion
+     * @param array<string, mixed> $assertion
      */
     public function verify(array $assertion, string|int|null $userHandle = null): bool
     {
@@ -40,28 +40,29 @@ class PasskeyAuthenticator
             throw new RuntimeException('Passkey assertion is missing rawId.');
         }
 
-        $expectedChallenge = $this->challengeStore->get($this->challengeKey($userHandle));
+        $challengeKey = $this->challengeKey($userHandle);
+
+        $expectedChallenge = $this->challengeStore->get($challengeKey);
         if ($expectedChallenge === null) {
             throw new RuntimeException('Passkey challenge is missing or expired.');
         }
+
+        // Challenges are single-use: consume it on the first verification attempt
+        // regardless of the outcome, so a captured assertion cannot be replayed
+        // until the TTL elapses.
+        $this->challengeStore->forget($challengeKey);
 
         $credential = $this->credentials->findByCredentialId($credentialId, $userHandle);
         if ($credential === null) {
             return false;
         }
 
-        $verified = $this->verifier->verify($assertion, $credential, $expectedChallenge);
-
-        if ($verified) {
-            $this->challengeStore->forget($this->challengeKey($userHandle));
-        }
-
-        return $verified;
+        return $this->verifier->verify($assertion, $credential, $expectedChallenge);
     }
 
     private function challengeKey(string|int|null $userHandle): string
     {
-        return 'passkey:challenge:' . (string) ($userHandle ?? 'anonymous');
+        return 'passkey:challenge:' . (string)($userHandle ?? 'anonymous');
     }
 
     private function base64UrlEncode(string $value): string

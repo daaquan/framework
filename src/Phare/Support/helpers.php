@@ -15,6 +15,7 @@ use Phare\Contracts\Debug\ExceptionHandler;
 use Phare\Contracts\Foundation\Application;
 use Phare\Encryption\Encrypter;
 use Phare\Events\Contracts\ShouldBroadcast;
+use Phare\Foundation\Http\Exceptions\HttpException;
 use Phare\Foundation\Http\ResponseStatusCode;
 use Phare\Hashing\HashManager;
 use Phare\Http\Response;
@@ -202,11 +203,55 @@ if (!function_exists('route')) {
 
 // abort()
 if (!function_exists('abort')) {
+    /**
+     * Throw an HTTP exception to halt the request.
+     *
+     * @param array<string, string> $headers
+     */
     function abort(
         string $message,
-        ResponseStatusCode $code = ResponseStatusCode::BAD_REQUEST
-    ) {
-        return response(['message' => $message], $code);
+        ResponseStatusCode $code = ResponseStatusCode::BAD_REQUEST,
+        array $headers = []
+    ): never {
+        throw new HttpException($code->value, $message, $headers);
+    }
+}
+
+// abort_if()
+if (!function_exists('abort_if')) {
+    /**
+     * Throw an HTTP exception when the given condition is true.
+     *
+     * @param array<string, string> $headers
+     */
+    function abort_if(
+        bool $boolean,
+        string $message,
+        ResponseStatusCode $code = ResponseStatusCode::BAD_REQUEST,
+        array $headers = []
+    ): void {
+        if ($boolean) {
+            abort($message, $code, $headers);
+        }
+    }
+}
+
+// abort_unless()
+if (!function_exists('abort_unless')) {
+    /**
+     * Throw an HTTP exception unless the given condition is true.
+     *
+     * @param array<string, string> $headers
+     */
+    function abort_unless(
+        bool $boolean,
+        string $message,
+        ResponseStatusCode $code = ResponseStatusCode::BAD_REQUEST,
+        array $headers = []
+    ): void {
+        if (!$boolean) {
+            abort($message, $code, $headers);
+        }
     }
 }
 
@@ -234,9 +279,12 @@ if (!function_exists('view')) {
 if (!function_exists('asset')) {
     function asset(string $path): string
     {
-        $v = config('app.debug')
-            ? filemtime(public_path("assets/$path"))
-            : config('assets.version', 1);
+        if (config('app.debug')) {
+            $file = public_path("assets/$path");
+            $v = is_file($file) ? filemtime($file) : config('assets.version', 1);
+        } else {
+            $v = config('assets.version', 1);
+        }
 
         $url = app('url');
 
@@ -589,7 +637,7 @@ if (!function_exists('retry')) {
         do {
             try {
                 return $callback();
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $attempts++;
                 if ($attempts >= $times || ($when && !$when($e))) {
                     throw $e;

@@ -65,7 +65,7 @@ class SqliteGrammar extends Grammar
             'date', 'dateTime', 'timestamp' => 'TEXT',
             'json' => 'TEXT',
             'binary' => 'BLOB',
-            'enum' => 'TEXT CHECK(' . $this->wrap($column->getName()) . ' IN (' . implode(',', array_map(fn ($v) => "'{$v}'", $column->getAttributes()['values'] ?? [])) . '))',
+            'enum' => 'TEXT CHECK(' . $this->wrap($column->getName()) . ' IN (' . implode(',', array_map(fn ($v) => $this->quoteString((string)$v), $column->getAttributes()['values'] ?? [])) . '))',
             default => 'TEXT',
         };
     }

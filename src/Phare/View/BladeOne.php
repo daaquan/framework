@@ -1617,13 +1617,10 @@ class BladeOne
 
     public function ipClient()
     {
-        if (
-            isset($_SERVER['HTTP_X_FORWARDED_FOR'])
-            && \preg_match('/^(d{1,3}).(d{1,3}).(d{1,3}).(d{1,3})$/', $_SERVER['HTTP_X_FORWARDED_FOR'])
-        ) {
-            return $_SERVER['HTTP_X_FORWARDED_FOR'];
-        }
-
+        // SECURITY: never trust the X-Forwarded-For header for CSRF IP binding.
+        // It is client-controlled and trivially spoofable, so honouring it lets
+        // an attacker forge the IP component of the token. Bind only to the
+        // connection's REMOTE_ADDR, which the client cannot set.
         return $_SERVER['REMOTE_ADDR'] ?? '';
     }
 
@@ -1644,7 +1641,9 @@ class BladeOne
         if (@$_SERVER['REQUEST_METHOD'] === 'POST' && $alwaysRegenerate === false) {
             $this->csrf_token = $_POST[$tokenId] ?? null; // ping pong the token.
 
-            return $this->csrf_token . '|' . $this->ipClient() === ($_SESSION[$tokenId] ?? null);
+            // SECURITY: timing-safe comparison. A plain === leaks how many leading
+            // bytes matched via response time, enabling byte-by-byte token guessing.
+            return \hash_equals((string)($_SESSION[$tokenId] ?? ''), $this->csrf_token . '|' . $this->ipClient());
         }
 
         if ($this->csrf_token == '' || $alwaysRegenerate) {

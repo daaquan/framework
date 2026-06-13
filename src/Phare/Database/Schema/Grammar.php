@@ -90,10 +90,20 @@ abstract class Grammar
         }
 
         if (is_string($value)) {
-            return "'{$value}'";
+            return $this->quoteString($value);
         }
 
         return (string)$value;
+    }
+
+    /**
+     * Wrap a string in single quotes, escaping any embedded single quotes so
+     * the resulting SQL string literal is well-formed (and not an injection
+     * vector through column defaults, comments or enum values).
+     */
+    protected function quoteString(string $value): string
+    {
+        return "'" . str_replace("'", "''", $value) . "'";
     }
 
     protected function compilePrimary(Blueprint $blueprint, array $command): string

@@ -71,10 +71,6 @@ class Micro extends AbstractApplication
 
     public function terminate()
     {
-        $this->app->finish(function ($app) {
-            // $app['log']?->close();
-        });
-
         $this->callTerminatingCallbacks();
     }
 }

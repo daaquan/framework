@@ -128,7 +128,20 @@ class Validator
             if (!$this->customRules[$rule]($attribute, $value, $parameters)) {
                 $this->addError($attribute, $rule, $parameters);
             }
+        } elseif ($rule !== '') {
+            // Unknown/typo rule names used to silently pass, masking bugs.
+            // Fail loudly everywhere except production.
+            if (!$this->isProductionEnvironment()) {
+                throw new \InvalidArgumentException("Unknown validation rule [{$rule}].");
+            }
         }
+    }
+
+    protected function isProductionEnvironment(): bool
+    {
+        $env = $_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'production';
+
+        return $env === 'production' || $env === 'prod';
     }
 
     protected function parseRule(string $rule): array
@@ -292,12 +305,49 @@ class Validator
 
     protected function validateIn(string $attribute, $value, array $parameters): bool
     {
-        return in_array((string)$value, $parameters);
+        // Arrays cannot be a member of a scalar allow-list.
+        if (is_array($value)) {
+            return false;
+        }
+
+        return $this->valueInList($value, $parameters);
     }
 
     protected function validateNotIn(string $attribute, $value, array $parameters): bool
     {
-        return !in_array((string)$value, $parameters);
+        if (is_array($value)) {
+            return true;
+        }
+
+        return !$this->valueInList($value, $parameters);
+    }
+
+    /**
+     * Compare a scalar value against a list of string parameters without
+     * forcing a (string) cast on both sides, which previously broke
+     * bool/null comparisons.
+     *
+     * @param list<string> $parameters
+     */
+    protected function valueInList(mixed $value, array $parameters): bool
+    {
+        foreach ($parameters as $parameter) {
+            if ($value === $parameter) {
+                return true;
+            }
+
+            // Loose, scalar-aware comparison: numeric strings match numbers,
+            // but null/false do not coerce into arbitrary strings.
+            if ((is_int($value) || is_float($value)) && is_numeric($parameter) && $value == $parameter) {
+                return true;
+            }
+
+            if (is_string($value) && $value === $parameter) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function validateConfirmed(string $attribute, $value, array $parameters): bool

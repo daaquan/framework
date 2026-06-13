@@ -23,6 +23,12 @@ class QueueManager extends Manager
     protected array $failingCallbacks = [];
 
     /**
+     * Flag toggled by signal handlers to stop the worker loop gracefully
+     * after the current job finishes.
+     */
+    protected bool $shouldQuit = false;
+
+    /**
      * @param array<string, mixed>|ContainerContract $config Queue config block,
      *                                                       or the application container.
      */
@@ -170,25 +176,51 @@ class QueueManager extends Manager
 
     /**
      * Process jobs from the queue.
+     *
+     * The loop terminates when any guard is hit: the configured max number of
+     * jobs ($maxJobs), the wall-clock budget (the `max_seconds` config key),
+     * or a received stop signal (SIGTERM/SIGINT when pcntl is available). It
+     * always finishes the current job before stopping.
+     *
+     * @param int $maxJobs Stop after processing this many jobs (0 = no limit).
      */
     public function work(?string $queue = null, ?string $connection = null, int $maxJobs = 0): void
     {
-        $connection = $this->connection($connection);
+        $connectionName = $connection;
+        $driver = $this->connection($connectionName);
+
+        $maxSeconds = (int)($this->config['max_seconds'] ?? 0);
+
+        $this->shouldQuit = false;
+        $this->registerSignalHandlers();
+
         $processed = 0;
+        $startedAt = time();
 
         while (true) {
+            $this->dispatchSignals();
+
+            if ($this->shouldQuit) {
+                break;
+            }
+
+            if ($maxSeconds > 0 && (time() - $startedAt) >= $maxSeconds) {
+                break;
+            }
+
             $this->invokeLoopingCallbacks();
 
-            $job = $connection->pop($queue);
+            $job = $driver->pop($queue);
 
             if ($job === null) {
-                // No jobs available, sleep for a bit
+                // No jobs available; back off briefly, but stay responsive to
+                // shutdown signals between iterations.
                 sleep(1);
 
                 continue;
             }
 
-            $this->processJob($job);
+            $this->processJob($job, $connectionName);
             $processed++;
 
             if ($maxJobs > 0 && $processed >= $maxJobs) {
@@ -198,32 +230,71 @@ class QueueManager extends Manager
     }
 
     /**
+     * Register SIGTERM/SIGINT handlers when pcntl is available so the worker
+     * can stop cleanly after the current job.
+     */
+    protected function registerSignalHandlers(): void
+    {
+        if (!function_exists('pcntl_signal') || !function_exists('pcntl_async_signals')) {
+            return;
+        }
+
+        pcntl_async_signals(true);
+
+        $handler = function (): void {
+            $this->shouldQuit = true;
+        };
+
+        pcntl_signal(SIGTERM, $handler);
+        pcntl_signal(SIGINT, $handler);
+    }
+
+    /**
+     * Dispatch any pending signals (no-op when pcntl is unavailable).
+     */
+    protected function dispatchSignals(): void
+    {
+        if (function_exists('pcntl_signal_dispatch')) {
+            pcntl_signal_dispatch();
+        }
+    }
+
+    /**
+     * Stop the worker loop after the current job.
+     */
+    public function stop(): void
+    {
+        $this->shouldQuit = true;
+    }
+
+    /**
      * Process a single job.
      */
-    protected function processJob(Job $job): void
+    protected function processJob(Job $job, ?string $connection = null): void
     {
         try {
             $this->invokeBeforeCallbacks($job);
             $job->handle();
             $this->invokeAfterCallbacks($job);
         } catch (\Exception $e) {
-            $this->handleFailedJob($job, $e);
+            $this->handleFailedJob($job, $e, $connection);
         }
     }
 
     /**
-     * Handle a failed job.
+     * Handle a failed job, retrying on the originating connection/queue so a
+     * job that failed on `redis` is retried on `redis` (not the default).
      */
-    protected function handleFailedJob(Job $job, \Exception $exception): void
+    protected function handleFailedJob(Job $job, \Exception $exception, ?string $connection = null): void
     {
         $this->invokeFailingCallbacks($job, $exception);
         $job->incrementRetries();
 
         if ($job->canRetry()) {
             try {
-                // Re-queue the job with a delay
+                // Re-queue the job with a delay on its originating connection.
                 $job->delay(60); // 1 minute delay before retry
-                $this->push($job);
+                $this->push($job, $job->getQueue(), $connection);
 
                 return;
             } catch (\Exception) {

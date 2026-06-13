@@ -60,16 +60,15 @@ class Sanctum
 
     protected static function generateTokenString(): string
     {
-        return sprintf(
-            '%s%s%s',
-            config('app.key'),
-            time(),
-            bin2hex(random_bytes(32))
-        );
+        return bin2hex(random_bytes(40));
     }
 
     public static function findToken(#[\SensitiveParameter] string $token): ?PersonalAccessToken
     {
+        // Legacy (no-pipe) tokens are looked up directly by their hashed value.
+        // The hashed column lookup is itself constant-time-safe at the storage
+        // layer, so no additional hash_equals comparison is required here; the
+        // pipe format below pairs an untrusted id with a hash_equals check.
         if (strpos($token, '|') === false) {
             return static::$personalAccessTokenModel::where('token', hash('sha256', $token))->first();
         }

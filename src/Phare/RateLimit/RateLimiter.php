@@ -37,21 +37,21 @@ class RateLimiter
 
     public function tooManyAttempts(string $key, int $maxAttempts): bool
     {
-        if ($this->attempts($key) >= $maxAttempts) {
-            if ($this->hasKey($key . ':timer')) {
-                return true;
-            }
-
-            $this->resetAttempts($key);
-        }
-
-        return false;
+        // FAIL CLOSED: a live counter at or over the limit stays limited no
+        // matter what happened to the companion :timer key. Eviction of the
+        // timer must never reset the counter and re-open the gate. The counter
+        // is the source of truth and decays on its own TTL.
+        return $this->attempts($key) >= $maxAttempts;
     }
 
     public function hit(string $key, int $decaySeconds = 60): int
     {
         $cache = $this->getCache();
+        $key = $this->cleanRateLimiterKey($key);
 
+        // Store the reset timestamp atomically alongside the counter so that
+        // availableIn() can report a retry window. The counter itself carries
+        // the same TTL, so even if the timer is evicted the counter still gates.
         $cache->add($key . ':timer', $this->availableAt($decaySeconds), $decaySeconds);
 
         $added = $cache->add($key, 0, $decaySeconds);
@@ -67,12 +67,12 @@ class RateLimiter
 
     public function attempts(string $key): int
     {
-        return (int)$this->getCache()->get($key, 0);
+        return (int)$this->getCache()->get($this->cleanRateLimiterKey($key), 0);
     }
 
     public function resetAttempts(string $key): bool
     {
-        return $this->getCache()->forget($key);
+        return $this->getCache()->forget($this->cleanRateLimiterKey($key));
     }
 
     public function remaining(string $key, int $maxAttempts): int
@@ -90,6 +90,7 @@ class RateLimiter
     public function clear(string $key): void
     {
         $cache = $this->getCache();
+        $key = $this->cleanRateLimiterKey($key);
         $cache->forget($key);
         $cache->forget($key . ':timer');
     }
@@ -98,17 +99,24 @@ class RateLimiter
     {
         $cache = $this->getCache();
 
-        return max(0, $cache->get($key . ':timer') - $this->currentTime());
+        return max(0, (int)$cache->get($this->cleanRateLimiterKey($key) . ':timer') - $this->currentTime());
     }
 
+    /**
+     * Normalize an arbitrary rate-limit signature into a safe, collision-free
+     * cache key. Hashing the raw signature avoids the key corruption and
+     * collisions of HTML-entity stripping and yields a fixed character set that
+     * is safe for every cache backend. Idempotent: hashing an already-hashed
+     * key is harmless because every call here normalizes consistently.
+     */
     public function cleanRateLimiterKey(string $key): string
     {
-        return preg_replace('/&([a-z])[a-z]+;/i', '$1', htmlentities($key));
+        return sha1($key);
     }
 
     protected function hasKey(string $key): bool
     {
-        return $this->getCache()->has($key);
+        return $this->getCache()->has($this->cleanRateLimiterKey($key));
     }
 
     protected function availableAt(int $seconds): int

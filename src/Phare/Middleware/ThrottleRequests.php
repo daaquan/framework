@@ -93,8 +93,14 @@ class ThrottleRequests implements Middleware
 
     protected function resolveRequestSignature(Request $request): string
     {
-        if ($user = $request->get('user')) {
-            return sha1($user);
+        // Derive the throttle bucket from the SERVER-SIDE authenticated principal,
+        // never from client-supplied request parameters (which a client could
+        // rotate to escape its own bucket). Fall back to the client IP + URI when
+        // the request is unauthenticated.
+        $id = $this->resolveAuthenticatedId();
+
+        if ($id !== null) {
+            return sha1('user|' . $id);
         }
 
         return sha1($request->getClientAddress() . '|' . $request->getURI());
@@ -102,11 +108,33 @@ class ThrottleRequests implements Middleware
 
     protected function resolveMaxAttempts(Request $request, int $maxAttempts): int
     {
-        if ($user = $request->get('authenticated_user')) {
-            return $user['rate_limit'] ?? $maxAttempts;
+        // Limits must be authoritative and server-derived. We never read a limit
+        // from request input — a client could otherwise lift its own throttle.
+        return $maxAttempts;
+    }
+
+    /**
+     * Resolve the authenticated user's identifier from the auth manager in the
+     * container. Returns null when no auth manager is bound or no user is logged in.
+     */
+    protected function resolveAuthenticatedId(): int|string|null
+    {
+        try {
+            if (!$this->app->has('auth')) {
+                return null;
+            }
+
+            $auth = $this->app->make('auth');
+
+            if (is_object($auth) && method_exists($auth, 'id')) {
+                return $auth->id();
+            }
+        } catch (\Throwable) {
+            // A misconfigured or unavailable auth manager must not weaken
+            // throttling — fall back to the IP-based signature.
         }
 
-        return $maxAttempts;
+        return null;
     }
 
     protected function calculateRemainingAttempts(string $key, int $maxAttempts, ?int $retryAfter = null): int

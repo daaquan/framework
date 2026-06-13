@@ -86,8 +86,25 @@ abstract class Mailable
         return $this;
     }
 
-    public function attach(string $path, ?string $name = null, ?string $type = null): static
+    /**
+     * Attach a file to the message.
+     *
+     * Accepts either a path string (Laravel-style) or an array descriptor
+     * carrying the path plus an optional display name and MIME type:
+     *   ['path' => '/abs/file.pdf', 'as' => 'invoice.pdf', 'mime' => 'application/pdf']
+     *
+     * @param string|array{path?: string, as?: string, mime?: string} $file
+     */
+    public function attach(string|array $file, ?string $name = null, ?string $type = null): static
     {
+        if (is_array($file)) {
+            $path = (string)($file['path'] ?? '');
+            $name = $file['as'] ?? $name;
+            $type = $file['mime'] ?? $type;
+        } else {
+            $path = $file;
+        }
+
         $this->attachments[] = [
             'path' => $path,
             'name' => $name,

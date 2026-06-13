@@ -88,7 +88,7 @@ class Dispatcher implements DispatcherContract
     {
         $this->pushedEvents[$event] = true;
 
-        $this->listen($event.'_pushed', function () use ($event, $payload) {
+        $this->listen($event . '_pushed', function () use ($event, $payload) {
             $this->dispatch($event, $payload);
         });
     }
@@ -104,9 +104,12 @@ class Dispatcher implements DispatcherContract
             return null;
         }
 
-        if ($isEventObject
-            && $eventPayload[0] instanceof ShouldDispatchAfterCommit
+        $dispatchesAfterCommit = ($isEventObject && $event instanceof ShouldDispatchAfterCommit)
+            || (($eventPayload[0] ?? null) instanceof ShouldDispatchAfterCommit);
+
+        if ($dispatchesAfterCommit
             && ($transactions = $this->resolveTransactionManager()) !== null
+            && is_object($transactions)
             && method_exists($transactions, 'addCallback')) {
             $transactions->addCallback(fn () => $this->invokeListeners($eventName, $eventPayload, $halt));
 
@@ -147,7 +150,7 @@ class Dispatcher implements DispatcherContract
 
     public function dispatchIf(bool|\Closure $boolean, string|object $event, mixed $payload = [], bool $halt = false): mixed
     {
-        $shouldDispatch = $boolean instanceof \Closure ? (bool) $boolean($event, $payload) : (bool) $boolean;
+        $shouldDispatch = $boolean instanceof \Closure ? (bool)$boolean($event, $payload) : (bool)$boolean;
 
         if (!$shouldDispatch) {
             return $halt ? null : [];
@@ -175,7 +178,7 @@ class Dispatcher implements DispatcherContract
 
     public function flush(string $event): void
     {
-        $this->dispatch($event.'_pushed');
+        $this->dispatch($event . '_pushed');
     }
 
     public function forget(string $event): void
@@ -190,7 +193,7 @@ class Dispatcher implements DispatcherContract
     public function forgetPushed(): void
     {
         foreach (array_keys($this->pushedEvents) as $event) {
-            unset($this->listeners[$event.'_pushed']);
+            unset($this->listeners[$event . '_pushed']);
         }
 
         $this->pushedEvents = [];
@@ -233,7 +236,7 @@ class Dispatcher implements DispatcherContract
 
             if (is_array($events)) {
                 foreach ($events as $event => $listeners) {
-                    foreach ((array) $listeners as $listener) {
+                    foreach ((array)$listeners as $listener) {
                         if (is_string($listener) && method_exists($subscriber, $listener)) {
                             $this->listen($event, [get_class($subscriber), $listener]);
 
