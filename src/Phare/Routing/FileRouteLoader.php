@@ -9,7 +9,7 @@ class FileRouteLoader extends RouteLoader
      */
     public function generateRoutesCacheFile(): void
     {
-        $routes = ['@timestamp' => $this->getRoutesFilesModificationTime($this->routePaths)];
+        $extracted = [];
         foreach ($this->routePaths as $routeFile) {
             $fileRouter = require $routeFile;
             if (!$fileRouter instanceof Router) {
@@ -46,9 +46,16 @@ class FileRouteLoader extends RouteLoader
                         ->name($route['name'] ?? null);
                 }
 
-                $routes = [...$routes, ...$this->extractRoutes($router)];
+                // Accumulate per-route extractions and merge once below to
+                // avoid repeated O(n) spreads and accidental @timestamp clobbering.
+                $extracted[] = $this->extractRoutes($router);
             }
         }
+
+        $routes = $extracted === [] ? [] : array_merge(...$extracted);
+
+        // Set @timestamp last so accumulated route entries can never clobber it.
+        $routes['@timestamp'] = $this->getRoutesFilesModificationTime($this->routePaths);
 
         $this->writeCacheFile($routes);
     }

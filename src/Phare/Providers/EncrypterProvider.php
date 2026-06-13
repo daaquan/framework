@@ -2,6 +2,7 @@
 
 namespace Phare\Providers;
 
+use Phalcon\Config\ConfigInterface;
 use Phalcon\Encryption\Security;
 use Phalcon\Encryption\Security\Random;
 use Phare\Encryption\Encrypter;
@@ -39,7 +40,23 @@ class EncrypterProvider extends ServiceProvider
             // Phare\Encryption\Encrypter only registers lower-case cipher names.
             $cipher = strtolower((string)$config->path('app.cipher', 'aes-256-cbc'));
 
-            return new Encrypter($key, $cipher);
+            // Retired keys retained for decryption during key rotation. Accepts a
+            // list of raw or "base64:"-prefixed keys; encryption always uses the
+            // current key, but ciphertext under any previous key still decrypts.
+            $previousKeys = $config->path('app.previous_keys', []);
+            if ($previousKeys instanceof ConfigInterface) {
+                $previousKeys = $previousKeys->toArray();
+            }
+            $previousKeys = array_map(static function ($previousKey): string {
+                $previousKey = (string)$previousKey;
+                if (str_starts_with($previousKey, 'base64:')) {
+                    return base64_decode(substr($previousKey, 7), true) ?: '';
+                }
+
+                return $previousKey;
+            }, (array)$previousKeys);
+
+            return new Encrypter($key, $cipher, array_values($previousKeys));
         });
     }
 }

@@ -3,7 +3,9 @@
 namespace Phare\Database;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
+use Phare\Collections\Str;
 use Phare\Contracts\Foundation\Application;
+use Phare\Eloquent\Model;
 
 class Factory
 {
@@ -115,6 +117,21 @@ class Factory
 
     protected function saveInstance(array $instance): void
     {
+        // Prefer persisting through a model instance so the model's configured
+        // connection is used and casts/mutators/timestamps are applied.
+        $model = $this->newModel();
+
+        if ($model !== null) {
+            foreach ($instance as $key => $value) {
+                $model->setAttribute((string)$key, $value);
+            }
+
+            $model->create();
+
+            return;
+        }
+
+        // Fall back to a raw insert when the target isn't an Eloquent model.
         $table = $this->getTableName();
         $columns = implode(', ', array_map(fn ($col) => "`{$col}`", array_keys($instance)));
         $placeholders = implode(', ', array_fill(0, count($instance), '?'));
@@ -145,9 +162,28 @@ class Factory
 
     protected function getTableName(): string
     {
-        // Convert model class name to table name (e.g., User -> users)
-        $modelName = class_basename($this->model);
+        // Defer to the model itself so the table name matches exactly what the
+        // ORM resolves (custom $table overrides, correct pluralisation, etc.).
+        $model = $this->newModel();
 
-        return strtolower($modelName) . 's';
+        if ($model !== null) {
+            return $model->getTable();
+        }
+
+        // Fall back to the same pluralisation the Model uses when no instance
+        // can be built (e.g. Category -> categories, Person -> people).
+        return Str::tableize(class_basename($this->model));
+    }
+
+    protected function newModel(): ?Model
+    {
+        if (!is_string($this->model) || !is_subclass_of($this->model, Model::class)) {
+            return null;
+        }
+
+        /** @var Model $model */
+        $model = new $this->model();
+
+        return $model;
     }
 }

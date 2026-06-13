@@ -56,6 +56,7 @@ abstract class FormRequest extends Request
     public function validator(): Validator
     {
         if (!isset($this->validator)) {
+            $this->prepareForValidation();
             $this->validator = $this->createValidator();
         }
 
@@ -71,8 +72,10 @@ abstract class FormRequest extends Request
         $validator = $this->validator();
 
         if ($validator->fails()) {
-            throw new ValidationException($validator);
+            $this->failedValidation($validator);
         }
+
+        $this->passedValidation();
     }
 
     protected function createValidator(): Validator
@@ -111,8 +114,6 @@ abstract class FormRequest extends Request
 
     public function getValidatorInstance(): Validator
     {
-        $this->prepareForValidation();
-
-        return $this->createValidator();
+        return $this->validator();
     }
 }

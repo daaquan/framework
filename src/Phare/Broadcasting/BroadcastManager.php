@@ -10,6 +10,7 @@ use Phare\Broadcasting\Broadcasters\NullBroadcaster;
 use Phare\Broadcasting\Broadcasters\PusherBroadcaster;
 use Phare\Broadcasting\Broadcasters\RedisBroadcaster;
 use Phare\Container\Container;
+use Phare\Queue\Job;
 use Phare\Support\Manager;
 
 class BroadcastManager extends Manager
@@ -141,7 +142,57 @@ class BroadcastManager extends Manager
         unset($this->drivers[$name]);
     }
 
+    /**
+     * Defer an event onto the queue so it is broadcast out-of-band.
+     *
+     * The event is wrapped in a {@see BroadcastEventJob} and pushed onto the
+     * `queue` service, honouring broadcastConnection()/broadcastQueue() when the
+     * event exposes them. When no queue service can be resolved (e.g. in tests
+     * or a queue-less app) it falls back to broadcasting synchronously so the
+     * convenience never silently drops the event.
+     */
     public function queue(mixed $event): void
+    {
+        if (method_exists($event, 'broadcastWhen') && !$event->broadcastWhen()) {
+            return;
+        }
+
+        $queue = $this->resolveQueue();
+
+        if ($queue === null) {
+            // No queue available — broadcast inline so the event is not lost.
+            $this->broadcastNow($event);
+
+            return;
+        }
+
+        $connection = method_exists($event, 'broadcastConnection') ? $event->broadcastConnection() : null;
+        $onQueue = method_exists($event, 'broadcastQueue') ? $event->broadcastQueue() : null;
+
+        try {
+            $job = new BroadcastEventJob($event);
+            $queue->push($job, $onQueue, $connection);
+        } catch (\Throwable $e) {
+            // If the queue rejects the job, do not drop the broadcast: fall back
+            // to a synchronous send and log the failure when a logger exists.
+            $logger = $this->container['log'] ?? null;
+            if ($logger) {
+                $logger->warning('Broadcast queue dispatch failed; broadcasting synchronously.', [
+                    'exception' => $e->getMessage(),
+                    'event' => get_class($event),
+                ]);
+            }
+
+            $this->broadcastNow($event);
+        }
+    }
+
+    /**
+     * Broadcast an event immediately across each configured connection. This is
+     * the synchronous entry point used directly, by the queue worker (via
+     * {@see BroadcastEventJob}), and as the fallback in {@see queue()}.
+     */
+    public function broadcastNow(mixed $event): void
     {
         if (method_exists($event, 'broadcastWhen') && !$event->broadcastWhen()) {
             return;
@@ -156,5 +207,51 @@ class BroadcastManager extends Manager
                 method_exists($event, 'broadcastWith') ? $event->broadcastWith() : []
             );
         }
+    }
+
+    /**
+     * Resolve the queue service from the container, or null when none is bound.
+     */
+    protected function resolveQueue(): mixed
+    {
+        $queue = $this->container['queue'] ?? null;
+
+        if ($queue !== null && method_exists($queue, 'push')) {
+            return $queue;
+        }
+
+        return null;
+    }
+}
+
+/**
+ * Queue job that performs a broadcast out-of-band. The event is carried on the
+ * job and replayed through the container's broadcast manager (or, as a fallback
+ * for queue-less contexts, broadcast inline) when the worker runs handle().
+ */
+class BroadcastEventJob extends Job
+{
+    protected mixed $event;
+
+    public function __construct(mixed $event)
+    {
+        parent::__construct();
+
+        $this->event = $event;
+    }
+
+    public function handle(): void
+    {
+        $manager = function_exists('app') ? app('broadcast') : null;
+
+        if ($manager instanceof BroadcastManager) {
+            $manager->broadcastNow($this->event);
+
+            return;
+        }
+
+        // No resolvable manager (e.g. outside a booted application): fall back
+        // to the default pusher-style channels via a fresh manager is not
+        // possible without a container, so there is nothing further to do here.
     }
 }

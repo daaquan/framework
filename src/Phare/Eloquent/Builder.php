@@ -8,6 +8,8 @@ use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
 use Phare\Collections\Collection;
 use Phare\Eloquent\Relations\Relation;
+use Phare\Pagination\LengthAwarePaginator;
+use Phare\Pagination\Paginator;
 
 /**
  * Eloquent Builder for Phalcon
@@ -200,8 +202,15 @@ class Builder extends Criteria implements BuilderInterface
     private function phalconCondition($field, $operator = null, $value = null)
     {
         if ($field instanceof Closure) {
+            // Seed the sub-builder's bind counter from the parent so the keys it
+            // generates (bind_N, field_N) never collide with the parent's keys
+            // when the two bind arrays are merged.
             $builder = new self();
+            $builder->bindIndex = $this->bindIndex;
             $field($builder);
+
+            // Advance the parent past every key the sub-builder consumed.
+            $this->bindIndex = $builder->bindIndex;
 
             $params = $builder->getParams();
 
@@ -403,6 +412,19 @@ class Builder extends Criteria implements BuilderInterface
         };
     }
 
+    /**
+     * Update the matching models.
+     *
+     * Each matching model is loaded and the attributes are applied through
+     * {@see Model::setAttribute()} so casts and mutators run, then persisted
+     * via {@see Model::update()} which touches `updated_at` (when the model
+     * uses timestamps) and fires the saving/updating/updated/saved events.
+     * This is slower than a single bulk statement but keeps full parity with
+     * per-model behaviour rather than issuing a raw UPDATE that bypasses it.
+     *
+     * @param array<string, mixed> $attributes
+     * @return int The number of models updated.
+     */
     public function update(array $attributes): int
     {
         $models = iterator_to_array($this->applyScopes()->get(), false);
@@ -411,34 +433,20 @@ class Builder extends Criteria implements BuilderInterface
             return 0;
         }
 
-        /** @var Model $model */
-        $model = $models[0];
-        $keyName = $model->getKeyName();
-        $ids = array_values(array_filter(
-            array_map(static fn (Model $item) => $item->readAttribute($keyName), $models),
-            static fn ($id) => $id !== null
-        ));
+        $updated = 0;
 
-        if ($ids === []) {
-            return 0;
+        /** @var Model $model */
+        foreach ($models as $model) {
+            foreach ($attributes as $column => $value) {
+                $model->setAttribute((string)$column, $value);
+            }
+
+            if ($model->update()) {
+                $updated++;
+            }
         }
 
-        $columns = array_keys($attributes);
-        $assignments = implode(', ', array_map(static fn (string $column) => $column . ' = ?', $columns));
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-
-        $model->getWriteConnection()->execute(
-            sprintf(
-                'UPDATE %s SET %s WHERE %s IN (%s)',
-                $model->getTable(),
-                $assignments,
-                $keyName,
-                $placeholders
-            ),
-            array_merge(array_values($attributes), $ids)
-        );
-
-        return count($ids);
+        return $updated;
     }
 
     public function delete(): int
@@ -523,6 +531,10 @@ class Builder extends Criteria implements BuilderInterface
      */
     public function whereIn($field, array $values): BuilderInterface
     {
+        if ($values === []) {
+            return $this->where('0 = 1');
+        }
+
         $placeholders = implode(',', array_fill(0, count($values), '?'));
 
         return $this->where("$field IN ($placeholders)", $values);
@@ -536,6 +548,10 @@ class Builder extends Criteria implements BuilderInterface
      */
     public function orWhereIn($field, array $values): BuilderInterface
     {
+        if ($values === []) {
+            return $this->orWhere('0 = 1');
+        }
+
         $placeholders = implode(',', array_fill(0, count($values), '?'));
 
         return $this->orWhere("$field IN ($placeholders)", $values);
@@ -551,6 +567,10 @@ class Builder extends Criteria implements BuilderInterface
      */
     public function whereNotIn($field, array $values): BuilderInterface
     {
+        if ($values === []) {
+            return $this->where('1 = 1');
+        }
+
         $placeholders = implode(',', array_fill(0, count($values), '?'));
 
         return $this->where("$field NOT IN ($placeholders)", $values);
@@ -658,7 +678,7 @@ class Builder extends Criteria implements BuilderInterface
         if (empty($this->params['conditions'])) {
             $this->params['conditions'] = $conditions;
         } else {
-            $this->params['conditions'] = "({$this->params['conditions']}) OR ($conditions)";
+            $this->params['conditions'] = "({$this->params['conditions']}) OR ({$conditions})";
         }
 
         $this->params['bind'] = array_merge($this->params['bind'] ?? [], $bind);
@@ -667,20 +687,123 @@ class Builder extends Criteria implements BuilderInterface
     }
 
     /**
-     * Set pagination parameters.
-     * Usage: $builder->paginate(2, 15) // page 2, 15 items per page
+     * Paginate the query into a length-aware paginator.
      *
-     * @param int $page
-     * @param int $limit
+     * Runs a COUNT over the current conditions (ignoring any limit/order) to
+     * resolve the total, then fetches a single page of results. When $page is
+     * null it is resolved from the current request.
+     *
+     * Usage: $builder->paginate(15) or $builder->paginate(15, 2)
      */
-    public function paginate($page, $limit): BuilderInterface
+    public function paginate(int $perPage = 15, ?int $page = null): LengthAwarePaginator
     {
-        $this->params['limit'] = [
-            'number' => $limit,
-            'offset' => ($page - 1) * $limit,
+        $builder = $this->applyScopes();
+        $page = $page ?? Paginator::resolveCurrentPage();
+        $page = max($page, 1);
+
+        $total = $builder->getCountForPagination();
+
+        $items = $total > 0
+            ? $builder->forPageItems($perPage, $page)
+            : new Collection();
+
+        return new LengthAwarePaginator($items, $total, $perPage, $page);
+    }
+
+    /**
+     * Paginate without a total count (Laravel parity "simple" pagination).
+     *
+     * Fetches one extra row beyond $perPage to detect whether a next page
+     * exists; the paginator trims the extra row and exposes hasMorePages().
+     *
+     * Usage: $builder->simplePaginate(15) or $builder->simplePaginate(15, 2)
+     */
+    public function simplePaginate(int $perPage = 15, ?int $page = null): Paginator
+    {
+        $builder = $this->applyScopes();
+        $page = $page ?? Paginator::resolveCurrentPage();
+        $page = max($page, 1);
+
+        // Fetch perPage + 1 so the paginator can detect a following page.
+        $items = $builder->forPageItems($perPage + 1, $page, ($page - 1) * $perPage);
+
+        return new Paginator($items, $perPage, $page);
+    }
+
+    /**
+     * Fetch a single page of results without mutating this builder's params.
+     */
+    private function forPageItems(int $perPage, int $page, ?int $offset = null): Collection
+    {
+        $offset = $offset ?? ($page - 1) * $perPage;
+
+        $params = $this->getParams();
+        $params['limit'] = $offset === 0 ? $perPage : [
+            'number' => $perPage,
+            'offset' => $offset,
         ];
 
+        $modelName = $this->getModelName();
+
+        $results = is_string($modelName) && method_exists($modelName, 'rawFind')
+            ? $modelName::rawFind($params)
+            : (clone $this)->setPageParams($params)->execute();
+
+        if ($this->eagerLoad !== []) {
+            return $this->eagerLoadRelations($results);
+        }
+
+        return new Collection(iterator_to_array($results, false));
+    }
+
+    /**
+     * Apply a prepared params array to this builder (used by pagination).
+     *
+     * @param array<string, mixed> $params
+     */
+    private function setPageParams(array $params): static
+    {
+        $this->params = $params;
+
         return $this;
+    }
+
+    /**
+     * Resolve the total row count for the current conditions, ignoring any
+     * limit/order/columns previously applied.
+     */
+    private function getCountForPagination(): int
+    {
+        $params = $this->getParams();
+
+        $countParams = [];
+
+        if (!empty($params['conditions'])) {
+            $countParams['conditions'] = $params['conditions'];
+        }
+
+        if (!empty($params['bind'])) {
+            $countParams['bind'] = $params['bind'];
+        }
+
+        if (!empty($params['group'])) {
+            $countParams['group'] = $params['group'];
+        }
+
+        $modelName = $this->getModelName();
+
+        if (is_string($modelName) && method_exists($modelName, 'count')) {
+            $count = $modelName::count($countParams === [] ? null : $countParams);
+
+            // A grouped count returns a resultset of per-group counts.
+            if (is_object($count) && $count instanceof \Countable) {
+                return count($count);
+            }
+
+            return (int)$count;
+        }
+
+        return 0;
     }
 
     /**
@@ -898,12 +1021,18 @@ class Builder extends Criteria implements BuilderInterface
      *
      * @param int $limit
      * @param int $offset
+     *
+     * @throws \InvalidArgumentException When a negative offset is supplied.
      */
     public function limit($limit, $offset = 0): BuilderInterface
     {
+        if ($offset < 0) {
+            throw new \InvalidArgumentException(sprintf('Offset must not be negative, [%d] given.', $offset));
+        }
+
         $this->params['limit'] = $offset === 0 ? $limit : [
             'number' => $limit,
-            'offset' => abs($offset),
+            'offset' => $offset,
         ];
 
         return $this;

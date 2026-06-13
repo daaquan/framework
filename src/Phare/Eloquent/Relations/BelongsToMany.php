@@ -194,6 +194,7 @@ class BelongsToMany extends Relation
             if (!array_key_exists($id, $current)) {
                 $this->attach($id, $attributes, false);
                 $attached[] = $id;
+
                 continue;
             }
 
@@ -226,6 +227,7 @@ class BelongsToMany extends Relation
             if (array_key_exists($id, $current)) {
                 $this->detach([$id], false);
                 $detached[] = $id;
+
                 continue;
             }
 
@@ -290,21 +292,21 @@ class BelongsToMany extends Relation
 
     public function wherePivot($column, $operator = null, $value = null): static
     {
-        $this->query->where($this->qualifyPivotColumn((string) $column), $operator, $value);
+        $this->query->where($this->qualifyPivotColumn((string)$column), $operator, $value);
 
         return $this;
     }
 
     public function wherePivotIn($column, $values): static
     {
-        $this->query->whereIn($this->qualifyPivotColumn((string) $column), is_array($values) ? $values : [$values]);
+        $this->query->whereIn($this->qualifyPivotColumn((string)$column), is_array($values) ? $values : [$values]);
 
         return $this;
     }
 
     public function orderByPivot($column, $direction = 'asc'): static
     {
-        $this->query->orderBy($this->qualifyPivotColumn((string) $column), $direction);
+        $this->query->orderBy($this->qualifyPivotColumn((string)$column), $direction);
 
         return $this;
     }
@@ -329,9 +331,7 @@ class BelongsToMany extends Relation
         return str_contains($column, '.') ? $column : $this->table . '.' . $column;
     }
 
-    protected function addBaseConstraints(): void
-    {
-    }
+    protected function addBaseConstraints(): void {}
 
     protected function fetchRows(): array
     {
@@ -358,7 +358,7 @@ class BelongsToMany extends Relation
         );
 
         [$conditions, $bindings] = $this->compileConditionsAndBindings(
-            (string) ($params['conditions'] ?? ''),
+            (string)($params['conditions'] ?? ''),
             $params['bind'] ?? []
         );
 
@@ -366,6 +366,9 @@ class BelongsToMany extends Relation
             $sql .= ' WHERE ' . $conditions;
         }
 
+        // NOTE: group/order are developer-controlled raw SQL fragments (set via
+        // groupBy()/orderBy()/orderByRaw()) and are emitted verbatim, mirroring
+        // the rest of the query builder. They must never carry untrusted input.
         if (!empty($params['group'])) {
             $sql .= ' GROUP BY ' . $params['group'];
         }
@@ -378,9 +381,9 @@ class BelongsToMany extends Relation
             $limit = $params['limit'];
 
             if (is_array($limit)) {
-                $sql .= sprintf(' LIMIT %d OFFSET %d', (int) $limit['number'], (int) $limit['offset']);
+                $sql .= sprintf(' LIMIT %d OFFSET %d', (int)$limit['number'], (int)$limit['offset']);
             } else {
-                $sql .= ' LIMIT ' . (int) $limit;
+                $sql .= ' LIMIT ' . (int)$limit;
             }
         }
 
@@ -395,9 +398,29 @@ class BelongsToMany extends Relation
         )));
 
         return array_map(
-            fn (string $column) => sprintf('%s as pivot_%s', $this->qualifyPivotColumn($column), $column),
+            fn (string $column) => sprintf(
+                '%s as pivot_%s',
+                $this->qualifyPivotColumn($this->validatePivotColumn($column)),
+                $this->validatePivotColumn($column)
+            ),
             $columns
         );
+    }
+
+    /**
+     * Reject pivot column identifiers that are not plain `column` or
+     * `table.column` names, so they cannot be used to inject SQL through the
+     * unquoted SELECT/alias fragments.
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function validatePivotColumn(string $column): string
+    {
+        if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/', $column) !== 1) {
+            throw new \InvalidArgumentException(sprintf('Invalid pivot column identifier [%s].', $column));
+        }
+
+        return $column;
     }
 
     protected function hydrateRows(array $rows): Collection
@@ -411,6 +434,7 @@ class BelongsToMany extends Relation
             foreach ($row as $key => $value) {
                 if (str_starts_with($key, 'pivot_')) {
                     $pivotAttributes[substr($key, 6)] = $value;
+
                     continue;
                 }
 
@@ -457,10 +481,12 @@ class BelongsToMany extends Relation
             if (is_int($key)) {
                 if (is_array($item)) {
                     $records[$key] = $item;
+
                     continue;
                 }
 
                 $records[$item instanceof Model ? $item->getKey() : $item] = [];
+
                 continue;
             }
 

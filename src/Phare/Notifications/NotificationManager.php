@@ -2,8 +2,11 @@
 
 namespace Phare\Notifications;
 
+use Phare\Contracts\Queue\ShouldQueue;
 use Phare\Events\Contracts\Dispatcher as EventDispatcher;
 use Phare\Notifications\Channels\ChannelManager;
+use Phare\Queue\Job;
+use Phare\Queue\QueueInterface;
 
 class NotificationManager
 {
@@ -11,35 +14,85 @@ class NotificationManager
 
     protected ?EventDispatcher $events;
 
+    /**
+     * When true, dispatched notifications are recorded in memory for later
+     * inspection. This is intended for tests and is gated rather than
+     * always-on so production usage does not accumulate an unbounded array.
+     */
+    protected bool $recording;
+
     protected array $sentNotifications = [];
 
-    public function __construct(ChannelManager $channelManager, ?EventDispatcher $events = null)
-    {
+    public function __construct(
+        ChannelManager $channelManager,
+        ?EventDispatcher $events = null,
+        ?bool $recording = null
+    ) {
         $this->channelManager = $channelManager;
         $this->events = $events;
+        // Recording defaults on for backward compatibility; pass false in
+        // long-running processes to avoid accumulating an unbounded array.
+        $this->recording = $recording ?? true;
     }
 
     /**
      * Send the given notification to the given notifiable entities.
+     *
+     * Notifications implementing ShouldQueue are pushed onto the queue instead
+     * of being delivered inline.
      */
     public function send(mixed $notifiables, Notification $notification): void
     {
-        if (!is_iterable($notifiables)) {
-            $notifiables = [$notifiables];
+        if ($notification instanceof ShouldQueue) {
+            $this->queueNotification($notifiables, $notification);
+
+            return;
         }
 
-        foreach ($notifiables as $notifiable) {
+        $this->sendNow($notifiables, $notification);
+    }
+
+    /**
+     * Send the given notification immediately, bypassing the queue.
+     */
+    public function sendNow(mixed $notifiables, Notification $notification): void
+    {
+        foreach ($this->normalizeNotifiables($notifiables) as $notifiable) {
             $this->sendToNotifiable($notifiable, $notification);
         }
     }
 
     /**
-     * Send the given notification immediately to the given notifiable entities.
+     * Push a queueable notification onto the queue. Falls back to inline
+     * delivery only when no queue connection can be resolved.
      */
-    public function sendNow(mixed $notifiables, Notification $notification): void
+    protected function queueNotification(mixed $notifiables, Notification $notification): void
     {
-        // For now, sendNow is the same as send since we're not implementing queued notifications
-        $this->send($notifiables, $notification);
+        $queue = $this->resolveQueue();
+
+        if ($queue === null) {
+            // No queue is available; deliver inline rather than dropping the
+            // notification.
+            $this->sendNow($notifiables, $notification);
+
+            return;
+        }
+
+        foreach ($this->normalizeNotifiables($notifiables) as $notifiable) {
+            $queue->push(new SendQueuedNotification($notifiable, $notification));
+        }
+    }
+
+    /**
+     * Normalize a single notifiable or an iterable into an iterable.
+     */
+    protected function normalizeNotifiables(mixed $notifiables): iterable
+    {
+        if (!is_iterable($notifiables)) {
+            return [$notifiables];
+        }
+
+        return $notifiables;
     }
 
     /**
@@ -85,7 +138,18 @@ class NotificationManager
             'channels' => $channels,
         ]);
 
-        // Track sent notifications for testing purposes
+        $this->recordSent($notifiable, $notification, $channels);
+    }
+
+    /**
+     * Record a sent notification when recording is enabled.
+     */
+    protected function recordSent(mixed $notifiable, Notification $notification, array $channels): void
+    {
+        if (!$this->recording) {
+            return;
+        }
+
         $this->sentNotifications[] = [
             'notifiable' => $notifiable,
             'notification' => $notification,
@@ -104,6 +168,48 @@ class NotificationManager
     }
 
     /**
+     * Resolve the queue connection from the container, if available.
+     */
+    protected function resolveQueue(): ?QueueInterface
+    {
+        if (!function_exists('app') || !$this->hasApplication()) {
+            return null;
+        }
+
+        try {
+            $queue = app('queue');
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if ($queue instanceof QueueInterface) {
+            return $queue;
+        }
+
+        // The 'queue' binding resolves to a QueueManager; ask it for the
+        // default connection.
+        if (is_object($queue) && method_exists($queue, 'connection')) {
+            try {
+                $connection = $queue->connection();
+            } catch (\Throwable) {
+                return null;
+            }
+
+            return $connection instanceof QueueInterface ? $connection : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine whether an application container has been bootstrapped.
+     */
+    protected function hasApplication(): bool
+    {
+        return function_exists('app') && app() !== null;
+    }
+
+    /**
      * Get the channel manager instance.
      */
     public function getChannelManager(): ChannelManager
@@ -112,7 +218,7 @@ class NotificationManager
     }
 
     /**
-     * Get sent notifications (for testing).
+     * Get sent notifications (recording mode, for testing).
      */
     public function getSentNotifications(): array
     {
@@ -120,7 +226,7 @@ class NotificationManager
     }
 
     /**
-     * Clear sent notifications (for testing).
+     * Clear sent notifications (recording mode, for testing).
      */
     public function clearSentNotifications(): void
     {
@@ -159,5 +265,58 @@ class NotificationManager
     public function setDefaultDriver(string $name): void
     {
         $this->channelManager->setDefaultDriver($name);
+    }
+}
+
+/**
+ * Queue job that delivers a notification inline when processed by a worker.
+ *
+ * Defined alongside the manager so the queued notification path has a concrete
+ * Job to push without requiring a separate autoloadable class.
+ */
+class SendQueuedNotification extends Job
+{
+    public function __construct(
+        protected mixed $notifiable,
+        protected Notification $notification
+    ) {
+        parent::__construct();
+
+        $this->withData([
+            'notification' => get_class($notification),
+            'notification_id' => $notification->getId(),
+        ]);
+    }
+
+    /**
+     * Deliver the notification inline.
+     */
+    public function handle(): void
+    {
+        if (!function_exists('app')) {
+            return;
+        }
+
+        $manager = app(NotificationManager::class);
+
+        if ($manager instanceof NotificationManager) {
+            $manager->sendNow($this->notifiable, $this->notification);
+        }
+    }
+
+    /**
+     * Get the notifiable entity this job will deliver to.
+     */
+    public function getNotifiable(): mixed
+    {
+        return $this->notifiable;
+    }
+
+    /**
+     * Get the notification this job will deliver.
+     */
+    public function getNotification(): Notification
+    {
+        return $this->notification;
     }
 }

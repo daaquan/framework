@@ -58,12 +58,12 @@ abstract class JsonResource implements \JsonSerializable, Arrayable, Jsonable
     {
         $data = $this->resolve();
 
-        if (is_array($data)) {
-            $data = $data;
-        } elseif ($data instanceof Arrayable) {
-            $data = $data->toArray();
-        } elseif ($data instanceof \JsonSerializable) {
-            $data = $data->jsonSerialize();
+        if (!is_array($data)) {
+            if ($data instanceof Arrayable) {
+                $data = $data->toArray();
+            } elseif ($data instanceof \JsonSerializable) {
+                $data = $data->jsonSerialize();
+            }
         }
 
         return is_array($data) ? $data : [$data];

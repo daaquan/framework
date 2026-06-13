@@ -8,6 +8,15 @@ class Encrypter
 
     protected string $cipher;
 
+    /**
+     * Retired keys retained for decryption during rotation. Encryption always
+     * uses the current key; decryption falls back to these on verification
+     * failure so ciphertext produced under an old key keeps decrypting.
+     *
+     * @var list<string>
+     */
+    protected array $previousKeys = [];
+
     protected static array $supportedCiphers = [
         'aes-128-cbc' => ['size' => 16, 'aead' => false],
         'aes-256-cbc' => ['size' => 32, 'aead' => false],
@@ -15,12 +24,33 @@ class Encrypter
         'aes-256-gcm' => ['size' => 32, 'aead' => true],
     ];
 
-    public function __construct(#[\SensitiveParameter] string $key, string $cipher = 'aes-256-cbc')
-    {
+    /**
+     * @param list<string> $previousKeys Retired raw keys to try on decrypt only.
+     */
+    public function __construct(
+        #[\SensitiveParameter] string $key,
+        string $cipher = 'aes-256-cbc',
+        #[\SensitiveParameter] array $previousKeys = []
+    ) {
         $this->validateKey($key, $cipher);
+
+        foreach ($previousKeys as $previousKey) {
+            $this->validateKey((string)$previousKey, $cipher);
+        }
 
         $this->key = $key;
         $this->cipher = $cipher;
+        $this->previousKeys = array_values(array_map('strval', $previousKeys));
+    }
+
+    /**
+     * All keys (current first) eligible to attempt decryption.
+     *
+     * @return list<string>
+     */
+    protected function allKeys(): array
+    {
+        return [$this->key, ...$this->previousKeys];
     }
 
     public function encrypt(#[\SensitiveParameter] mixed $value, bool $serialize = true): string
@@ -32,6 +62,12 @@ class Encrypter
         if ($this->isAEAD()) {
             $tag = null;
             $encrypted = openssl_encrypt($value, $this->cipher, $this->key, 0, $iv, $tag);
+
+            // Fail before deriving anything from a false result.
+            if ($encrypted === false) {
+                throw new EncryptException('Could not encrypt the data.');
+            }
+
             $payload = base64_encode(json_encode([
                 'iv' => base64_encode($iv),
                 'value' => $encrypted,
@@ -40,15 +76,18 @@ class Encrypter
             ]));
         } else {
             $encrypted = openssl_encrypt($value, $this->cipher, $this->key, 0, $iv);
+
+            // Check the result BEFORE computing the MAC: on failure $encrypted is
+            // false, which would coerce to '' and produce a MAC over empty data.
+            if ($encrypted === false) {
+                throw new EncryptException('Could not encrypt the data.');
+            }
+
             $payload = base64_encode(json_encode([
                 'iv' => base64_encode($iv),
                 'value' => $encrypted,
                 'mac' => $this->createMac(base64_encode($iv), $encrypted),
             ]));
-        }
-
-        if ($encrypted === false) {
-            throw new EncryptException('Could not encrypt the data.');
         }
 
         return $payload;
@@ -61,17 +100,34 @@ class Encrypter
         $iv = base64_decode($payload['iv']);
 
         if ($this->isAEAD()) {
-            $decrypted = openssl_decrypt(
+            $tag = base64_decode($payload['tag'], true);
+
+            // AES-GCM mandates a 128-bit (16-byte) authentication tag. A short or
+            // attacker-truncated tag dramatically weakens forgery resistance, so
+            // reject anything that is not exactly 16 bytes before we ever hand it
+            // to openssl_decrypt.
+            if ($tag === false || strlen($tag) !== 16) {
+                throw new DecryptException('Invalid authentication tag.');
+            }
+
+            $decrypted = $this->attemptDecrypt(fn (string $key) => openssl_decrypt(
                 $payload['value'],
                 $this->cipher,
-                $this->key,
+                $key,
                 0,
                 $iv,
-                base64_decode($payload['tag'])
-            );
+                $tag
+            ));
         } else {
-            $this->validateMac($payload);
-            $decrypted = openssl_decrypt($payload['value'], $this->cipher, $this->key, 0, $iv);
+            // Try the MAC against the current key, then each retired key. Only if
+            // a key authenticates the payload do we decrypt with that same key.
+            $decrypted = $this->attemptDecrypt(function (string $key) use ($payload, $iv) {
+                if (!$this->macIsValid($payload, $key)) {
+                    return false;
+                }
+
+                return openssl_decrypt($payload['value'], $this->cipher, $key, 0, $iv);
+            });
         }
 
         if ($decrypted === false) {
@@ -79,6 +135,24 @@ class Encrypter
         }
 
         return $unserialize ? unserialize($decrypted) : $decrypted;
+    }
+
+    /**
+     * Attempt a decrypt closure against the current key and, on failure, each
+     * retired key in turn (key rotation). Returns the first successful plaintext
+     * or false when every key fails.
+     */
+    protected function attemptDecrypt(\Closure $decryptWith): string|false
+    {
+        foreach ($this->allKeys() as $key) {
+            $result = $decryptWith($key);
+
+            if ($result !== false) {
+                return $result;
+            }
+        }
+
+        return false;
     }
 
     public function encryptString(#[\SensitiveParameter] string $value): string
@@ -111,16 +185,24 @@ class Encrypter
         return static::$supportedCiphers[$this->cipher]['aead'];
     }
 
-    protected function createMac(string $iv, string $encrypted): string
+    protected function createMac(string $iv, string $encrypted, ?string $key = null): string
     {
-        return hash_hmac('sha256', base64_encode($iv) . $encrypted, $this->key);
+        return hash_hmac('sha256', base64_encode($iv) . $encrypted, $key ?? $this->key);
+    }
+
+    /**
+     * Timing-safe MAC check for a specific key (used during key rotation).
+     */
+    protected function macIsValid(array $payload, string $key): bool
+    {
+        $calculated = $this->createMac($payload['iv'], $payload['value'], $key);
+
+        return hash_equals($calculated, (string)$payload['mac']);
     }
 
     protected function validateMac(array $payload): void
     {
-        $calculated = $this->createMac($payload['iv'], $payload['value']);
-
-        if (!hash_equals($calculated, $payload['mac'])) {
+        if (!$this->macIsValid($payload, $this->key)) {
             throw new DecryptException('MAC verification failed.');
         }
     }

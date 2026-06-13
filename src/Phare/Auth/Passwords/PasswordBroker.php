@@ -60,7 +60,19 @@ class PasswordBroker
 
     private function tokenExpired(string $createdAt): bool
     {
-        $expiresAt = strtotime($createdAt) + ($this->expireMinutes * 60);
+        $created = \DateTimeImmutable::createFromFormat(
+            'Y-m-d H:i:s',
+            $createdAt,
+            new \DateTimeZone('UTC')
+        );
+
+        // Fall back to a permissive parse if the stored value is not in the
+        // canonical "Y-m-d H:i:s" format, still pinned to UTC.
+        if ($created === false) {
+            $created = new \DateTimeImmutable($createdAt, new \DateTimeZone('UTC'));
+        }
+
+        $expiresAt = $created->getTimestamp() + ($this->expireMinutes * 60);
 
         return time() > $expiresAt;
     }

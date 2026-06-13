@@ -427,32 +427,58 @@ class Event
 
     /**
      * Check if a cron segment matches the current value.
+     *
+     * Supports comma-lists of any of the following parts:
+     *   *        wildcard
+     *   * / N    stepped wildcard
+     *   a        single value
+     *   a-b      range
+     *   a-b/N    stepped range
      */
     protected function segmentMatches(string $segment, int $value): bool
     {
-        if ($segment === '*') {
-            return true;
-        }
-
-        if (str_contains($segment, ',')) {
-            return in_array($value, explode(',', $segment));
-        }
-
-        if (str_contains($segment, '/')) {
-            [$range, $step] = explode('/', $segment);
-
-            if ($range === '*') {
-                return $value % (int)$step === 0;
+        foreach (explode(',', $segment) as $part) {
+            if ($this->partMatches(trim($part), $value)) {
+                return true;
             }
         }
 
-        if (str_contains($segment, '-')) {
-            [$min, $max] = explode('-', $segment);
+        return false;
+    }
 
-            return $value >= (int)$min && $value <= (int)$max;
+    /**
+     * Check whether a single (comma-free) cron part matches the value.
+     */
+    protected function partMatches(string $part, int $value): bool
+    {
+        if ($part === '') {
+            return false;
         }
 
-        return (int)$segment === $value;
+        $step = 1;
+        if (str_contains($part, '/')) {
+            [$part, $stepString] = explode('/', $part, 2);
+            $step = (int)$stepString;
+            if ($step <= 0) {
+                return false;
+            }
+        }
+
+        if ($part === '*') {
+            return $value % $step === 0;
+        }
+
+        if (str_contains($part, '-')) {
+            [$min, $max] = explode('-', $part, 2);
+            $min = (int)$min;
+            $max = (int)$max;
+
+            return $value >= $min && $value <= $max && ($value - $min) % $step === 0;
+        }
+
+        // A single value with a step (e.g. "5/2") behaves like "5-<upper>/2";
+        // without an explicit upper bound we only honour the value itself.
+        return (int)$part === $value;
     }
 
     /**
@@ -504,7 +530,7 @@ class Event
     {
         $command = $this->command;
 
-        if ($this->user && !windows_os()) {
+        if ($this->user && PHP_OS_FAMILY !== 'Windows') {
             $command = "sudo -u {$this->user} $command";
         }
 
