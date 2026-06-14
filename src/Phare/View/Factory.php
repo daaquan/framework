@@ -30,6 +30,14 @@ class Factory
     }
 
     /**
+     * The rendering engine backing this factory (e.g. the Blade engine).
+     */
+    public function getEngine(): ?Engine
+    {
+        return $this->engine;
+    }
+
+    /**
      * Create a new view instance.
      */
     public function make(string $view, array $data = [], array $mergeData = []): View
