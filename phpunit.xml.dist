@@ -20,6 +20,8 @@
             <directory suffix="Test.php">./tests/Hashing</directory>
             <directory suffix="Test.php">./tests/Encryption</directory>
             <directory suffix="Test.php">./tests/Console</directory>
+            <directory suffix="Test.php">./tests/Inertia</directory>
+            <directory suffix="Test.php">./tests/View</directory>
         </testsuite>
     </testsuites>
     <php>

@@ -14,6 +14,10 @@ class ViewServiceProvider extends ServiceProvider
         $this->app->singleton('escaper', Escaper::class);
         $this->app->singleton('flashSession', FlashSession::class);
 
+        // Vite asset resolver, backing the @vite / @viteReactRefresh directives.
+        $this->app->singleton('vite', fn () => new Vite());
+        $this->app->bind(Vite::class, fn ($app) => $app['vite']);
+
         $this->app->singleton('view', function ($app) {
             $views = $app->bound('__views_path')
                 ? $app->make('__views_path')
@@ -24,6 +28,10 @@ class ViewServiceProvider extends ServiceProvider
 
             $blade = new Blade($views, $storage, Blade::MODE_AUTO);
             $blade->useDaisyui();
+
+            // Vite asset directives (resolve the bound Vite instance at runtime).
+            $blade->directive('vite', fn ($expression) => "<?php echo app('vite')({$expression}); ?>");
+            $blade->directive('viteReactRefresh', fn () => "<?php echo app('vite')->reactRefresh(); ?>");
 
             // Pagination labels are optional and depend on the translator,
             // which may not be bound yet depending on provider order.
