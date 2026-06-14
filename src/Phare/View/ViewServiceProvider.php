@@ -27,7 +27,6 @@ class ViewServiceProvider extends ServiceProvider
                 : $app->storagePath('framework/views');
 
             $blade = new Blade($views, $storage, Blade::MODE_AUTO);
-            $blade->useDaisyui();
 
             // Vite asset directives (resolve the bound Vite instance at runtime).
             $blade->directive('vite', fn ($expression) => "<?php echo app('vite')({$expression}); ?>");

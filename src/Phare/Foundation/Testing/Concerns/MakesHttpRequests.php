@@ -10,7 +10,8 @@ trait MakesHttpRequests
 {
     public function get(string $uri, array $headers = [])
     {
-        return $this->call('GET', $uri, $headers);
+        // GET has no body; the second argument is request headers.
+        return $this->call('GET', $uri, [], $headers);
     }
 
     public function post(string $uri, array $data = [], array $headers = [])

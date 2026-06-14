@@ -18,10 +18,14 @@ class ResponseFactory
     {
         $response = new Response(
             $component,
-            array_replace_recursive($this->sharedProps, $props),
+            $props,
             $this->rootView,
             $this->getVersion(),
         );
+
+        // Shared props are resolved when the response is built, not now, so
+        // props shared after this call (e.g. by middleware) are still included.
+        $response->setSharedResolver(fn () => $this->sharedProps);
 
         if ($this->viewRenderer !== null) {
             $response->setViewRenderer($this->viewRenderer);
