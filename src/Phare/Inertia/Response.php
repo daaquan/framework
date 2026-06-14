@@ -10,12 +10,22 @@ class Response
     /** @var callable|null */
     protected $viewRenderer = null;
 
+    /** @var callable|null */
+    protected $sharedResolver = null;
+
     public function __construct(
         protected string $component,
         protected array $props = [],
         protected string $rootView = 'app',
         protected ?string $version = null,
     ) {}
+
+    public function setSharedResolver(callable $resolver): static
+    {
+        $this->sharedResolver = $resolver;
+
+        return $this;
+    }
 
     public function component(): string
     {
@@ -62,7 +72,10 @@ class Response
      */
     protected function resolveProps(RequestInterface $request): array
     {
-        $props = $this->props;
+        // Merge shared props (resolved now, so anything shared after render()
+        // — e.g. by middleware — is included) under the per-page props.
+        $shared = $this->sharedResolver !== null ? ($this->sharedResolver)() : [];
+        $props = array_replace_recursive($shared, $this->props);
 
         if ($this->isPartial($request)) {
             $only = array_filter(explode(',', (string)$request->getHeader('X-Inertia-Partial-Data')));
