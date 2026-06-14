@@ -9,6 +9,11 @@ class BladeEngine implements Engine
 {
     public function __construct(protected Blade $blade) {}
 
+    public function getBlade(): Blade
+    {
+        return $this->blade;
+    }
+
     /**
      * @param array<string, mixed> $data
      */
