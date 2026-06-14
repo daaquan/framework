@@ -300,6 +300,25 @@ if (!function_exists('queue')) {
     }
 }
 
+// inertia()
+if (!function_exists('inertia')) {
+    /**
+     * Get the Inertia response factory, or render a component into a response.
+     *
+     * @param array<string, mixed> $props
+     */
+    function inertia(?string $component = null, array $props = []): mixed
+    {
+        $factory = app('inertia');
+
+        if (func_num_args() === 0) {
+            return $factory;
+        }
+
+        return $factory->render($component, $props);
+    }
+}
+
 // event()
 if (!function_exists('event')) {
     function event(...$args): mixed
