@@ -61,10 +61,11 @@ it('renders the root data-page element from a page array', function () {
 
     $html = ResponseFactory::renderRootElement($page);
 
-    expect($html)->toContain('id="app"')
-        ->and($html)->toContain('data-page=');
+    expect($html)->toContain('<div id="app"></div>')
+        ->and($html)->toContain('<script type="application/json" data-page="app">');
 
-    // The data-page attribute must hold the page object as escaped JSON.
-    preg_match('/data-page="([^"]*)"/', $html, $m);
-    expect(json_decode(htmlspecialchars_decode($m[1]), true))->toBe($page);
+    // The script element must hold the page object as JSON (Inertia v3 reads
+    // it from the element's textContent, not a data-page HTML attribute).
+    preg_match('/data-page="app">(.*?)<\/script>/s', $html, $m);
+    expect(json_decode($m[1], true))->toBe($page);
 });

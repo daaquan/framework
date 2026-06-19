@@ -46,8 +46,8 @@ it('compiles the @inertia directive into the root data-page element', function (
     $page = ['component' => 'Dashboard', 'props' => [], 'url' => '/', 'version' => 'v1'];
     $html = $this->app->make('view')->make('app', ['page' => $page])->render();
 
-    expect($html)->toContain('id="app"')
-        ->and($html)->toContain('data-page=');
+    expect($html)->toContain('<div id="app"></div>')
+        ->and($html)->toContain('<script type="application/json" data-page="app">');
 });
 
 it('exposes the inertia accessor on the facade', function () {

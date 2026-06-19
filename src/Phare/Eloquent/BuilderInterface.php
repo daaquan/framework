@@ -6,6 +6,7 @@ use Phalcon\Mvc\Model\CriteriaInterface;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
 use Phare\Collections\Collection;
+use Phare\Pagination\LengthAwarePaginator;
 
 interface BuilderInterface extends CriteriaInterface
 {
@@ -85,5 +86,5 @@ interface BuilderInterface extends CriteriaInterface
 
     public function groupBy($field): BuilderInterface;
 
-    public function paginate($page, $limit): BuilderInterface;
+    public function paginate(int $perPage = 15, ?int $page = null): LengthAwarePaginator;
 }

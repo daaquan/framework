@@ -53,8 +53,8 @@ it('returns an HTML root element when X-Inertia header is absent', function () {
 
     $html = $response->toResponse($request)->getContent();
 
-    expect($html)->toContain('id="app"')
-        ->and($html)->toContain('data-page=');
+    expect($html)->toContain('<div id="app"></div>')
+        ->and($html)->toContain('<script type="application/json" data-page="app">');
 });
 
 it('keeps only allowlisted props on a matching partial reload', function () {
