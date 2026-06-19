@@ -102,17 +102,23 @@ class ResponseFactory
     }
 
     /**
-     * Build the root `<div id="app" data-page="...">` element that the
-     * `@inertia` Blade directive emits on a full page load.
+     * Build the root element the `@inertia` Blade directive emits on a full
+     * page load.
+     *
+     * Inertia v3 reads the initial page from a sibling
+     * `<script type="application/json" data-page="app">` element (via its
+     * textContent) and mounts the app into a bare `<div id="app">`. The page
+     * JSON lives in script text, so only `<`, `>` and `&` need escaping
+     * (JSON_HEX_TAG | JSON_HEX_AMP) to keep it from terminating the script.
      */
     public static function renderRootElement(array $page, string $id = 'app'): string
     {
-        $json = htmlspecialchars(
-            json_encode($page, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            ENT_QUOTES,
-            'UTF-8'
+        $json = json_encode(
+            $page,
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP
         );
 
-        return "<div id=\"{$id}\" data-page=\"{$json}\"></div>";
+        return "<div id=\"{$id}\"></div>"
+            . "<script type=\"application/json\" data-page=\"{$id}\">{$json}</script>";
     }
 }
