@@ -47,13 +47,29 @@ class PusherBroadcaster extends Broadcaster
 
     public function validAuthenticationResponse(mixed $request, mixed $result): mixed
     {
-        if (is_bool($result)) {
-            return json_encode($result);
+        // Deny the subscription if the authorization callback returns false.
+        if ($result === false) {
+            throw new AccessDeniedHttpException();
         }
 
         $channelName = $request->get('channel_name');
         $socketId = $request->get('socket_id');
 
+        // Presence channels require a signature containing member information. Pass the array
+        // returned by the callback to Pusher signing as user_id / user_info.
+        if (str_starts_with((string)$channelName, 'presence-')) {
+            $userId = is_array($result)
+                ? ($result['id'] ?? $result['user_id'] ?? null)
+                : $result;
+            $userInfo = is_array($result) ? ($result['user_info'] ?? $result) : [];
+
+            return $this->decodePusherResponse(
+                $request,
+                $this->pusher->authorizePresenceChannel($channelName, $socketId, (string)$userId, $userInfo)
+            );
+        }
+
+        // Return a signature token for private channels (only reached when authorization returns true).
         return $this->decodePusherResponse(
             $request,
             $this->pusher->authorizeChannel($channelName, $socketId)
