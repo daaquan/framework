@@ -47,13 +47,29 @@ class PusherBroadcaster extends Broadcaster
 
     public function validAuthenticationResponse(mixed $request, mixed $result): mixed
     {
-        if (is_bool($result)) {
-            return json_encode($result);
+        // 認可コールバックが false を返したら購読拒否。
+        if ($result === false) {
+            throw new AccessDeniedHttpException();
         }
 
         $channelName = $request->get('channel_name');
         $socketId = $request->get('socket_id');
 
+        // presence チャンネルはメンバー情報つきの署名が必要。コールバックが返した
+        // 配列を user_id / user_info として Pusher 署名に渡す。
+        if (str_starts_with((string)$channelName, 'presence-')) {
+            $userId = is_array($result)
+                ? ($result['id'] ?? $result['user_id'] ?? null)
+                : $result;
+            $userInfo = is_array($result) ? ($result['user_info'] ?? $result) : [];
+
+            return $this->decodePusherResponse(
+                $request,
+                $this->pusher->authorizePresenceChannel($channelName, $socketId, (string)$userId, $userInfo)
+            );
+        }
+
+        // private チャンネルは署名トークンを返す（true のときのみここに到達）。
         return $this->decodePusherResponse(
             $request,
             $this->pusher->authorizeChannel($channelName, $socketId)

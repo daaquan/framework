@@ -3,7 +3,6 @@
 namespace Phare\Support\Facades;
 
 use Phare\Broadcasting\BroadcastManager;
-use Phare\Support\Facade;
 
 /**
  * @method static \Phare\Broadcasting\Broadcasters\Broadcaster driver(string $name = null)

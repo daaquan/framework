@@ -66,14 +66,51 @@ abstract class Broadcaster
     {
         $channelName = $this->normalizeChannelName($channel);
 
-        if (isset($this->channels[$channelName])) {
-            $callback = $this->channels[$channelName];
-            $user = $this->retrieveUser($request, $channel);
+        [$callback, $parameters] = $this->matchChannel($channelName);
 
-            return $callback($user, $request);
+        if ($callback === null) {
+            return false;
         }
 
-        return false;
+        $user = $this->retrieveUser($request, $channel);
+
+        // Laravel 同様、抽出したチャンネルパラメータをユーザーの後に展開して渡す。
+        // 例: 'App.User.{id}' に private-App.User.42 → $callback($user, '42')。
+        return $callback($user, ...$parameters);
+    }
+
+    /**
+     * 登録チャンネルから完全一致、なければ {param} ワイルドカード一致を探す。
+     * 一致したコールバックと抽出パラメータ（順序どおり）を返す。
+     *
+     * @return array{0: ?callable, 1: array<int, string>}
+     */
+    protected function matchChannel(string $channelName): array
+    {
+        if (isset($this->channels[$channelName])) {
+            return [$this->channels[$channelName], []];
+        }
+
+        foreach ($this->channels as $pattern => $callback) {
+            if (!str_contains($pattern, '{')) {
+                continue;
+            }
+
+            $segments = array_map(
+                fn ($segment) => preg_match('/^\{[^}]+\}$/', $segment) === 1
+                    ? '([^.]+)'
+                    : preg_quote($segment, '/'),
+                explode('.', $pattern)
+            );
+
+            if (preg_match('/^' . implode('\.', $segments) . '$/', $channelName, $matches) === 1) {
+                array_shift($matches);
+
+                return [$callback, array_values($matches)];
+            }
+        }
+
+        return [null, []];
     }
 
     protected function verifyUserCanAccessChannel(mixed $request, string $channel): mixed

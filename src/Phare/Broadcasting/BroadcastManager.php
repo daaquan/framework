@@ -28,6 +28,21 @@ class BroadcastManager extends Manager
     }
 
     /**
+     * チャンネル購読の認可を行い、ドライバ固有の署名済みレスポンスを返す。
+     * Laravel の BroadcastManager::auth 相当: auth() で可否を判定し、
+     * validAuthenticationResponse() で Pusher 署名トークン等に変換する。
+     */
+    public function auth(mixed $request, ?string $name = null): mixed
+    {
+        $broadcaster = $this->connection($name);
+
+        return $broadcaster->validAuthenticationResponse(
+            $request,
+            $broadcaster->auth($request)
+        );
+    }
+
+    /**
      * Build a broadcaster for the given connection name. Instances are
      * cached by the Manager base keyed on connection name.
      */
