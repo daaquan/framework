@@ -1,6 +1,6 @@
 <?php
 
-if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     test('eloquent model integration tests require sqlite driver', function () {
         $this->markTestSkipped('PDO sqlite driver is required for eloquent model integration tests.');
     });
@@ -8,12 +8,14 @@ if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
     return;
 }
 
+use Phalcon\Di\Di;
 use Phalcon\Mvc\Model\Resultset;
+use Phare\Database\MySql\DatabaseManager;
 use Tests\Mock\Models\User;
 
 beforeEach(function () {
-    /** @var \Phare\Database\MySql\DatabaseManager $dbManager */
-    $dbManager = Phalcon\Di\Di::getDefault()->getShared('dbManager');
+    /** @var DatabaseManager $dbManager */
+    $dbManager = Di::getDefault()->getShared('dbManager');
 
     // Migration
     $db = $dbManager->getConnection(['driver' => 'sqlite', 'database' => 'db']);
@@ -167,4 +169,17 @@ it('tests model can delete data', function () {
 
     $deleted = User::where('email', $user->email)->first();
     expect($deleted)->toBeNull('Failed to force delete user');
+});
+
+it('forceFill assigns attributes that fill() would guard out', function () {
+    $user = new User();
+
+    // 'deleted_at' is absent from User::$fillable, so fill() must ignore it...
+    $user->fill(['name' => 'guarded', 'deleted_at' => '2026-01-01 00:00:00']);
+    expect($user->name)->toBe('guarded')
+        ->and($user->deleted_at)->toBeNull();
+
+    // ...while forceFill() bypasses the guard entirely.
+    $user->forceFill(['deleted_at' => '2026-01-01 00:00:00']);
+    expect($user->deleted_at)->not->toBeNull();
 });

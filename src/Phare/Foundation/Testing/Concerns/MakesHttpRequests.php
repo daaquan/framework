@@ -43,6 +43,7 @@ trait MakesHttpRequests
 
     public function msgpack(string $method, string $uri, array $data = [], array $headers = [])
     {
+        $this->requirePacker('msgpack_pack', 'ext-msgpack');
         $headers['Content-Type'] = 'application/x-msgpack';
 
         return $this->call($method, $uri, msgpack_pack($data), $headers);
@@ -50,15 +51,29 @@ trait MakesHttpRequests
 
     public function protobuf(string $method, string $uri, array $data = [], array $headers = [])
     {
+        $this->requirePacker('protobuf_pack', 'a protobuf_pack() implementation');
         $headers['Content-Type'] = 'application/x-protobuf';
 
         return $this->call($method, $uri, protobuf_pack($data), $headers);
     }
 
     /**
+     * Neither packer ships with the framework — fail with the missing requirement
+     * named instead of a bare "undefined function" fatal.
+     */
+    private function requirePacker(string $function, string $requirement): void
+    {
+        if (!function_exists($function)) {
+            throw new \RuntimeException(
+                sprintf('%s() is not available; %s is required to use this helper.', $function, $requirement)
+            );
+        }
+    }
+
+    /**
      * Execute the request and return the response.
      */
-    public function call(string $method, string $uri, array $data = [], array $headers = [])
+    public function call(string $method, string $uri, array|string $data = [], array $headers = [])
     {
         $this->setUpApplication();
 

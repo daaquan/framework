@@ -5,6 +5,13 @@ use Phare\Inertia\LazyProp;
 use Phare\Inertia\Response;
 use Phare\Inertia\ResponseFactory;
 
+// inertiaRequest() writes to $_SERVER; restore it so the leaked REQUEST_URI does not
+// change what Paginator::resolveCurrentPath() returns in later test files.
+$serverSnapshot = $_SERVER;
+afterEach(function () use ($serverSnapshot) {
+    $_SERVER = $serverSnapshot;
+});
+
 /**
  * Build a Phare/Phalcon Request from explicit headers, since Phalcon reads
  * everything from the $_SERVER superglobal.

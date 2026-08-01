@@ -217,6 +217,18 @@ class Model extends PhModel implements \ArrayAccess
         return $this;
     }
 
+    /**
+     * Fill the model with an array of attributes, ignoring $fillable/$guarded.
+     */
+    public function forceFill(array $data): static
+    {
+        foreach ($data as $key => $value) {
+            $this->setAttribute((string)$key, $value);
+        }
+
+        return $this;
+    }
+
     public function assign(array $data, $fillable = null, $dataColumnMap = null): PhalconModelInterface
     {
         if (is_array($dataColumnMap)) {
@@ -415,7 +427,7 @@ class Model extends PhModel implements \ArrayAccess
         );
 
         foreach ($attributes as $key => $value) {
-            $attributes[$key] = $this->prepareValueForPersistence($value, (string) $key);
+            $attributes[$key] = $this->prepareValueForPersistence($value, (string)$key);
         }
 
         return $attributes;
@@ -434,7 +446,7 @@ class Model extends PhModel implements \ArrayAccess
         $values = [];
 
         foreach ($dirty as $column => $value) {
-            $values[] = $this->prepareValueForPersistence($value, (string) $column);
+            $values[] = $this->prepareValueForPersistence($value, (string)$column);
         }
 
         $assignments = implode(', ', array_map(

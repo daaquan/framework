@@ -5,6 +5,13 @@ use Phare\Http\Response as HttpResponse;
 use Phare\Inertia\Middleware;
 use Phare\Inertia\ResponseFactory;
 
+// inertiaMwRequest() writes to $_SERVER; restore it so the leaked REQUEST_URI does not
+// change what Paginator::resolveCurrentPath() returns in later test files.
+$serverSnapshot = $_SERVER;
+afterEach(function () use ($serverSnapshot) {
+    $_SERVER = $serverSnapshot;
+});
+
 function inertiaMwRequest(array $headers = [], string $method = 'GET', string $uri = '/dash'): Request
 {
     $_SERVER['REQUEST_METHOD'] = $method;
