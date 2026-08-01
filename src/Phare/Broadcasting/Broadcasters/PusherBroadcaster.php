@@ -2,9 +2,9 @@
 
 namespace Phare\Broadcasting\Broadcasters;
 
+use Phare\Broadcasting\AccessDeniedException;
 use Phare\Broadcasting\BroadcastException;
 use Pusher\Pusher;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class PusherBroadcaster extends Broadcaster
 {
@@ -36,20 +36,23 @@ class PusherBroadcaster extends Broadcaster
 
     public function auth(mixed $request): mixed
     {
-        $channelName = $this->normalizeChannelName($request->get('channel_name'));
+        // Normalise only after the guard: a missing channel_name is null, and
+        // normalizeChannelName() takes a string, so normalising first turned a
+        // denial into a TypeError.
+        $channel = (string)$request->get('channel_name');
 
-        if (empty($request->get('channel_name')) || !$this->isGuardedChannel($request->get('channel_name'))) {
-            throw new AccessDeniedHttpException();
+        if ($channel === '' || !$this->isGuardedChannel($channel)) {
+            throw new AccessDeniedException();
         }
 
-        return parent::verifyUserCanAccessChannel($request, $channelName);
+        return parent::verifyUserCanAccessChannel($request, $this->normalizeChannelName($channel));
     }
 
     public function validAuthenticationResponse(mixed $request, mixed $result): mixed
     {
         // Deny the subscription if the authorization callback returns false.
         if ($result === false) {
-            throw new AccessDeniedHttpException();
+            throw new AccessDeniedException();
         }
 
         $channelName = $request->get('channel_name');

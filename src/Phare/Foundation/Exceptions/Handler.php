@@ -2,6 +2,7 @@
 
 namespace Phare\Foundation\Exceptions;
 
+use Phalcon\Http\ResponseInterface;
 use Phare\Collections\Arr;
 use Phare\Console\Output\Output;
 use Phare\Container\Container;
@@ -165,6 +166,13 @@ class Handler implements ExceptionHandlerContract
         return true;
     }
 
+    /**
+     * Render the exception into a response. Overrides may return any Phalcon
+     * response (the Inertia bridge and response() helper both do).
+     *
+     * @param mixed $request
+     * @return ResponseInterface
+     */
     public function render($request, \Throwable $e)
     {
         return new Response(null, 500);

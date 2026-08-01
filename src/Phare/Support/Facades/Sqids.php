@@ -3,7 +3,7 @@
 namespace Phare\Support\Facades;
 
 /**
- * @method static string encode(array $numbers)
+ * @method static string encode(array|int|string $numbers)
  * @method static array decode(string $id)
  *
  * @see \Sqids\Sqids
