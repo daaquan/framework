@@ -1,8 +1,8 @@
 <?php
 
 use Phalcon\Di\Di;
-use Phare\Contracts\Foundation\Application as ApplicationContract;
 use Phare\Container\Container;
+use Phare\Contracts\Foundation\Application as ApplicationContract;
 use Phare\Translation\TranslationServiceProvider;
 use Phare\Translation\Translator;
 

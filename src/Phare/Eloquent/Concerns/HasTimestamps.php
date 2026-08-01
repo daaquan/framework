@@ -15,9 +15,7 @@ trait HasTimestamps
 
     protected ?string $dateFormat = null;
 
-    public function initializeHasTimestamps(): void
-    {
-    }
+    public function initializeHasTimestamps(): void {}
 
     public function freshTimestamp(): DateTimeInterface
     {
@@ -26,7 +24,7 @@ trait HasTimestamps
 
     public function freshTimestampString(): string
     {
-        return (string) $this->fromDateTime($this->freshTimestamp(), true);
+        return (string)$this->fromDateTime($this->freshTimestamp(), true);
     }
 
     public function usesTimestamps(): bool
@@ -97,7 +95,7 @@ trait HasTimestamps
         if ($attribute !== null) {
             $time = $this->freshTimestamp();
 
-            foreach ((array) $attribute as $column) {
+            foreach ((array)$attribute as $column) {
                 $this->{$column} = $time;
             }
 
@@ -117,6 +115,7 @@ trait HasTimestamps
     {
         return static::withoutEvents(fn (): bool => $this->touch($attribute));
     }
+
     protected function getDateFormat(): string
     {
         return $this->dateFormat ?? 'Y-m-d H:i:s';

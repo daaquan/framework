@@ -8,8 +8,8 @@ use Phare\Collections\Str;
 use Phare\Eloquent\Builder;
 use Phare\Eloquent\BuilderInterface;
 use Phare\Eloquent\Model;
-use Phare\Eloquent\Relations\BelongsToMany;
 use Phare\Eloquent\Relations\BelongsTo;
+use Phare\Eloquent\Relations\BelongsToMany;
 use Phare\Eloquent\Relations\HasMany;
 use Phare\Eloquent\Relations\HasManyThrough;
 use Phare\Eloquent\Relations\HasOne;
@@ -17,8 +17,8 @@ use Phare\Eloquent\Relations\HasOneThrough;
 use Phare\Eloquent\Relations\MorphedByMany;
 use Phare\Eloquent\Relations\MorphMany;
 use Phare\Eloquent\Relations\MorphOne;
-use Phare\Eloquent\Relations\MorphToMany;
 use Phare\Eloquent\Relations\MorphTo;
+use Phare\Eloquent\Relations\MorphToMany;
 use Phare\Eloquent\Relations\Relation;
 
 trait HasRelationships
@@ -477,6 +477,7 @@ trait HasRelationships
         foreach ((array)$relations as $key => $value) {
             if (is_int($key)) {
                 $normalized[$value] = null;
+
                 continue;
             }
 

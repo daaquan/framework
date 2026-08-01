@@ -59,9 +59,9 @@ trait HandlesTransactions
     public function finalizeTransactions(): void
     {
         foreach ($this->activeTransactions as $schema => $txManager) {
-            $this->dispatchDatabaseEvent(new TransactionCommitting((string) $schema));
+            $this->dispatchDatabaseEvent(new TransactionCommitting((string)$schema));
             $txManager->get()->commit();
-            $this->dispatchDatabaseEvent(new TransactionCommitted((string) $schema));
+            $this->dispatchDatabaseEvent(new TransactionCommitted((string)$schema));
         }
 
         foreach ($this->afterCommitCallbacks as $callback) {
@@ -75,7 +75,7 @@ trait HandlesTransactions
     {
         foreach ($this->activeTransactions as $schema => $txManager) {
             $txManager->get()->rollback();
-            $this->dispatchDatabaseEvent(new TransactionRolledBack((string) $schema));
+            $this->dispatchDatabaseEvent(new TransactionRolledBack((string)$schema));
         }
 
         $this->afterCommitCallbacks = [];

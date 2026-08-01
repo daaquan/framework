@@ -9,7 +9,6 @@ class WebDispatchForwardRegistrar
     /**
      * Register web dispatch forwarding listener.
      *
-     * @param object $eventsManager
      * @param array<string, mixed> $routeData
      * @param array<string, mixed> $urlParams
      * @param callable(array<string, mixed>, array<string, mixed>): array<string, mixed> $buildPayload

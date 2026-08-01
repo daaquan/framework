@@ -7,8 +7,8 @@ use Phalcon\Http\ResponseInterface;
 use Phare\Contracts\Foundation\Application;
 use Phare\Contracts\Http\MiddlewareContract;
 use Phare\Foundation\Http\Concerns\BeforeMiddleware;
-use Phare\Foundation\Micro;
 use Phare\Foundation\Http\ResponseStatusCode;
+use Phare\Foundation\Micro;
 use Phare\Support\Facades\Auth;
 
 /**
@@ -32,6 +32,7 @@ class EnsureRole extends MiddlewareContract implements BeforeMiddleware
         if (!$user) {
             $this->app->stop();
             $response->redirect(route('login'));
+
             return false;
         }
 
@@ -44,6 +45,7 @@ class EnsureRole extends MiddlewareContract implements BeforeMiddleware
             } else {
                 $response->redirect('/');
             }
+
             return false;
         }
 

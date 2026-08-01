@@ -1,7 +1,7 @@
 <?php
 
-use Phare\Console\Concerns\AgentFriendly;
 use Phare\Console\Command;
+use Phare\Console\Concerns\AgentFriendly;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
@@ -100,7 +100,8 @@ it('agentError() emits structured JSON in json mode', function () {
     $output = new BufferedOutput();
 
     // Override handle to produce an error
-    $cmd = new class extends AgentTestCommand {
+    $cmd = new class() extends AgentTestCommand
+    {
         public function handle(): int
         {
             $this->agentError('Something went wrong', 'DEPLOY_FAILED', ['hint' => 'check logs']);

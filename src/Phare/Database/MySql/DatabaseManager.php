@@ -19,7 +19,7 @@ class DatabaseManager
         if (isset($databases['default']) && is_string($databases['default'])) {
             $this->defaultConnection = $databases['default'];
         } elseif (method_exists($app, 'bound') && $app->bound('config')) {
-            $this->defaultConnection = (string) $app['config']->path('database.default', 'db');
+            $this->defaultConnection = (string)$app['config']->path('database.default', 'db');
         }
     }
 

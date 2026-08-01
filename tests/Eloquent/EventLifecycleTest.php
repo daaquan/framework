@@ -1,6 +1,6 @@
 <?php
 
-if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     test('eloquent event lifecycle tests require sqlite driver', function () {
         $this->markTestSkipped('PDO sqlite driver is required for eloquent event lifecycle tests.');
     });
@@ -34,9 +34,7 @@ if (!class_exists('EventLifecycleObserver')) {
 if (!class_exists('EventLifecycleCreated')) {
     class EventLifecycleCreated
     {
-        public function __construct(public User $model)
-        {
-        }
+        public function __construct(public User $model) {}
     }
 }
 

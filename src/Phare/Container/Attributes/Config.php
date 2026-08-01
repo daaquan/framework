@@ -14,8 +14,7 @@ class Config implements ContextualAttribute
     public function __construct(
         public string $key,
         public mixed $default = null
-    ) {
-    }
+    ) {}
 
     public static function resolve(self $attribute, Container $container): mixed
     {

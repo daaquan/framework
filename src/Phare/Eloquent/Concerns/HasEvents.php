@@ -53,7 +53,7 @@ trait HasEvents
 
     public static function observe(object|array|string $classes): void
     {
-        foreach ((array) $classes as $class) {
+        foreach ((array)$classes as $class) {
             foreach (static::$observers[static::class] ?? [] as $registered) {
                 if ($registered === $class) {
                     continue 2;

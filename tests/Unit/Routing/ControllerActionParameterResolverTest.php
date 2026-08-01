@@ -4,6 +4,7 @@ use Phalcon\Http\RequestInterface;
 use Phare\Contracts\Http\Validation\Validator;
 use Phare\Http\Request;
 use Phare\Routing\ControllerActionParameterResolver;
+use Phare\Validation\MessageBag;
 
 class FakePassingValidator implements Validator
 {
@@ -22,9 +23,9 @@ class FakePassingValidator implements Validator
         return false;
     }
 
-    public function errors(): \Phare\Validation\MessageBag
+    public function errors(): MessageBag
     {
-        return new \Phare\Validation\MessageBag();
+        return new MessageBag();
     }
 
     public function validated(): array
@@ -70,9 +71,9 @@ class FakeFailingValidator implements Validator
         return true;
     }
 
-    public function errors(): \Phare\Validation\MessageBag
+    public function errors(): MessageBag
     {
-        return new \Phare\Validation\MessageBag(['message' => ['invalid']]);
+        return new MessageBag(['message' => ['invalid']]);
     }
 
     public function validated(): array

@@ -5,6 +5,7 @@ namespace Phare\Console;
 use Phare\Container\Container;
 use Phare\Contracts\Console\Application as ApplicationContract;
 use Symfony\Component\Console\Application as SymfonyApplication;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
@@ -88,7 +89,7 @@ class Application extends SymfonyApplication implements ApplicationContract
     /**
      * Compatibility shim: Symfony 7+ renamed add() to addCommand().
      */
-    public function add(\Symfony\Component\Console\Command\Command $command): ?\Symfony\Component\Console\Command\Command
+    public function add(Command $command): ?Command
     {
         return $this->addCommand($command);
     }

@@ -32,7 +32,6 @@ class EventServiceProvider extends ServiceProvider
                     return $container->make('dbManager');
                 }
 
-                return null;
             });
 
             return $dispatcher;

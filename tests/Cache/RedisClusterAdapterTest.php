@@ -1,5 +1,6 @@
 <?php
 
+use Phalcon\Storage\Adapter\Redis;
 use Phalcon\Storage\Exception as StorageException;
 use Phalcon\Storage\SerializerFactory;
 use Phare\Storage\Adapter\RedisCluster;
@@ -8,7 +9,7 @@ test('getAdapter returns existing RedisCluster instance when already connected',
     $adapter = new RedisCluster(new SerializerFactory(), ['host' => '127.0.0.1', 'port' => '7000']);
     $existing = (new ReflectionClass(\RedisCluster::class))->newInstanceWithoutConstructor();
 
-    $property = new ReflectionProperty(\Phalcon\Storage\Adapter\Redis::class, 'adapter');
+    $property = new ReflectionProperty(Redis::class, 'adapter');
     $property->setValue($adapter, $existing);
 
     expect($adapter->getAdapter())->toBe($existing);

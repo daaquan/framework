@@ -1,7 +1,7 @@
 <?php
 
-use Phalcon\Di\Di;
 use Phalcon\Config\Config as PhalconConfig;
+use Phalcon\Di\Di;
 use Phare\Auth\Sanctum\NewAccessToken;
 use Phare\Auth\Sanctum\PersonalAccessToken;
 use Phare\Auth\Sanctum\Sanctum;
@@ -11,9 +11,13 @@ use Tests\Support\SimpleApplication;
 class SanctumTestToken extends PersonalAccessToken
 {
     public int $id = 1;
+
     public string $token = '';
+
     public int $tokenable_id = 0;
+
     public string $tokenable_type = '';
+
     public array $abilities = ['*'];
 
     public function getKey()
@@ -34,8 +38,11 @@ class SanctumTestToken extends PersonalAccessToken
 class SanctumActingAsToken
 {
     public int $tokenable_id = 0;
+
     public string $tokenable_type = '';
+
     public string $name = '';
+
     public array $abilities = ['*'];
 
     public function forceFill(array $attributes): static
@@ -102,8 +109,11 @@ function makeSanctumTestToken(): SanctumTestToken
 class SanctumStaticModel
 {
     public static ?PersonalAccessToken $whereFirst = null;
+
     public static ?PersonalAccessToken $findResult = null;
+
     public static array $lastWhereArgs = [];
+
     public static mixed $lastFindId = null;
 
     public static function where(...$args)
@@ -221,7 +231,7 @@ test('sanctum actingAs sets user with token on auth service', function () {
     $di = Di::getDefault();
     expect($di)->not->toBeNull();
 
-    $auth = new class
+    $auth = new class()
     {
         public mixed $user = null;
 

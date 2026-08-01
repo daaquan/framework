@@ -1,6 +1,6 @@
 <?php
 
-if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     test('factory integration tests require sqlite driver', function () {
         $this->markTestSkipped('PDO sqlite driver is required for factory integration tests.');
     });
@@ -236,7 +236,7 @@ describe('Factory persistence', function () {
 
         // Verify it was persisted to database
         $connection = $this->app->make('db');
-        $result = $connection->fetchOne('SELECT COUNT(*) as count FROM factory_test_users WHERE name = ?', \PDO::FETCH_ASSOC, ['Persisted User']);
+        $result = $connection->fetchOne('SELECT COUNT(*) as count FROM factory_test_users WHERE name = ?', PDO::FETCH_ASSOC, ['Persisted User']);
         expect($result['count'])->toBe(1);
     });
 
@@ -272,7 +272,7 @@ describe('Factory persistence', function () {
 
         // Verify they were persisted to database
         $connection = $this->app->make('db');
-        $result = $connection->fetchOne('SELECT COUNT(*) as count FROM factory_test_users WHERE name LIKE ?', \PDO::FETCH_ASSOC, ['Multi User%']);
+        $result = $connection->fetchOne('SELECT COUNT(*) as count FROM factory_test_users WHERE name LIKE ?', PDO::FETCH_ASSOC, ['Multi User%']);
         expect($result['count'])->toBe(3);
     });
 });

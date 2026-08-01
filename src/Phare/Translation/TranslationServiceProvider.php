@@ -2,6 +2,7 @@
 
 namespace Phare\Translation;
 
+use Phalcon\Config\Config;
 use Phare\Support\ServiceProvider;
 
 class TranslationServiceProvider extends ServiceProvider
@@ -14,7 +15,7 @@ class TranslationServiceProvider extends ServiceProvider
 
             if (is_array($configService)) {
                 $config = $configService;
-            } elseif ($configService instanceof \Phalcon\Config\Config) {
+            } elseif ($configService instanceof Config) {
                 $config = $configService->toArray();
             } elseif (is_object($configService) && method_exists($configService, 'all')) {
                 $config = $configService->all();

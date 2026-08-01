@@ -3,9 +3,7 @@
 use Phare\Auth\Sanctum\NewAccessToken;
 use Phare\Auth\Sanctum\PersonalAccessToken;
 
-class NewAccessTokenTestToken extends PersonalAccessToken
-{
-}
+class NewAccessTokenTestToken extends PersonalAccessToken {}
 
 function makeNewAccessTokenTestToken(): NewAccessTokenTestToken
 {
@@ -42,6 +40,6 @@ test('new access token can be converted to string', function () {
 
     $newToken = new NewAccessToken($accessToken, $plainTextToken);
 
-    expect((string) $newToken)->toBe($plainTextToken);
+    expect((string)$newToken)->toBe($plainTextToken);
     expect($newToken->__toString())->toBe($plainTextToken);
 });

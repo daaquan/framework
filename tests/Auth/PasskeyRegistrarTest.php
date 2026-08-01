@@ -17,7 +17,8 @@ function makeRegistrar(
     ?ChallengeStore $store = null,
     int $ttl = 120
 ): PasskeyRegistrar {
-    $repo ??= new class implements PasskeyCredentialRepository {
+    $repo ??= new class() implements PasskeyCredentialRepository
+    {
         public array $stored = [];
 
         public function findByCredentialId(string $credentialId, string|int|null $userHandle = null): ?array
@@ -31,14 +32,16 @@ function makeRegistrar(
         }
     };
 
-    $verifier ??= new class implements PasskeyRegistrationVerifier {
+    $verifier ??= new class() implements PasskeyRegistrationVerifier
+    {
         public function verify(array $attestation, string $expectedChallenge): ?array
         {
             return ['credential_id' => $attestation['id'] ?? 'cred-x', 'public_key' => 'pk'];
         }
     };
 
-    $store ??= new class implements ChallengeStore {
+    $store ??= new class() implements ChallengeStore
+    {
         private array $data = [];
 
         public function put(string $key, string $challenge, int $ttlSeconds): void
@@ -78,7 +81,8 @@ it('complete verifies attestation, stores credential, and clears challenge', fun
     $stored = [];
     $forgotten = false;
 
-    $repo = new class($stored) implements PasskeyCredentialRepository {
+    $repo = new class($stored) implements PasskeyCredentialRepository
+    {
         public function __construct(private array &$stored) {}
 
         public function findByCredentialId(string $credentialId, string|int|null $userHandle = null): ?array
@@ -92,7 +96,8 @@ it('complete verifies attestation, stores credential, and clears challenge', fun
         }
     };
 
-    $store = new class($forgotten) implements ChallengeStore {
+    $store = new class($forgotten) implements ChallengeStore
+    {
         private array $data = ['passkey:register:user-42' => 'expected-bytes'];
 
         public function __construct(private bool &$forgotten) {}
@@ -110,7 +115,8 @@ it('complete verifies attestation, stores credential, and clears challenge', fun
         }
     };
 
-    $verifier = new class implements PasskeyRegistrationVerifier {
+    $verifier = new class() implements PasskeyRegistrationVerifier
+    {
         public function verify(array $attestation, string $expectedChallenge): ?array
         {
             if ($attestation['id'] === 'cred-reg-1' && $expectedChallenge === 'expected-bytes') {
@@ -134,7 +140,8 @@ it('complete verifies attestation, stores credential, and clears challenge', fun
 it('complete returns null when verifier rejects attestation and does not store', function () {
     $stored = [];
 
-    $repo = new class($stored) implements PasskeyCredentialRepository {
+    $repo = new class($stored) implements PasskeyCredentialRepository
+    {
         public function __construct(private array &$stored) {}
 
         public function findByCredentialId(string $credentialId, string|int|null $userHandle = null): ?array
@@ -148,14 +155,24 @@ it('complete returns null when verifier rejects attestation and does not store',
         }
     };
 
-    $store = new class implements ChallengeStore {
+    $store = new class() implements ChallengeStore
+    {
         public function put(string $key, string $challenge, int $ttlSeconds): void {}
-        public function get(string $key): ?string { return 'challenge'; }
+
+        public function get(string $key): ?string
+        {
+            return 'challenge';
+        }
+
         public function forget(string $key): void {}
     };
 
-    $verifier = new class implements PasskeyRegistrationVerifier {
-        public function verify(array $attestation, string $expectedChallenge): ?array { return null; }
+    $verifier = new class() implements PasskeyRegistrationVerifier
+    {
+        public function verify(array $attestation, string $expectedChallenge): ?array
+        {
+            return null;
+        }
     };
 
     $registrar = new PasskeyRegistrar($repo, $verifier, $store, 120);
@@ -166,9 +183,15 @@ it('complete returns null when verifier rejects attestation and does not store',
 });
 
 it('complete throws when challenge is missing', function () {
-    $store = new class implements ChallengeStore {
+    $store = new class() implements ChallengeStore
+    {
         public function put(string $key, string $challenge, int $ttlSeconds): void {}
-        public function get(string $key): ?string { return null; }
+
+        public function get(string $key): ?string
+        {
+            return null;
+        }
+
         public function forget(string $key): void {}
     };
 

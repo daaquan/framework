@@ -1,6 +1,6 @@
 <?php
 
-if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     test('migration integration tests require sqlite driver', function () {
         $this->markTestSkipped('PDO sqlite driver is required for migration integration tests.');
     });
@@ -24,7 +24,7 @@ class MigrationTest extends TestCase
     {
         parent::setUp();
 
-        if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+        if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
             $this->markTestSkipped('PDO sqlite driver is required for migration integration tests.');
         }
 

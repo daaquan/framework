@@ -1,6 +1,6 @@
 <?php
 
-if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     test('eloquent soft delete scope integration tests require sqlite driver', function () {
         $this->markTestSkipped('PDO sqlite driver is required for eloquent soft delete scope integration tests.');
     });
@@ -8,8 +8,10 @@ if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
     return;
 }
 
+use Phalcon\Di\Di;
 use Phare\Database\Schema\Blueprint;
 use Phare\Database\Schema\SchemaBuilder;
+use Phare\Eloquent\Model;
 use Tests\Mock\Models\User;
 
 beforeEach(function () {
@@ -103,7 +105,7 @@ function createSoftDeleteUser(string $email): User
 
 function insertSoftDeleteUser(string $email, ?string $deletedAt = null): void
 {
-    $connection = Phalcon\Di\Di::getDefault()->get('db');
+    $connection = Di::getDefault()->get('db');
     $connection->execute(
         'INSERT INTO users (name, email, password, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?, ?)',
         ['Soft Delete User', $email, password_hash('secret', PASSWORD_DEFAULT), nowString(), nowString(), $deletedAt]
@@ -117,7 +119,7 @@ function nowString(): string
 
 function resetSoftDeleteModelState(string $class): void
 {
-    $reflection = new ReflectionClass(\Phare\Eloquent\Model::class);
+    $reflection = new ReflectionClass(Model::class);
 
     foreach (['booted', 'initializing', 'traitInitializers', 'globalScopes'] as $property) {
         $value = $reflection->getProperty($property)->getValue();

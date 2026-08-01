@@ -28,7 +28,7 @@ it('psrGet() throws NotFoundExceptionInterface for unknown ids', function () {
     try {
         $c->psrGet('does-not-exist-xyz');
         $this->fail('expected NotFoundExceptionInterface');
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         expect($e)->toBeInstanceOf(NotFoundExceptionInterface::class);
     }
 });

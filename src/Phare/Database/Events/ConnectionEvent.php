@@ -4,7 +4,5 @@ namespace Phare\Database\Events;
 
 class ConnectionEvent
 {
-    public function __construct(public string $connectionName)
-    {
-    }
+    public function __construct(public string $connectionName) {}
 }

@@ -16,7 +16,7 @@ interface PasskeyCredentialRepository
     /**
      * Persist a new credential after a successful registration ceremony.
      *
-     * @param  array<string, mixed>  $credential  Normalised credential data from the verifier
+     * @param array<string, mixed> $credential Normalised credential data from the verifier
      */
     public function storeCredential(string|int|null $userHandle, array $credential): void;
 }

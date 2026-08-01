@@ -1,8 +1,8 @@
 <?php
 
+use Phalcon\Http\RequestInterface;
 use Phalcon\Http\Response;
 use Phalcon\Http\ResponseInterface;
-use Phalcon\Http\RequestInterface;
 use Phare\Foundation\Http\Kernel;
 use Phare\Foundation\Web;
 
@@ -17,6 +17,7 @@ class KernelOrchestrationDummyController
 class KernelTestRoute
 {
     public ?string $method = null;
+
     public string $name = '';
 
     public function via(string $method): self
@@ -68,8 +69,7 @@ class KernelTestRequest
     public function __construct(
         private string $uri,
         private string $method
-    ) {
-    }
+    ) {}
 
     public function getURI(bool $local = false): string
     {

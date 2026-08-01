@@ -71,7 +71,6 @@ it('loads generated cache file when fallback loader writes file', function () {
     $loaded = $resolver->resolve($path, function (string $cachedPath) use ($expected) {
         createRoutesCacheFile(dirname($cachedPath), $expected);
 
-        return null;
     });
 
     expect($loaded)->toBe($expected);

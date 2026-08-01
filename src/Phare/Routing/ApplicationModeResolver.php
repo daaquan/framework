@@ -11,6 +11,7 @@ use Phare\Foundation\Web;
 class ApplicationModeResolver
 {
     public const MODE_WEB = 'web';
+
     public const MODE_MICRO = 'micro';
 
     public function resolve(Application $app): string
