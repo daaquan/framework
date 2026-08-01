@@ -9,7 +9,7 @@ class CallAndWrapTestTarget
         return "hello {$name}";
     }
 
-    public function withDep(\Phare\Container\Container $c, string $msg = 'd'): string
+    public function withDep(Container $c, string $msg = 'd'): string
     {
         return $c instanceof Container ? "{$msg}-ok" : "{$msg}-fail";
     }

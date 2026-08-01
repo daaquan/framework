@@ -1,6 +1,8 @@
 <?php
 
 use Phare\Routing\RouteMiddlewareResolver;
+use Tests\Mock\AuthMiddleware;
+use Tests\Mock\ThrottleMiddleware;
 
 it('resolves middleware aliases to concrete middleware classes', function () {
     $resolver = new RouteMiddlewareResolver();
@@ -8,14 +10,14 @@ it('resolves middleware aliases to concrete middleware classes', function () {
     $resolved = $resolver->resolve(
         ['auth', 'throttle'],
         [
-            'auth' => \Tests\Mock\AuthMiddleware::class,
-            'throttle' => \Tests\Mock\ThrottleMiddleware::class,
+            'auth' => AuthMiddleware::class,
+            'throttle' => ThrottleMiddleware::class,
         ]
     );
 
     expect($resolved)->toBe([
-        \Tests\Mock\AuthMiddleware::class,
-        \Tests\Mock\ThrottleMiddleware::class,
+        AuthMiddleware::class,
+        ThrottleMiddleware::class,
     ]);
 });
 
@@ -25,14 +27,14 @@ it('resolves parameterised aliases such as throttle:5,1', function () {
     $resolved = $resolver->resolve(
         ['throttle:5,1', 'auth'],
         [
-            'auth' => \Tests\Mock\AuthMiddleware::class,
-            'throttle' => \Tests\Mock\ThrottleMiddleware::class,
+            'auth' => AuthMiddleware::class,
+            'throttle' => ThrottleMiddleware::class,
         ]
     );
 
     expect($resolved)->toBe([
-        \Tests\Mock\ThrottleMiddleware::class . ':5,1',
-        \Tests\Mock\AuthMiddleware::class,
+        ThrottleMiddleware::class . ':5,1',
+        AuthMiddleware::class,
     ]);
 });
 

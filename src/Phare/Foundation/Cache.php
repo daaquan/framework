@@ -149,8 +149,7 @@ class Cache extends PhCache implements CacheContract
         $key,
         Closure|DateTimeInterface|DateInterval|int|null $ttl,
         ?Closure $callback = null
-    ): mixed
-    {
+    ): mixed {
         if ($ttl instanceof Closure && $callback === null) {
             return $this->rememberForever($key, $ttl);
         }

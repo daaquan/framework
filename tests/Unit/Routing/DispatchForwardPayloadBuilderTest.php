@@ -1,5 +1,6 @@
 <?php
 
+use Phare\Http\Request;
 use Phare\Routing\DispatchForwardPayloadBuilder;
 
 it('builds payload using url params when route has no typed params', function () {
@@ -39,7 +40,7 @@ it('builds payload using typed param resolver when route has typed params', func
             'namespace' => 'App\\Http\\Controllers',
             'controller' => 'User',
             'action' => 'update',
-            'params' => ['int', \Phare\Http\Request::class],
+            'params' => ['int', Request::class],
         ],
         ['id' => '10'],
         function (array $types, array $params) use (&$seenTypes, &$seenParams) {
@@ -50,7 +51,7 @@ it('builds payload using typed param resolver when route has typed params', func
         }
     );
 
-    expect($seenTypes)->toBe(['int', \Phare\Http\Request::class]);
+    expect($seenTypes)->toBe(['int', Request::class]);
     expect($seenParams)->toBe(['id' => '10']);
     expect($payload)->toBe([
         'namespace' => 'App\\Http\\Controllers',

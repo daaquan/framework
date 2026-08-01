@@ -1,6 +1,6 @@
 <?php
 
-if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     test('belongs to many tests require sqlite driver', function () {
         $this->markTestSkipped('PDO sqlite driver is required for belongs to many tests.');
     });
@@ -92,9 +92,9 @@ it('attaches a pivot record', function () {
     $rows = $this->app->make('db')->fetchAll('SELECT * FROM role_user');
 
     expect($rows)->toHaveCount(1)
-        ->and((int) $rows[0]['user_id'])->toBe($user->id)
-        ->and((int) $rows[0]['role_id'])->toBe($role->id)
-        ->and((int) $rows[0]['active'])->toBe(1);
+        ->and((int)$rows[0]['user_id'])->toBe($user->id)
+        ->and((int)$rows[0]['role_id'])->toBe($role->id)
+        ->and((int)$rows[0]['active'])->toBe(1);
 });
 
 it('detaches pivot records', function () {
@@ -111,7 +111,7 @@ it('detaches pivot records', function () {
 
     expect($deleted)->toBe(1)
         ->and($rows)->toHaveCount(1)
-        ->and((int) $rows[0]['role_id'])->toBe($editor->id);
+        ->and((int)$rows[0]['role_id'])->toBe($editor->id);
 });
 
 it('syncs pivot records', function () {
@@ -134,8 +134,8 @@ it('syncs pivot records', function () {
         ->and($changes['detached'])->toBe([$admin->id])
         ->and($changes['updated'])->toBe([$editor->id])
         ->and($rows)->toHaveCount(2)
-        ->and((int) $rows[0]['active'])->toBe(1)
-        ->and((int) $rows[1]['active'])->toBe(1);
+        ->and((int)$rows[0]['active'])->toBe(1)
+        ->and((int)$rows[1]['active'])->toBe(1);
 });
 
 it('toggles pivot records', function () {
@@ -152,7 +152,7 @@ it('toggles pivot records', function () {
     expect($changes['attached'])->toBe([$editor->id])
         ->and($changes['detached'])->toBe([$admin->id])
         ->and($rows)->toHaveCount(1)
-        ->and((int) $rows[0]['role_id'])->toBe($editor->id);
+        ->and((int)$rows[0]['role_id'])->toBe($editor->id);
 });
 
 it('hydrates extra pivot columns and timestamps', function () {

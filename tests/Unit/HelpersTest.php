@@ -30,7 +30,7 @@ it('evaluates blank and filled helper compatibility', function () {
 it('rescue returns fallback and can skip reporting', function () {
     $result = rescue(
         fn () => throw new RuntimeException('boom'),
-        fn (Throwable $e) => 'fallback:'.$e->getMessage(),
+        fn (Throwable $e) => 'fallback:' . $e->getMessage(),
         false
     );
 

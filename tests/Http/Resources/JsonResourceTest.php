@@ -1,6 +1,7 @@
 <?php
 
 use Phare\Http\Resources\JsonResource;
+use Phare\Http\Resources\JsonResourceResponse;
 use Phare\Http\Resources\ResourceCollection;
 
 function makeUserResource(object $user): JsonResource
@@ -78,7 +79,7 @@ it('serializes to json and supports additional/response', function () {
     $decoded = json_decode($json, true);
 
     expect($decoded['name'])->toBe('John Doe');
-    expect($resource->response())->toBeInstanceOf(\Phare\Http\Resources\JsonResourceResponse::class);
+    expect($resource->response())->toBeInstanceOf(JsonResourceResponse::class);
 });
 
 it('supports wrapping configuration', function () {

@@ -9,7 +9,8 @@ use Phare\Auth\Passkeys\PasskeyCredentialRepository;
 
 it('begins an assertion and returns a challenge payload', function () {
     $authenticator = new PasskeyAuthenticator(
-        new class implements PasskeyCredentialRepository {
+        new class() implements PasskeyCredentialRepository
+        {
             public function findByCredentialId(string $credentialId, string|int|null $userHandle = null): ?array
             {
                 return ['id' => $credentialId];
@@ -17,15 +18,22 @@ it('begins an assertion and returns a challenge payload', function () {
 
             public function storeCredential(string|int|null $userHandle, array $credential): void {}
         },
-        new class implements PasskeyAssertionVerifier {
+        new class() implements PasskeyAssertionVerifier
+        {
             public function verify(array $assertion, array $credential, string $expectedChallenge): bool
             {
                 return true;
             }
         },
-        new class implements ChallengeStore {
+        new class() implements ChallengeStore
+        {
             public function put(string $key, string $challenge, int $ttlSeconds): void {}
-            public function get(string $key): ?string { return null; }
+
+            public function get(string $key): ?string
+            {
+                return null;
+            }
+
             public function forget(string $key): void {}
         },
         180
@@ -40,15 +48,26 @@ it('begins an assertion and returns a challenge payload', function () {
 
 it('verifies a passkey assertion and clears challenge on success', function () {
     $forgotten = false;
-    $store = new class($forgotten) implements ChallengeStore {
+    $store = new class($forgotten) implements ChallengeStore
+    {
         public function __construct(private bool &$forgotten) {}
+
         public function put(string $key, string $challenge, int $ttlSeconds): void {}
-        public function get(string $key): ?string { return 'challenge-bytes'; }
-        public function forget(string $key): void { $this->forgotten = true; }
+
+        public function get(string $key): ?string
+        {
+            return 'challenge-bytes';
+        }
+
+        public function forget(string $key): void
+        {
+            $this->forgotten = true;
+        }
     };
 
     $authenticator = new PasskeyAuthenticator(
-        new class implements PasskeyCredentialRepository {
+        new class() implements PasskeyCredentialRepository
+        {
             public function findByCredentialId(string $credentialId, string|int|null $userHandle = null): ?array
             {
                 return ['credential_id' => $credentialId, 'user' => $userHandle];
@@ -56,7 +75,8 @@ it('verifies a passkey assertion and clears challenge on success', function () {
 
             public function storeCredential(string|int|null $userHandle, array $credential): void {}
         },
-        new class implements PasskeyAssertionVerifier {
+        new class() implements PasskeyAssertionVerifier
+        {
             public function verify(array $assertion, array $credential, string $expectedChallenge): bool
             {
                 return $assertion['rawId'] === 'cred-123'
@@ -74,14 +94,21 @@ it('verifies a passkey assertion and clears challenge on success', function () {
 });
 
 it('returns false when credential cannot be found', function () {
-    $store = new class implements ChallengeStore {
+    $store = new class() implements ChallengeStore
+    {
         public function put(string $key, string $challenge, int $ttlSeconds): void {}
-        public function get(string $key): ?string { return 'challenge-bytes'; }
+
+        public function get(string $key): ?string
+        {
+            return 'challenge-bytes';
+        }
+
         public function forget(string $key): void {}
     };
 
     $authenticator = new PasskeyAuthenticator(
-        new class implements PasskeyCredentialRepository {
+        new class() implements PasskeyCredentialRepository
+        {
             public function findByCredentialId(string $credentialId, string|int|null $userHandle = null): ?array
             {
                 return null;
@@ -89,7 +116,8 @@ it('returns false when credential cannot be found', function () {
 
             public function storeCredential(string|int|null $userHandle, array $credential): void {}
         },
-        new class implements PasskeyAssertionVerifier {
+        new class() implements PasskeyAssertionVerifier
+        {
             public function verify(array $assertion, array $credential, string $expectedChallenge): bool
             {
                 return true;

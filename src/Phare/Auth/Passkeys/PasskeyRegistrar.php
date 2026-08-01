@@ -33,10 +33,10 @@ class PasskeyRegistrar
         $this->challengeStore->put($this->challengeKey($userHandle), $challenge, $this->challengeTtlSeconds);
 
         return [
-            'challenge'  => $this->base64UrlEncode($challenge),
-            'expiresIn'  => $this->challengeTtlSeconds,
+            'challenge' => $this->base64UrlEncode($challenge),
+            'expiresIn' => $this->challengeTtlSeconds,
             'userHandle' => $userHandle,
-            'userName'   => $userName,
+            'userName' => $userName,
         ];
     }
 
@@ -46,7 +46,7 @@ class PasskeyRegistrar
      * Returns the stored credential data on success, throws on invalid challenge,
      * and returns null when the verifier rejects the attestation.
      *
-     * @param  array<string, mixed>  $attestation
+     * @param array<string, mixed> $attestation
      * @return array<string, mixed>|null
      */
     public function complete(array $attestation, string|int|null $userHandle = null): ?array
@@ -69,7 +69,7 @@ class PasskeyRegistrar
 
     private function challengeKey(string|int|null $userHandle): string
     {
-        return 'passkey:register:' . (string) ($userHandle ?? 'anonymous');
+        return 'passkey:register:' . (string)($userHandle ?? 'anonymous');
     }
 
     private function base64UrlEncode(string $value): string

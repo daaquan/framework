@@ -2,6 +2,4 @@
 
 namespace Phare\Database\Events;
 
-class TransactionRolledBack extends ConnectionEvent
-{
-}
+class TransactionRolledBack extends ConnectionEvent {}

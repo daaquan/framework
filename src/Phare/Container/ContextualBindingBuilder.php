@@ -9,8 +9,7 @@ class ContextualBindingBuilder
     public function __construct(
         private Container $container,
         private array $concretes
-    ) {
-    }
+    ) {}
 
     public function needs(string $abstract): ContextualBindingNeedsBuilder
     {

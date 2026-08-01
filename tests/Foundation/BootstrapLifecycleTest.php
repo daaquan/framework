@@ -1,5 +1,6 @@
 <?php
 
+use Phalcon\Config\Config;
 use Phalcon\Mvc\Micro;
 use Phare\Foundation\AbstractApplication;
 
@@ -7,7 +8,7 @@ class BootstrapLifecycleTestApplication extends AbstractApplication
 {
     protected function createApplication()
     {
-        $this->singleton('config', \Phalcon\Config\Config::class);
+        $this->singleton('config', Config::class);
 
         return (new Micro())->notFound(static fn () => 'Not found');
     }
@@ -48,9 +49,7 @@ class LegacyRegisterBootstrapper
     }
 }
 
-class EmptyBootstrapper
-{
-}
+class EmptyBootstrapper {}
 
 beforeEach(function () {
     BootstrapperWithBootstrapAndRegister::$calls = [];

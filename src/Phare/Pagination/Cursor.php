@@ -2,8 +2,8 @@
 
 namespace Phare\Pagination;
 
-use Phare\Contracts\Support\Arrayable;
 use Phare\Collections\Collection;
+use Phare\Contracts\Support\Arrayable;
 use UnexpectedValueException;
 
 class Cursor implements Arrayable

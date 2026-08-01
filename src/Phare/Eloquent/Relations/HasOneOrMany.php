@@ -2,7 +2,6 @@
 
 namespace Phare\Eloquent\Relations;
 
-use Phare\Collections\Collection;
 use Phare\Eloquent\Builder;
 use Phare\Eloquent\Model;
 

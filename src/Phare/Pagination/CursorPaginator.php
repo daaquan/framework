@@ -223,11 +223,13 @@ class CursorPaginator implements \Countable, \IteratorAggregate, \JsonSerializab
         foreach ($this->parameters as $parameterName) {
             if (is_array($item)) {
                 $parameters[$parameterName] = $item[$parameterName] ?? null;
+
                 continue;
             }
 
             if (is_object($item)) {
                 $parameters[$parameterName] = $item->{$parameterName} ?? null;
+
                 continue;
             }
 

@@ -119,15 +119,11 @@ it('throws validation exception when validated data is invalid', function () {
 it('validateResolved throws for unauthorized requests', function () {
     $request = new UnauthorizedFormRequest();
 
-    expect(fn () => $request->validateResolved())->toThrow(\Phare\Validation\ValidationException::class);
+    expect(fn () => $request->validateResolved())->toThrow(ValidationException::class);
 });
 
 it('handles nullable fields in custom form request', function () {
-    $request = new class([
-        'name' => 'Test Name',
-        'description' => null,
-        'age' => '',
-    ]) extends FormRequest
+    $request = new class(['name' => 'Test Name', 'description' => null, 'age' => '']) extends FormRequest
     {
         public function __construct(private array $payload = [])
         {

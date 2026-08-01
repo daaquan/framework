@@ -8,8 +8,7 @@ class OrchestratorFakeRequest
     public function __construct(
         private string $uri,
         private string $method
-    ) {
-    }
+    ) {}
 
     public function getURI(bool $local = false): string
     {
@@ -25,6 +24,7 @@ class OrchestratorFakeRequest
 class OrchestratorFakeRoute
 {
     public ?string $method = null;
+
     public string $name = '';
 
     public function via(string $method): self

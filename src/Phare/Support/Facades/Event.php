@@ -2,6 +2,8 @@
 
 namespace Phare\Support\Facades;
 
+use Phare\Events\Dispatcher;
+
 /**
  * @method static void listen(string|array $events, \Closure|array|string $listener)
  * @method static bool hasListeners(string $eventName)
@@ -20,7 +22,7 @@ namespace Phare\Support\Facades;
  * @method static void forget(string $event)
  * @method static void forgetPushed()
  *
- * @see \Phare\Events\Dispatcher
+ * @see Dispatcher
  */
 class Event extends Facade
 {

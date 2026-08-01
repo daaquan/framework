@@ -2,6 +2,4 @@
 
 namespace Phare\Database\Events;
 
-class TransactionCommitted extends ConnectionEvent
-{
-}
+class TransactionCommitted extends ConnectionEvent {}

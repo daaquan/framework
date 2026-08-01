@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\InputOption;
  *   --no-interactive  Skip all interactive prompts; fail instead of blocking.
  *
  * Pattern inspired by QCon London 2026 / Netlify CLI redesign for AI agents.
+ *
  * @see https://www.infoq.com/news/2026/03/qcon-next-developers/
  */
 trait AgentFriendly
@@ -20,6 +21,7 @@ trait AgentFriendly
     private array $_agentData = [];
 
     private bool $_agentJsonMode = false;
+
     private bool $_agentNoInteractive = false;
 
     /** Call once inside configure() to register the agent options. */
@@ -42,8 +44,8 @@ trait AgentFriendly
     /** Call at the start of execute() / handle() to initialise flags. */
     protected function initAgentMode(): void
     {
-        $this->_agentJsonMode      = (bool) ($this->input->getOption('json') ?? false);
-        $this->_agentNoInteractive = (bool) ($this->input->getOption('no-interactive') ?? false);
+        $this->_agentJsonMode = (bool)($this->input->getOption('json') ?? false);
+        $this->_agentNoInteractive = (bool)($this->input->getOption('no-interactive') ?? false);
     }
 
     /** Returns true when --json was passed. */
@@ -79,9 +81,6 @@ trait AgentFriendly
 
     /**
      * Store a key/value pair that will be included in --json output.
-     *
-     * @param string $key
-     * @param mixed  $value
      */
     protected function agentSet(string $key, mixed $value): void
     {
@@ -92,8 +91,8 @@ trait AgentFriendly
      * Emit JSON output if --json mode is active, otherwise write a human
      * readable info line.
      *
-     * @param string $message  Human-readable success message.
-     * @param array  $data     Additional fields merged into the JSON envelope.
+     * @param string $message Human-readable success message.
+     * @param array $data Additional fields merged into the JSON envelope.
      */
     protected function agentSuccess(string $message, array $data = []): void
     {
@@ -113,9 +112,7 @@ trait AgentFriendly
     /**
      * Emit a structured error (JSON or human-readable).
      *
-     * @param string $message
-     * @param string $code     Machine-readable error code (e.g. 'PROMPT_REQUIRED').
-     * @param array  $data
+     * @param string $code Machine-readable error code (e.g. 'PROMPT_REQUIRED').
      */
     protected function agentError(string $message, string $code = 'ERROR', array $data = []): void
     {
@@ -137,7 +134,7 @@ trait AgentFriendly
      */
     protected function flushAgentJson(): void
     {
-        if ($this->isJsonMode() && ! empty($this->_agentData)) {
+        if ($this->isJsonMode() && !empty($this->_agentData)) {
             $this->line(json_encode(
                 array_merge(['status' => 'ok'], $this->_agentData),
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES

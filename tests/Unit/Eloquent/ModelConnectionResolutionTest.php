@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Auth\User;
 use Phare\Database\MySql\DatabaseManager;
 use Phare\Eloquent\Model;
 
@@ -16,7 +17,7 @@ function makeDbManagerStub(array $services, string $default = 'db'): DatabaseMan
 it('keeps an explicitly-set connection without resolving', function () {
     $manager = makeDbManagerStub(['db' => true, 'reports' => true]);
 
-    $resolved = Model::resolveConnectionName($manager, 'reports', \App\Models\Auth\User::class);
+    $resolved = Model::resolveConnectionName($manager, 'reports', User::class);
 
     expect($resolved)->toBe('reports');
 });
@@ -24,7 +25,7 @@ it('keeps an explicitly-set connection without resolving', function () {
 it('uses the namespace-derived service name when registered', function () {
     $manager = makeDbManagerStub(['auth' => true, 'db' => true]);
 
-    $resolved = Model::resolveConnectionName($manager, null, \App\Models\Auth\User::class);
+    $resolved = Model::resolveConnectionName($manager, null, User::class);
 
     expect($resolved)->toBe('auth');
 });
@@ -32,7 +33,7 @@ it('uses the namespace-derived service name when registered', function () {
 it('falls back to the db service when the namespace-derived name is not registered', function () {
     $manager = makeDbManagerStub(['db' => true]);
 
-    $resolved = Model::resolveConnectionName($manager, null, \App\Models\Auth\User::class);
+    $resolved = Model::resolveConnectionName($manager, null, User::class);
 
     expect($resolved)->toBe('db');
 });
@@ -40,7 +41,7 @@ it('falls back to the db service when the namespace-derived name is not register
 it('falls back to the default connection when neither namespaced nor db is registered', function () {
     $manager = makeDbManagerStub(['reports' => true], default: 'reports');
 
-    $resolved = Model::resolveConnectionName($manager, null, \App\Models\Auth\User::class);
+    $resolved = Model::resolveConnectionName($manager, null, User::class);
 
     expect($resolved)->toBe('reports');
 });

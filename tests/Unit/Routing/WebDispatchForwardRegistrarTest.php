@@ -16,11 +16,10 @@ class FakeDispatchEventsManager
 class FakeDispatchDispatcher
 {
     public bool $forwarded = false;
+
     public array $forwardPayloads = [];
 
-    public function __construct(private bool $alreadyForwarded = false)
-    {
-    }
+    public function __construct(private bool $alreadyForwarded = false) {}
 
     public function wasForwarded(): bool
     {

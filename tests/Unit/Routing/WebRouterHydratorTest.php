@@ -5,6 +5,7 @@ use Phare\Routing\WebRouterHydrator;
 class FakeHydratedRoute
 {
     public ?string $method = null;
+
     public string $name = '';
 
     public function via(string $method): self

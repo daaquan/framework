@@ -2,6 +2,8 @@
 
 namespace Phare\Contracts\Http\Validation;
 
+use Phare\Validation\MessageBag;
+
 interface Validator
 {
     public static function make(
@@ -15,7 +17,7 @@ interface Validator
 
     public function fails(): bool;
 
-    public function errors(): \Phare\Validation\MessageBag;
+    public function errors(): MessageBag;
 
     public function validated(): array;
 

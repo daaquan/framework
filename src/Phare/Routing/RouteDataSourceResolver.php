@@ -10,7 +10,6 @@ class RouteDataSourceResolver
      * Resolve route definitions from cache file or fallback loader.
      *
      * @param callable(string): array $fallbackLoader
-     * @return array
      */
     public function resolve(string $cachedRoutesPath, callable $fallbackLoader): array
     {

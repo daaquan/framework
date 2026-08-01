@@ -7,7 +7,9 @@ use Phare\Auth\Sanctum\PersonalAccessToken;
 class HasApiTokensTestToken extends PersonalAccessToken
 {
     public int $id = 1;
+
     public array $abilities = ['*'];
+
     public bool $deleted = false;
 
     public function getKey()
@@ -42,7 +44,9 @@ function makeHasApiTokensTestToken(): HasApiTokensTestToken
 class HasApiTokensTestRelation
 {
     public ?array $createdPayload = null;
+
     public bool $deleted = false;
+
     public ?array $whereArgs = null;
 
     public function __construct(private HasApiTokensTestToken $token) {}

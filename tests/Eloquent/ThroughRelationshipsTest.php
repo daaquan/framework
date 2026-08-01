@@ -1,6 +1,6 @@
 <?php
 
-if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     test('through relationship integration tests require sqlite driver', function () {
         $this->markTestSkipped('PDO sqlite driver is required for through relationship integration tests.');
     });

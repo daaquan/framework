@@ -10,8 +10,7 @@ class ContextualBindingNeedsBuilder
         private Container $container,
         private array $concretes,
         private string $abstract
-    ) {
-    }
+    ) {}
 
     public function give($implementation): void
     {
