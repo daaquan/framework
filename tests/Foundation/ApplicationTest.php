@@ -1,16 +1,27 @@
 <?php
 
+use Phalcon\Config\Config;
+use Phalcon\Http\Request;
+use Phalcon\Http\Response;
+use Phalcon\Mvc\Micro;
+use Phalcon\Mvc\Router;
+use Phare\Contracts\Foundation\Container;
+use Phare\Foundation\AbstractApplication;
+use Phare\Foundation\Bootstrap\HandleExceptions;
+use Phare\Log\LogManager;
+
 // We're using a mock here because AbstractApplication is an abstract class.
 // You'll need to create a concrete implementation for testing purposes.
 
-class MockApplication extends \Phare\Foundation\AbstractApplication
+class MockApplication extends AbstractApplication
 {
     protected function createApplication()
     {
-        $this->singleton('config', \Phalcon\Config\Config::class);
+        $this->singleton('config', Config::class);
 
         // Return the actual application instance you want to test, e.g., Micro or other.
-        return (new Phalcon\Mvc\Micro())
+        // Hand the container to Micro the same way Phare\Foundation\Micro does.
+        return (new Micro($this))
             ->notFound(function () {
                 return 'Not found';
             });
@@ -18,11 +29,10 @@ class MockApplication extends \Phare\Foundation\AbstractApplication
 
     public function handle($uri)
     {
-        $this->setDI($this->app->getDI());
-        $this->singleton('request', Phalcon\Http\Request::class);
-        $this->singleton('response', Phalcon\Http\Response::class);
+        $this->singleton('request', Request::class);
+        $this->singleton('response', Response::class);
         $this->singleton('router', function () {
-            return new Phalcon\Mvc\Router(false);
+            return new Router(false);
         });
 
         return $this->app->handle($uri);
@@ -34,36 +44,14 @@ class MockApplication extends \Phare\Foundation\AbstractApplication
     }
 }
 
-/**
- * Save and restore error/exception handlers around a callable that installs its own.
- * This prevents PHPUnit from marking tests as risky due to leaked handler changes.
- */
-function withRestoredHandlers(callable $fn): void
-{
-    // Capture the current handlers by temporarily replacing them with null
-    $prevErrorHandler = set_error_handler(null);
-    $prevExceptionHandler = set_exception_handler(null);
-    restore_error_handler();
-    restore_exception_handler();
-
-    try {
-        $fn();
-    } finally {
-        restore_error_handler();
-        restore_exception_handler();
-        if ($prevErrorHandler !== null) {
-            set_error_handler($prevErrorHandler);
-        }
-        if ($prevExceptionHandler !== null) {
-            set_exception_handler($prevExceptionHandler);
-        }
-    }
-}
+// ponytail: no handler save/restore wrapper here — HandleExceptions::register()
+// returns before installing any handler when runningUnitTests() is true, so the
+// old wrapper only unbalanced PHPUnit's handler stack and made these tests risky.
 
 it('can be instantiated', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
-    expect($app)->toBeInstanceOf(\Phare\Foundation\AbstractApplication::class);
-    expect($app)->toBeInstanceOf(\Phare\Contracts\Foundation\Container::class);
+    expect($app)->toBeInstanceOf(AbstractApplication::class);
+    expect($app)->toBeInstanceOf(Container::class);
 });
 
 it('has a version', function () {
@@ -112,14 +100,12 @@ it('registers configured providers', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
     $app->configure('app');
 
-    withRestoredHandlers(function () use ($app) {
-        // You need to set up some providers in your config for this test to work
-        $app->registerConfiguredProviders();
-    });
+    // You need to set up some providers in your config for this test to work
+    $app->registerConfiguredProviders();
 
     // Assuming you have a ServiceProvider that binds a service named 'exampleService'
     $service = $app->make('log');
-    expect($service)->toBeInstanceOf(\Phare\Log\LogManager::class);
+    expect($service)->toBeInstanceOf(LogManager::class);
     // Replace ExpectedServiceProviderClass with the actual class you expect
 });
 
@@ -127,13 +113,14 @@ it('checks the application environment', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
 
     // Assume 'APP_ENV' is set to 'testing' for this scenario
+    $previous = getenv('APP_ENV');
     putenv('APP_ENV=testing');
 
     expect($app->environment('testing'))->toBe(true);
     expect($app->environment('production'))->toBe(false);
 
-    // Clean up the environment variable after the test
-    putenv('APP_ENV');
+    // Restore (not clear) the variable — later tests read APP_ENV via getenv().
+    putenv($previous === false ? 'APP_ENV' : "APP_ENV={$previous}");
 });
 
 it('bootstrap the application with given bootstrappers', function () {
@@ -141,12 +128,10 @@ it('bootstrap the application with given bootstrappers', function () {
 
     // Mock bootstrapper classes
     $bootstrappers = [
-        \Phare\Foundation\Bootstrap\HandleExceptions::class,
+        HandleExceptions::class,
     ];
 
-    withRestoredHandlers(function () use ($app, $bootstrappers) {
-        $app->bootstrapWith($bootstrappers);
-    });
+    $app->bootstrapWith($bootstrappers);
 
     // Verify that the app has been bootstrapped
     expect($app->hasBeenBootstrapped())->toBe(true);
@@ -160,9 +145,7 @@ it('determines if the application has been bootstrapped', function () {
     expect($app->hasBeenBootstrapped())->toBe(false);
 
     // Perform bootstrapping then check again
-    withRestoredHandlers(function () use ($app) {
-        $app->bootstrapWith([\Phare\Foundation\Bootstrap\HandleExceptions::class]);
-    });
+    $app->bootstrapWith([HandleExceptions::class]);
 
     expect($app->hasBeenBootstrapped())->toBe(true);
 });

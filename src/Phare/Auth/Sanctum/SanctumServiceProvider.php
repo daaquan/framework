@@ -2,7 +2,7 @@
 
 namespace Phare\Auth\Sanctum;
 
-use Phare\Providers\ServiceProvider;
+use Phare\Support\ServiceProvider;
 
 class SanctumServiceProvider extends ServiceProvider
 {
@@ -16,7 +16,6 @@ class SanctumServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerGuard();
-        $this->loadMigrationsFrom(__DIR__ . '/../../Database/migrations');
     }
 
     protected function registerGuard(): void

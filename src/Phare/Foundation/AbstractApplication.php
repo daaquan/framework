@@ -573,7 +573,8 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function runningUnitTests(): bool
     {
-        return defined('APP_RUNNING_UNIT_TEST') && APP_RUNNING_UNIT_TEST === true;
+        return (defined('APP_RUNNING_UNIT_TEST') && APP_RUNNING_UNIT_TEST === true)
+            || $this->environment('testing');
     }
 
     /**

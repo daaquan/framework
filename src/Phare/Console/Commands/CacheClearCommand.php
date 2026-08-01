@@ -13,7 +13,7 @@ class CacheClearCommand extends Command
     {
         try {
             // Clear application cache
-            Cache::flush();
+            Cache::clear();
 
             $this->info('Application cache cleared!');
 

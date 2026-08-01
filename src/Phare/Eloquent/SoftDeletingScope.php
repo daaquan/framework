@@ -6,7 +6,10 @@ class SoftDeletingScope implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
-        $builder->whereNull($model->getQualifiedDeletedAtColumn());
+        // ponytail: unqualified column — Builder emits PHQL whose only source is the
+        // model itself, so `users.deleted_at` resolves to an unknown alias. Qualify with
+        // the PHQL alias (the model class name) only if joins are ever added here.
+        $builder->whereNull($model->getDeletedAtColumn());
     }
 
     public function extend(Builder $builder): void
@@ -24,7 +27,7 @@ class SoftDeletingScope implements Scope
 
             return $builder
                 ->withoutGlobalScope($this)
-                ->whereNotNull($model?->getQualifiedDeletedAtColumn() ?? 'deleted_at');
+                ->whereNotNull($model?->getDeletedAtColumn() ?? 'deleted_at');
         });
 
         $builder->macro('withoutTrashed', function (Builder $builder) {
@@ -32,7 +35,7 @@ class SoftDeletingScope implements Scope
 
             return $builder
                 ->withoutGlobalScope($this)
-                ->whereNull($model?->getQualifiedDeletedAtColumn() ?? 'deleted_at');
+                ->whereNull($model?->getDeletedAtColumn() ?? 'deleted_at');
         });
 
         $builder->macro('restore', function (Builder $builder) {

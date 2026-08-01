@@ -137,3 +137,18 @@ it('converts to string', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK);
     expect((string)$file)->toBe($this->testFile);
 });
+
+it('parses ini size strings with and without units', function () {
+    $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK);
+
+    $method = new ReflectionMethod($file, 'parseSize');
+    $parseSize = fn (string $size): int => $method->invoke($file, $size);
+
+    expect($parseSize('-1'))->toBe(PHP_INT_MAX)
+        ->and($parseSize('2M'))->toBe(2 * 1024 * 1024)
+        ->and($parseSize('512K'))->toBe(512 * 1024)
+        ->and($parseSize('1G'))->toBe(1024 * 1024 * 1024)
+        ->and($parseSize('8388608'))->toBe(8388608)
+        // No digits and no unit: must not blow up on preg_replace returning ''.
+        ->and($parseSize(''))->toBe(0);
+});

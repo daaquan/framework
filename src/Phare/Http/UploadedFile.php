@@ -253,14 +253,15 @@ class UploadedFile
             return PHP_INT_MAX;
         }
 
-        $unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
-        $size = preg_replace('/[^0-9\.]/', '', $size);
+        // preg_replace returns null on error; treat that as "no unit"/"no digits".
+        $unit = preg_replace('/[^bkmgtpezy]/i', '', $size) ?? '';
+        $digits = (float)(preg_replace('/[^0-9\.]/', '', $size) ?? '');
 
-        if ($unit) {
-            return round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
+        if ($unit !== '') {
+            return (int)round($digits * pow(1024, stripos('bkmgtpezy', $unit[0])));
         }
 
-        return round($size);
+        return (int)round($digits);
     }
 
     protected function validateStorageName(string $name): string
