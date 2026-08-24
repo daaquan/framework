@@ -2,8 +2,6 @@
 
 namespace Phare\Eloquent\Relations;
 
-use Phalcon\Db\Enum;
-use Phalcon\Mvc\Model as PhalconModel;
 use Phare\Collections\Collection;
 use Phare\Eloquent\Builder;
 use Phare\Eloquent\Model;
@@ -101,11 +99,7 @@ abstract class HasOneOrManyThrough extends Relation
     {
         [$sql, $bind] = $this->compileSqlAndBindings();
 
-        $rows = $this->related->getReadConnection()->fetchAll(
-            $sql,
-            Enum::FETCH_ASSOC,
-            $bind
-        );
+        $rows = $this->related->getQueryConnection()->select($sql, $bind);
 
         $models = array_map(fn (array $row) => $this->hydrateRow($row), $rows);
 
@@ -199,21 +193,17 @@ abstract class HasOneOrManyThrough extends Relation
         $throughKey = $row[self::THROUGH_KEY_ALIAS] ?? null;
         unset($row[self::THROUGH_KEY_ALIAS]);
 
+        $class = $this->related::class;
+
         /** @var Model $model */
-        $model = PhalconModel::cloneResultMap(
-            $this->related,
-            $row,
-            null,
-            PhalconModel::DIRTY_STATE_PERSISTENT,
-            true
-        );
+        $model = new $class();
 
         if ($this->farParent->getDI() !== null) {
             $model->setDI($this->farParent->getDI());
         }
 
+        $model->hydrate($row);
         $model->{self::THROUGH_KEY_ALIAS} = $throughKey;
-        $model->markAsRetrieved();
 
         return $model;
     }

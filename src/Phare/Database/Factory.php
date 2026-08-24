@@ -2,7 +2,6 @@
 
 namespace Phare\Database;
 
-use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phare\Collections\Str;
 use Phare\Contracts\Foundation\Application;
 use Phare\Eloquent\Model;
@@ -11,7 +10,7 @@ class Factory
 {
     protected Application $app;
 
-    protected AbstractPdo $db;
+    protected Connection $db;
 
     protected string $model;
 
@@ -26,7 +25,7 @@ class Factory
     public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->db = $app->make('db');
+        $this->db = Connection::wrap($app->make('db'));
     }
 
     public function for(string $model): self
@@ -137,7 +136,7 @@ class Factory
         $placeholders = implode(', ', array_fill(0, count($instance), '?'));
 
         $sql = "INSERT INTO `{$table}` ({$columns}) VALUES ({$placeholders})";
-        $this->db->execute($sql, array_values($instance));
+        $this->db->statement($sql, array_values($instance));
     }
 
     protected function getDefinition(): array

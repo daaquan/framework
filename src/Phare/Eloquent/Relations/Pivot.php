@@ -79,7 +79,7 @@ class Pivot extends Model
     {
         $query = $this->getDeleteQuery();
 
-        $deleted = $this->getWriteConnection()->execute($query['sql'], $query['bindings']);
+        $deleted = $this->getQueryConnection()->statement($query['sql'], $query['bindings']);
 
         if ($deleted) {
             $this->exists = false;

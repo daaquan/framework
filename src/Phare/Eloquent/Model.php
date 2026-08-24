@@ -2,11 +2,11 @@
 
 namespace Phare\Eloquent;
 
+use Phalcon\Di\Di;
 use Phalcon\Di\DiInterface;
-use Phalcon\Mvc\Model as PhModel;
-use Phalcon\Mvc\Model\ResultsetInterface;
-use Phalcon\Mvc\ModelInterface as PhalconModelInterface;
+use Phare\Collections\Collection;
 use Phare\Collections\Str;
+use Phare\Database\Connection;
 use Phare\Database\MySql\DatabaseManager;
 use Phare\Eloquent\Concerns\GuardsAttributes;
 use Phare\Eloquent\Concerns\HasAttributes;
@@ -14,9 +14,18 @@ use Phare\Eloquent\Concerns\HasEvents;
 use Phare\Eloquent\Concerns\HasGlobalScopes;
 use Phare\Eloquent\Concerns\HasRelationships;
 use Phare\Eloquent\Concerns\HidesAttributes;
+use Phare\Eloquent\Exceptions\ModelNotFoundException;
 
+/**
+ * Phare's model.
+ *
+ * It used to extend Phalcon\Mvc\Model, which put Phalcon's entire active
+ * record on every Phare model and made Phalcon's PHQL engine the only way to
+ * run a query. Persistence is done here now, against a
+ * Phare\Database\Connection.
+ */
 #[\AllowDynamicProperties]
-class Model extends PhModel implements \ArrayAccess
+class Model implements \ArrayAccess
 {
     use GuardsAttributes;
     use HasAttributes;
@@ -57,6 +66,25 @@ class Model extends PhModel implements \ArrayAccess
 
     protected bool $exists = false;
 
+    protected ?DiInterface $container = null;
+
+    public function __construct(?DiInterface $container = null)
+    {
+        $this->container = $container;
+
+        $this->initialize();
+    }
+
+    public function setDI(DiInterface $container): void
+    {
+        $this->container = $container;
+    }
+
+    public function getDI(): ?DiInterface
+    {
+        return $this->container ??= Di::getDefault();
+    }
+
     protected function initialize(): void
     {
         $this->bootIfNotBooted();
@@ -67,33 +95,32 @@ class Model extends PhModel implements \ArrayAccess
 
         $this->setupConnectionService();
 
-        $this->setSource($this->table);
-
-        try {
-            $this->skipAttributesOnUpdate([$this->primaryKey]);
-        } catch (\Throwable) {
-            // Allow lightweight models in tests before a backing table exists.
-        }
-
-        $this->useDynamicUpdate(true);
-
         $this->initializeTraits();
     }
 
-    public function afterFetch(): void
+    public function exists(): bool
     {
-        $this->markAsRetrieved(true);
+        return $this->exists;
     }
 
     protected function setupConnectionService(): void
     {
+        $di = $this->getDI();
+
+        if ($di === null || !$di->has('dbManager')) {
+            return;
+        }
+
         /** @var DatabaseManager $dbManager */
-        $dbManager = $this->getDI()->getShared('dbManager');
+        $dbManager = $di->getShared('dbManager');
 
         $this->connection = self::resolveConnectionName($dbManager, $this->connection, get_class($this));
+    }
 
-        $name = $dbManager->getConnectionService($this->connection);
-        $this->setConnectionService($name);
+    /** The DI service name of this model's connection. */
+    public function getWriteConnectionService(): string
+    {
+        return $this->connection ?? 'db';
     }
 
     public static function resolveConnectionName(DatabaseManager $dbManager, ?string $current, string $className): string
@@ -132,13 +159,13 @@ class Model extends PhModel implements \ArrayAccess
         $this->applyTimestampColumns();
 
         $attributes = $this->getAttributesForPersistence();
-        $created = $this->getWriteConnection()->insertAsDict($this->getTable(), $attributes);
+        $created = $this->getQueryConnection()->insert($this->getTable(), $attributes);
 
         if ($created) {
             $keyName = $this->getKeyName();
 
             if (!array_key_exists($keyName, $attributes) || $attributes[$keyName] === null) {
-                $id = $this->getWriteConnection()->lastInsertId();
+                $id = $this->getQueryConnection()->lastInsertId();
 
                 if ($id !== false && $id !== null && $id !== '0') {
                     $this->attributes[$keyName] = ctype_digit((string)$id) ? (int)$id : $id;
@@ -195,9 +222,17 @@ class Model extends PhModel implements \ArrayAccess
             return false;
         }
 
-        $this->syncPrimaryKeyForDelete();
+        $key = $this->attributes[$this->getKeyName()] ?? $this->original[$this->getKeyName()] ?? null;
 
-        $deleted = parent::delete();
+        if ($key === null) {
+            return false;
+        }
+
+        $deleted = $this->getQueryConnection()->delete(
+            $this->getTable(),
+            $this->getKeyName() . ' = ?',
+            [$key]
+        );
 
         if ($deleted) {
             $this->fireModelEvent('deleted', false);
@@ -229,7 +264,7 @@ class Model extends PhModel implements \ArrayAccess
         return $this;
     }
 
-    public function assign(array $data, $fillable = null, $dataColumnMap = null): PhalconModelInterface
+    public function assign(array $data, $fillable = null, $dataColumnMap = null): static
     {
         if (is_array($dataColumnMap)) {
             $mapped = [];
@@ -248,22 +283,14 @@ class Model extends PhModel implements \ArrayAccess
         return $this;
     }
 
-    public static function all(array $columns = ['*']): ResultsetInterface
+    /** @return Collection<int, static> */
+    public static function all(array $columns = ['*']): Collection
     {
         return static::query()->columns($columns)->get();
     }
 
-    public static function rawFind($parameters = null): ResultsetInterface
-    {
-        return parent::find($parameters);
-    }
-
-    public static function rawFindFirst($parameters = null)
-    {
-        return parent::findFirst($parameters);
-    }
-
-    public static function find($parameters = null): ResultsetInterface
+    /** @return Collection<int, static> */
+    public static function find($parameters = null): Collection
     {
         return static::applyFindParameters(static::query(), $parameters)->get();
     }
@@ -283,7 +310,7 @@ class Model extends PhModel implements \ArrayAccess
         $result = static::findFirst([$id, 'columns' => implode(',', $columns)]);
 
         if ($result === null) {
-            throw new PhModel\Exception('No query results for model [' . static::class . '] ' . $id);
+            throw new ModelNotFoundException('No query results for model [' . static::class . '] ' . $id);
         }
 
         return $result;
@@ -307,7 +334,6 @@ class Model extends PhModel implements \ArrayAccess
             return $this->getAttribute($property);
         }
 
-        return parent::__get($property);
     }
 
     public function __set(string $property, $value): void
@@ -330,23 +356,18 @@ class Model extends PhModel implements \ArrayAccess
             return $this->getAttribute($property) !== null;
         }
 
-        return parent::__get($property) !== null;
+        return false;
     }
 
     public function writeAttribute(string $attribute, $value): void
     {
-        parent::assign([$attribute => $value], [$attribute]);
         $this->attributes[$attribute] = $value;
         unset($this->{$attribute});
     }
 
     public function readAttribute(string $attribute)
     {
-        if (array_key_exists($attribute, $this->attributes)) {
-            return $this->attributes[$attribute];
-        }
-
-        return parent::readAttribute($attribute);
+        return $this->attributes[$attribute] ?? null;
     }
 
     public function toArray($columns = null, $useGetter = true): array
@@ -403,21 +424,6 @@ class Model extends PhModel implements \ArrayAccess
         }
     }
 
-    protected function syncPrimaryKeyForDelete(): void
-    {
-        $key = $this->getKeyName();
-
-        if (parent::readAttribute($key) !== null) {
-            return;
-        }
-
-        $attributeValue = $this->attributes[$key] ?? null;
-
-        if ($attributeValue !== null) {
-            parent::__set($key, $attributeValue);
-        }
-    }
-
     protected function getAttributesForPersistence(): array
     {
         $attributes = array_filter(
@@ -454,7 +460,7 @@ class Model extends PhModel implements \ArrayAccess
             $columns
         ));
 
-        return $this->getWriteConnection()->execute(
+        return $this->getQueryConnection()->statement(
             sprintf('UPDATE %s SET %s WHERE %s = ?', $this->getTable(), $assignments, $keyName),
             [...$values, $key]
         );
@@ -520,6 +526,17 @@ class Model extends PhModel implements \ArrayAccess
         } finally {
             unset(static::$initializing[$class]);
         }
+    }
+
+    /**
+     * The Phare-typed connection this model's queries run on.
+     */
+    public function getQueryConnection(): Connection
+    {
+        /** @var DatabaseManager $dbManager */
+        $dbManager = $this->getDI()->getShared('dbManager');
+
+        return Connection::wrap($dbManager->connection($this->connection));
     }
 
     public function newQuery(?DiInterface $container = null): BuilderInterface

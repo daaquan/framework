@@ -9,7 +9,7 @@ if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
 }
 
 use Phalcon\Di\Di;
-use Phalcon\Mvc\Model\Resultset;
+use Phare\Collections\Collection;
 use Phare\Database\MySql\DatabaseManager;
 use Tests\Mock\Models\User;
 
@@ -131,7 +131,9 @@ it('tests where method usage with closure', function () {
             ->orWhere('email', '=', $initialUser->email);
     })->get();
 
-    expect($users)->toBeInstanceOf(Resultset::class, 'Failed to retrieve users using closure in where method')
+    // Results are a Phare collection now, not a Phalcon resultset: query
+    // execution moved off Phalcon's PHQL engine.
+    expect($users)->toBeInstanceOf(Collection::class, 'Failed to retrieve users using closure in where method')
         ->and(count($users))->toBe(1, 'Unexpected number of users retrieved')
         ->and($users[0]->name)->toBe('Closure Test User', 'The name does not match using closure in where method');
 });

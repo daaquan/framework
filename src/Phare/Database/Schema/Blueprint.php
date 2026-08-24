@@ -3,6 +3,7 @@
 namespace Phare\Database\Schema;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
+use Phare\Database\Connection;
 
 class Blueprint
 {
@@ -244,8 +245,8 @@ class Blueprint
         return str_replace(['-', '.'], '_', $index);
     }
 
-    public function toSql(AbstractPdo $connection, Grammar $grammar): array
+    public function toSql(Connection|AbstractPdo $connection, Grammar $grammar): array
     {
-        return $grammar->compileBlueprint($this, $connection);
+        return $grammar->compileBlueprint($this, Connection::wrap($connection));
     }
 }

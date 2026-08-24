@@ -56,10 +56,14 @@ trait HasRelationships
         return $this;
     }
 
-    public function hasOne($fields, $referenceModel = null, $referencedFields = null, array $options = []): HasOne|\Phalcon\Mvc\Model\Relation
+    public function hasOne($fields, $referenceModel = null, $referencedFields = null, array $options = []): HasOne
     {
         if (!is_string($fields) || !class_exists($fields) || ($referenceModel !== null && is_string($referenceModel) && class_exists($referenceModel))) {
-            return parent::hasOne($fields, $referenceModel, $referencedFields, $options);
+            throw new \BadMethodCallException(
+                'Phalcon-style relation definitions are no longer supported; '
+                . 'Phare models are not Phalcon models. Pass the related model class '
+                . 'as the first argument instead.'
+            );
         }
 
         $instance = $this->newRelatedInstance($fields);
@@ -72,10 +76,14 @@ trait HasRelationships
         );
     }
 
-    public function hasMany($fields, $referenceModel = null, $referencedFields = null, array $options = []): HasMany|\Phalcon\Mvc\Model\Relation
+    public function hasMany($fields, $referenceModel = null, $referencedFields = null, array $options = []): HasMany
     {
         if (!is_string($fields) || !class_exists($fields) || ($referenceModel !== null && is_string($referenceModel) && class_exists($referenceModel))) {
-            return parent::hasMany($fields, $referenceModel, $referencedFields, $options);
+            throw new \BadMethodCallException(
+                'Phalcon-style relation definitions are no longer supported; '
+                . 'Phare models are not Phalcon models. Pass the related model class '
+                . 'as the first argument instead.'
+            );
         }
 
         $instance = $this->newRelatedInstance($fields);
@@ -88,10 +96,14 @@ trait HasRelationships
         );
     }
 
-    public function belongsTo($fields, $referenceModel = null, $referencedFields = null, array $options = []): BelongsTo|\Phalcon\Mvc\Model\Relation
+    public function belongsTo($fields, $referenceModel = null, $referencedFields = null, array $options = []): BelongsTo
     {
         if (!is_string($fields) || !class_exists($fields) || ($referenceModel !== null && is_string($referenceModel) && class_exists($referenceModel))) {
-            return parent::belongsTo($fields, $referenceModel, $referencedFields, $options);
+            throw new \BadMethodCallException(
+                'Phalcon-style relation definitions are no longer supported; '
+                . 'Phare models are not Phalcon models. Pass the related model class '
+                . 'as the first argument instead.'
+            );
         }
 
         $relation = $options['relation'] ?? $this->guessBelongsToRelation();
@@ -256,7 +268,7 @@ trait HasRelationships
         $referenceModel = null,
         $referencedFields = null,
         array $options = []
-    ): HasOneThrough|\Phalcon\Mvc\Model\Relation {
+    ): HasOneThrough {
         if (
             !is_string($fields)
             || !class_exists($fields)
@@ -264,14 +276,10 @@ trait HasRelationships
             || !class_exists($intermediateModel)
             || ($referenceModel !== null && is_string($referenceModel) && class_exists($referenceModel))
         ) {
-            return parent::hasOneThrough(
-                $fields,
-                $intermediateModel,
-                $intermediateFields,
-                $intermediateReferencedFields,
-                $referenceModel,
-                $referencedFields,
-                $options
+            throw new \BadMethodCallException(
+                'Phalcon-style relation definitions are no longer supported; '
+                . 'Phare models are not Phalcon models. Pass the related model class '
+                . 'as the first argument instead.'
             );
         }
 

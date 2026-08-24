@@ -8,12 +8,13 @@ if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     return;
 }
 
-use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\Exception;
-use Phalcon\Mvc\ModelInterface;
 use Phare\Database\Schema\Blueprint;
 use Phare\Database\Schema\SchemaBuilder;
 use Phare\Eloquent\Builder;
+use Phare\Eloquent\BuilderInterface;
+use Phare\Eloquent\Exceptions\QueryException;
+use Phare\Eloquent\Model;
 use Tests\Mock\Models\User;
 
 beforeEach(function () {
@@ -39,7 +40,9 @@ it('can create a new instance', function () {
     $builder = new Builder();
 
     expect($builder)->toBeInstanceOf(Builder::class);
-    expect($builder)->toBeInstanceOf(Criteria::class);
+    // Builder no longer extends Phalcon\Mvc\Model\Criteria; it implements
+    // Phare's own contract.
+    expect($builder)->toBeInstanceOf(BuilderInterface::class);
 });
 
 it('returns the first record', function () {
@@ -54,7 +57,8 @@ it('returns the first record', function () {
 
     $result = $builder->first();
 
-    expect($result)->toBeInstanceOf(ModelInterface::class);
+    // Models are no longer Phalcon models.
+    expect($result)->toBeInstanceOf(Model::class);
 
     // Clean up
     $connection->execute('DELETE FROM users');
@@ -67,13 +71,16 @@ it('returns an instance of self on where condition', function () {
     expect($response)->toBeInstanceOf(Builder::class);
 });
 
+// Queries no longer run through Phalcon's PHQL engine, so a bad operator fails
+// at the driver and surfaces as Phare's own QueryException instead of
+// Phalcon\Mvc\Model\Exception. The SQL is carried on the exception.
 it('throws an exception if the operator is invalid', function () {
     $builder = (new Builder())->setModelName(User::class);
 
-    $builder->where('field', 'invalid', 'value')->get()->getFirst();
+    $builder->where('field', 'invalid', 'value')->get()->first();
 })
-    ->expectException(Exception::class)
-    ->expectExceptionMessageMatches('/Syntax error, unexpected token IDENTIFIER\(invalid\).*/');
+    ->expectException(QueryException::class)
+    ->expectExceptionMessageMatches('/SQL: SELECT \* FROM users WHERE field invalid/');
 
 it('generates unique bind keys for duplicate field names', function () {
     $builder = new Builder();

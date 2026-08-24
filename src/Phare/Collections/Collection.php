@@ -1164,14 +1164,71 @@ class Collection extends \Phalcon\Support\Collection
         return new static(array_slice($this->data, $offset, $length, true));
     }
 
+    /**
+     * Extract one attribute from every item, optionally keyed by another.
+     *
+     * Arrays keep the long-standing behaviour: a null value is kept, an item
+     * missing the key is skipped. Objects are read through their properties,
+     * ArrayAccess, or __get, and always yield an entry — dropping one would
+     * misalign the result with the source collection. Reading through __get is
+     * what makes this work for models, which hold their data in $attributes.
+     */
     public function pluck($attribute, $key = null): static
     {
-        $values = Arr::pluck($this->data, $attribute);
+        $values = [];
+        $keys = [];
+
+        foreach ($this->data as $item) {
+            if (!self::pluckHas($item, (string)$attribute)) {
+                continue;
+            }
+
+            $values[] = self::pluckValue($item, (string)$attribute);
+
+            if ($key !== null) {
+                $keys[] = self::pluckValue($item, (string)$key);
+            }
+        }
+
         if ($key === null) {
             return new static($values);
         }
 
-        return new static(array_combine(Arr::pluck($this->data, $key), $values));
+        return new static(array_combine($keys, $values));
+    }
+
+    protected static function pluckHas(mixed $item, string $key): bool
+    {
+        if (is_array($item)) {
+            return array_key_exists($key, $item);
+        }
+
+        return is_object($item);
+    }
+
+    protected static function pluckValue(mixed $item, string $key): mixed
+    {
+        if (is_array($item)) {
+            return $item[$key] ?? null;
+        }
+
+        if (!is_object($item)) {
+            return null;
+        }
+
+        if (property_exists($item, $key)) {
+            return $item->{$key};
+        }
+
+        if ($item instanceof \ArrayAccess && $item->offsetExists($key)) {
+            return $item[$key];
+        }
+
+        if (method_exists($item, '__get')) {
+            return $item->{$key};
+        }
+
+        return null;
     }
 
     public function chunk(int $size, $preserveKeys = true): static
