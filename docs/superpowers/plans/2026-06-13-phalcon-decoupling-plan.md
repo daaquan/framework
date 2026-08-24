@@ -117,9 +117,10 @@ recording them so the next pass starts from facts.
 | `Http\Response` | `Phalcon\Http\Response` |
 | `Foundation\Cache` | `Phalcon\Cache` |
 
-Also found while wiring the executor: `Collection::pluck()` goes through
-`Arr::pluck`, which reads array keys, so it returns nothing for a collection of
-models. Pre-existing bug, not fixed here.
+Also found while wiring the executor: `Collection::pluck()` went through
+`Arr::pluck`, which reads array keys, so it returned nothing for a collection of
+models. FIXED 2026-08-25 — pluck now resolves properties, `ArrayAccess` and
+`__get`; arrays keep their previous semantics (null kept, missing key skipped).
 
 ## Execution recommendation
 - One worktree per phase (NOT symlinked vendor — see buglog bug-049; run real

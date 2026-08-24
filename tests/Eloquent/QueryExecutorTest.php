@@ -64,7 +64,7 @@ it('applies conditions with bindings', function () {
     ]);
 
     expect($results)->toHaveCount(2)
-        ->and($results->map(fn ($u) => $u->name)->toArray())->toBe(['ann', 'cid']);
+        ->and($results->pluck('name')->toArray())->toBe(['ann', 'cid']);
 });
 
 it('applies order and limit', function () {
@@ -73,7 +73,7 @@ it('applies order and limit', function () {
         'limit' => 2,
     ]);
 
-    expect($results->map(fn ($u) => $u->name)->toArray())->toBe(['cid', 'ann']);
+    expect($results->pluck('name')->toArray())->toBe(['cid', 'ann']);
 });
 
 it('returns an empty collection when nothing matches', function () {
