@@ -645,23 +645,20 @@ trait HasAttributes
         unset($this->{$key});
     }
 
+    /**
+     * Models used to carry a second copy of their data inside Phalcon's active
+     * record (its snapshot). Phare owns hydration now, so $attributes is the
+     * only store and there is nothing to refresh but the cast caches.
+     */
     protected function refreshAttributeState(): void
     {
-        $snapshot = property_exists($this, 'snapshot') && is_array($this->snapshot) ? $this->snapshot : [];
-        $oldSnapshot = property_exists($this, 'oldSnapshot') && is_array($this->oldSnapshot) ? $this->oldSnapshot : [];
-
-        $this->attributes = $snapshot !== [] ? $snapshot : ($oldSnapshot !== [] ? $oldSnapshot : parent::toArray(null, false));
         $this->attributeCastCache = [];
         $this->classCastCache = [];
-
-        foreach ($this->attributes as $key => $value) {
-            parent::__set((string)$key, $value);
-        }
     }
 
     protected function syncAttributesToStorage(): void
     {
-        parent::assign($this->attributes, array_keys($this->attributes));
+        // No shadow storage to sync to any more; see refreshAttributeState().
     }
 
     protected function resolveAttributeEncrypter(): Encrypter
