@@ -7,6 +7,7 @@ use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
 use Phare\Collections\Collection;
+use Phare\Eloquent\Query\Executor;
 use Phare\Eloquent\Relations\Relation;
 use Phare\Pagination\LengthAwarePaginator;
 use Phare\Pagination\Paginator;
@@ -180,8 +181,10 @@ class Builder extends Criteria implements BuilderInterface
         $modelName = $builder->getModelName();
         $params = $builder->getParams();
 
-        $results = is_string($modelName) && method_exists($modelName, 'rawFind')
-            ? $modelName::rawFind($params)
+        $model = $builder->getEloquentModel();
+
+        $results = $model instanceof Model
+            ? (new Executor($model->getQueryConnection()))->select($model, $params)
             : $builder->execute();
 
         if ($this->eagerLoad !== []) {
@@ -297,7 +300,7 @@ class Builder extends Criteria implements BuilderInterface
         return $this;
     }
 
-    private function eagerLoadRelations(ResultsetInterface $results): Collection
+    private function eagerLoadRelations(ResultsetInterface|Collection $results): Collection
     {
         $models = iterator_to_array($results, false);
 

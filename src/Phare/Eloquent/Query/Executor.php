@@ -2,8 +2,10 @@
 
 namespace Phare\Eloquent\Query;
 
+use Phalcon\Db\Exception;
 use Phare\Collections\Collection;
 use Phare\Database\Connection;
+use Phare\Eloquent\Exceptions\QueryException;
 use Phare\Eloquent\Model;
 
 /**
@@ -35,10 +37,9 @@ class Executor
     {
         [$sql, $bindings] = $this->compiler->compileSelect($model->getTable(), $params);
 
-        return new Collection(array_map(
-            fn (array $row): Model => $this->hydrate($model, $row),
-            $this->connection->select($sql, $bindings)
-        ));
+        $rows = $this->run($sql, $bindings, fn (): array => $this->connection->select($sql, $bindings));
+
+        return new Collection(array_map(fn (array $row): Model => $this->hydrate($model, $row), $rows));
     }
 
     /** @param  array<string, mixed>  $params */
@@ -46,9 +47,23 @@ class Executor
     {
         [$sql, $bindings] = $this->compiler->compileCount($model->getTable(), $params);
 
-        $row = $this->connection->selectOne($sql, $bindings);
+        $row = $this->run($sql, $bindings, fn (): ?array => $this->connection->selectOne($sql, $bindings));
 
         return (int)($row['aggregate'] ?? 0);
+    }
+
+    /**
+     * Driver failures become a Phare exception carrying the SQL that failed.
+     *
+     * @param array<string, mixed> $bindings
+     */
+    protected function run(string $sql, array $bindings, \Closure $query): mixed
+    {
+        try {
+            return $query();
+        } catch (\PDOException|Exception $e) {
+            throw new QueryException($sql, $bindings, $e);
+        }
     }
 
     /** @param  array<string, mixed>  $row */

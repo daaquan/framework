@@ -14,6 +14,7 @@ use Phalcon\Mvc\ModelInterface;
 use Phare\Database\Schema\Blueprint;
 use Phare\Database\Schema\SchemaBuilder;
 use Phare\Eloquent\Builder;
+use Phare\Eloquent\Exceptions\QueryException;
 use Tests\Mock\Models\User;
 
 beforeEach(function () {
@@ -67,13 +68,16 @@ it('returns an instance of self on where condition', function () {
     expect($response)->toBeInstanceOf(Builder::class);
 });
 
+// Queries no longer run through Phalcon's PHQL engine, so a bad operator fails
+// at the driver and surfaces as Phare's own QueryException instead of
+// Phalcon\Mvc\Model\Exception. The SQL is carried on the exception.
 it('throws an exception if the operator is invalid', function () {
     $builder = (new Builder())->setModelName(User::class);
 
-    $builder->where('field', 'invalid', 'value')->get()->getFirst();
+    $builder->where('field', 'invalid', 'value')->get()->first();
 })
-    ->expectException(Exception::class)
-    ->expectExceptionMessageMatches('/Syntax error, unexpected token IDENTIFIER\(invalid\).*/');
+    ->expectException(QueryException::class)
+    ->expectExceptionMessageMatches('/SQL: SELECT \* FROM users WHERE field invalid/');
 
 it('generates unique bind keys for duplicate field names', function () {
     $builder = new Builder();
