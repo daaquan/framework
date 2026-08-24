@@ -3,7 +3,6 @@
 namespace Phare\Database;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
-use Phalcon\Db\Enum;
 use Phare\Contracts\Foundation\Application;
 use Phare\Database\Schema\SchemaBuilder;
 
@@ -11,7 +10,7 @@ class Migrator
 {
     protected Application $app;
 
-    protected AbstractPdo $connection;
+    protected Connection $connection;
 
     protected SchemaBuilder $schema;
 
@@ -19,11 +18,15 @@ class Migrator
 
     protected array $paths = [];
 
-    public function __construct(Application $app, AbstractPdo $connection)
+    /**
+     * @param Connection|AbstractPdo $connection A raw Phalcon adapter is still
+     *                                           accepted for backwards compatibility.
+     */
+    public function __construct(Application $app, Connection|AbstractPdo $connection)
     {
         $this->app = $app;
-        $this->connection = $connection;
-        $this->schema = new SchemaBuilder($connection);
+        $this->connection = Connection::wrap($connection);
+        $this->schema = new SchemaBuilder($this->connection);
 
         $this->ensureMigrationTable();
     }
@@ -105,12 +108,12 @@ class Migrator
         $migration = $this->resolve($file);
 
         try {
-            $this->connection->begin();
+            $this->connection->beginTransaction();
             $migration->up();
             $this->log($file);
             $this->connection->commit();
         } catch (\Exception $e) {
-            $this->connection->rollback();
+            $this->connection->rollBack();
             throw $e;
         }
     }
@@ -120,13 +123,13 @@ class Migrator
         $migration = $this->resolve($file);
 
         try {
-            $this->connection->begin();
+            $this->connection->beginTransaction();
             $migration->down();
             $this->connection->commit();
 
             return true;
         } catch (\Exception $e) {
-            $this->connection->rollback();
+            $this->connection->rollBack();
 
             return false;
         }
@@ -186,11 +189,12 @@ class Migrator
     {
         $migration = basename($file, '.php');
 
-        return $this->connection->fetchOne(
+        $row = $this->connection->selectOne(
             "SELECT COUNT(*) as count FROM {$this->table} WHERE migration = ?",
-            Enum::FETCH_ASSOC,
             [$migration]
-        )['count'] > 0;
+        );
+
+        return (int)($row['count'] ?? 0) > 0;
     }
 
     protected function log(string $file): void
@@ -198,7 +202,7 @@ class Migrator
         $migration = basename($file, '.php');
         $batch = $this->getNextBatchNumber();
 
-        $this->connection->execute(
+        $this->connection->statement(
             "INSERT INTO {$this->table} (migration, batch) VALUES (?, ?)",
             [$migration, $batch]
         );
@@ -206,7 +210,7 @@ class Migrator
 
     protected function removeFromLog(string $migration): void
     {
-        $this->connection->execute(
+        $this->connection->statement(
             "DELETE FROM {$this->table} WHERE migration = ?",
             [basename($migration, '.php')]
         );
@@ -214,9 +218,8 @@ class Migrator
 
     protected function getLastBatch(int $steps): array
     {
-        $batches = $this->connection->fetchAll(
+        $batches = $this->connection->select(
             "SELECT DISTINCT batch FROM {$this->table} ORDER BY batch DESC LIMIT ?",
-            Enum::FETCH_ASSOC,
             [$steps]
         );
 
@@ -228,9 +231,8 @@ class Migrator
         $placeholders = str_repeat('?,', count($batchNumbers) - 1) . '?';
 
         return array_column(
-            $this->connection->fetchAll(
+            $this->connection->select(
                 "SELECT migration FROM {$this->table} WHERE batch IN ({$placeholders}) ORDER BY migration DESC",
-                Enum::FETCH_ASSOC,
                 $batchNumbers
             ),
             'migration'
@@ -240,7 +242,7 @@ class Migrator
     protected function getAllRan(): array
     {
         return array_column(
-            $this->connection->fetchAll(
+            $this->connection->select(
                 "SELECT migration FROM {$this->table} ORDER BY batch ASC, migration ASC"
             ),
             'migration'
@@ -249,9 +251,9 @@ class Migrator
 
     protected function getNextBatchNumber(): int
     {
-        $result = $this->connection->fetchOne("SELECT MAX(batch) as max_batch FROM {$this->table}");
+        $result = $this->connection->selectOne("SELECT MAX(batch) as max_batch FROM {$this->table}");
 
-        return ($result['max_batch'] ?? 0) + 1;
+        return (int)($result['max_batch'] ?? 0) + 1;
     }
 
     protected function ensureMigrationTable(): void

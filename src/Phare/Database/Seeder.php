@@ -9,12 +9,12 @@ abstract class Seeder
 {
     protected Application $app;
 
-    protected AbstractPdo $db;
+    protected Connection $db;
 
     public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->db = $app->make('db');
+        $this->db = Connection::wrap($app->make('db'));
     }
 
     abstract public function run(): void;
@@ -47,7 +47,7 @@ abstract class Seeder
             $placeholders = implode(', ', array_fill(0, count($record), '?'));
 
             $sql = "INSERT INTO {$this->wrapTable($table)} ({$columns}) VALUES ({$placeholders})";
-            $this->db->execute($sql, array_values($record));
+            $this->db->statement($sql, array_values($record));
         }
     }
 
@@ -74,13 +74,13 @@ abstract class Seeder
 
 class SeederTable
 {
-    protected AbstractPdo $db;
+    protected Connection $db;
 
     protected string $table;
 
-    public function __construct(AbstractPdo $db, string $table)
+    public function __construct(Connection|AbstractPdo $db, string $table)
     {
-        $this->db = $db;
+        $this->db = Connection::wrap($db);
         $this->table = $table;
     }
 
@@ -98,17 +98,17 @@ class SeederTable
             $placeholders = implode(', ', array_fill(0, count($record), '?'));
 
             $sql = "INSERT INTO `{$this->table}` ({$columns}) VALUES ({$placeholders})";
-            $this->db->execute($sql, array_values($record));
+            $this->db->statement($sql, array_values($record));
         }
     }
 
     public function truncate(): void
     {
-        $this->db->execute("TRUNCATE TABLE `{$this->table}`");
+        $this->db->statement("TRUNCATE TABLE `{$this->table}`");
     }
 
     public function delete(): void
     {
-        $this->db->execute("DELETE FROM `{$this->table}`");
+        $this->db->statement("DELETE FROM `{$this->table}`");
     }
 }
