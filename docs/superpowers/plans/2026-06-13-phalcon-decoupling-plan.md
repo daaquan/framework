@@ -1,6 +1,6 @@
 # Phalcon Decoupling — Staged Plan (L1 structural-inheritance leak)
 
-**Status:** B05 shipped 2026-08-25. B01/B02/B03/Session/E01b outstanding.
+**Status:** B05 + SessionManager shipped 2026-08-25. B01/B02/B03/E01b outstanding.
 **Author:** review pass 2026-06-13.
 **Context:** The last remaining parity defect class from `docs/audit-summary.md` §1 L1 —
 concrete Phare types `extends` Phalcon C-classes, leaking the full Phalcon public
@@ -66,9 +66,23 @@ see `phalconCondition`/`compilePositionalCondition`). Unblocks B03/B04/B07.
 ### Phase B03 — Relations rebuild (L)
 Remove `extends Phalcon\Mvc\Model\Relation`; rebuild the 16 relation classes on B02.
 
-### SessionManager (M)
+### SessionManager (M) — DONE 2026-08-25
 Wrap `Phalcon\Session\Manager` by composition rather than inheritance; expose a
 Phare-typed session contract.
+
+**Shipped as:** `SessionManager` holds a `Phalcon\Session\Manager` and delegates;
+`getPhalconManager()` is the escape hatch. `Phare\Contracts\Session\Session` no longer
+extends `Phalcon\Session\ManagerInterface` — it declares the surface itself, so Phare
+consumers (e.g. `Auth\Manager`) type-hint nothing from Phalcon.
+
+**Why the interface stayed:** `SessionManager` still `implements Phalcon\Session\ManagerInterface`.
+`Phalcon\Flash\Session` resolves the DI service named `session` and type-checks it against
+that interface — same shape as `db` staying a raw adapter in B05. Class inheritance is gone;
+the contract is kept deliberately, and covered by a Flash interop regression test
+(`tests/Session/SessionManagerCompositionTest.php`), which did not exist before.
+
+Also updated the `Session` facade docblock, which advertised Phalcon return types.
+PHPStan for `src/Phare/Session` + `src/Phare/Contracts/Session`: 22 errors -> 0.
 
 ### E01b — Container type cleanup (S, after B01)
 Once nothing requires the Container to BE a `Phalcon\Di\DiInterface` (Models no longer
