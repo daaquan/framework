@@ -7,6 +7,7 @@ use Phalcon\Mvc\Model as PhModel;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface as PhalconModelInterface;
 use Phare\Collections\Str;
+use Phare\Database\Connection;
 use Phare\Database\MySql\DatabaseManager;
 use Phare\Eloquent\Concerns\GuardsAttributes;
 use Phare\Eloquent\Concerns\HasAttributes;
@@ -520,6 +521,17 @@ class Model extends PhModel implements \ArrayAccess
         } finally {
             unset(static::$initializing[$class]);
         }
+    }
+
+    /**
+     * The Phare-typed connection this model's queries run on.
+     */
+    public function getQueryConnection(): Connection
+    {
+        /** @var DatabaseManager $dbManager */
+        $dbManager = $this->getDI()->getShared('dbManager');
+
+        return Connection::wrap($dbManager->connection($this->connection));
     }
 
     public function newQuery(?DiInterface $container = null): BuilderInterface
