@@ -1,6 +1,6 @@
 # Phalcon Decoupling — Staged Plan (L1 structural-inheritance leak)
 
-**Status:** B05 + SessionManager shipped 2026-08-25. B01/B02/B03/E01b outstanding.
+**Status:** B05, SessionManager, B01, B02, B03 shipped 2026-08-25. E01b is BLOCKED — see below.
 **Author:** review pass 2026-06-13.
 **Context:** The last remaining parity defect class from `docs/audit-summary.md` §1 L1 —
 concrete Phare types `extends` Phalcon C-classes, leaking the full Phalcon public
@@ -48,7 +48,7 @@ Every raw Phalcon adapter call under `src/Phare/Database` now lives in `Connecti
 Container: `db` stays a raw Phalcon adapter (Phalcon's ORM resolves it from the DI and
 needs the native type); `db.connection` and `Connection::class` are the Phare seam.
 
-### Phase B01 — `Model` composition (L–XL)
+### Phase B01 — `Model` composition (L–XL) — DONE 2026-08-25
 Remove `extends Phalcon\Mvc\Model`. Phare `Model` holds/uses a persistence gateway
 (via the B05 `Connection`) instead of inheriting Phalcon's active-record. Preserve the
 **current public semantics** verified by tests — notably:
@@ -58,12 +58,12 @@ Remove `extends Phalcon\Mvc\Model`. Phare `Model` holds/uses a persistence gatew
 This is where the bulk of the work and risk sits. Gate behind E01b (Container can drop
 `implements DiInterface` once Models no longer need to be a Phalcon model in a Phalcon DI).
 
-### Phase B02 — `Builder` real query builder (L)
+### Phase B02 — `Builder` real query builder (L) — DONE 2026-08-25
 Remove `extends Criteria`. Build a Phare query builder on the B05 `Connection`
 (the current `$params`-based condition compiler is already most of the way there —
 see `phalconCondition`/`compilePositionalCondition`). Unblocks B03/B04/B07.
 
-### Phase B03 — Relations rebuild (L)
+### Phase B03 — Relations rebuild (L) — DONE 2026-08-25
 Remove `extends Phalcon\Mvc\Model\Relation`; rebuild the 16 relation classes on B02.
 
 ### SessionManager (M) — DONE 2026-08-25
@@ -84,10 +84,42 @@ the contract is kept deliberately, and covered by a Flash interop regression tes
 Also updated the `Session` facade docblock, which advertised Phalcon return types.
 PHPStan for `src/Phare/Session` + `src/Phare/Contracts/Session`: 22 errors -> 0.
 
-### E01b — Container type cleanup (S, after B01)
-Once nothing requires the Container to BE a `Phalcon\Di\DiInterface` (Models no longer
-extend Phalcon\Mvc\Model, so `setDI(DiInterface)` sites in Relations/Model disappear),
-drop `implements DiInterface` from `Container` (composition seam already shipped E01a).
+### E01b — Container type cleanup — BLOCKED (premise was wrong)
+
+The plan assumed the Container could drop `implements DiInterface` once Models
+stopped being Phalcon models. Models are done, and it still cannot: Phalcon's
+MVC/HTTP components are the real blockers, and they are still in use.
+
+Verified 2026-08-25 — every one of these takes `Phalcon\Di\DiInterface` and is
+handed the Phare Container today:
+
+| Consumer | Where |
+|---|---|
+| `Phalcon\Encryption\Security::setDI()` | `Providers/EncrypterProvider.php:27` |
+| `Phalcon\Mvc\View::setDI()` | view providers |
+| `Phalcon\Mvc\Router::setDI()` | `Routing/RouteLoader.php` |
+| `Phalcon\Http\Response\Cookies::setDI()` | container reserved services |
+| `Phalcon\Flash\Session::setDI()` | `View/ViewServiceProvider.php` |
+
+E01b is therefore not an S-sized cleanup after B01. It is gated on replacing or
+wrapping the Phalcon MVC/HTTP layer (View, Router, Cookies, Flash, Security) —
+a separate piece of work, larger than E01b as written.
+
+## Remaining Phalcon inheritance in `src/Phare` (audit 2026-08-25)
+
+Outside the ORM, these still extend Phalcon classes. None were in the L1 list;
+recording them so the next pass starts from facts.
+
+| Type | extends |
+|---|---|
+| `Collections\Collection` | `Phalcon\Support\Collection` |
+| `Http\Request` | `Phalcon\Http\Request` |
+| `Http\Response` | `Phalcon\Http\Response` |
+| `Foundation\Cache` | `Phalcon\Cache` |
+
+Also found while wiring the executor: `Collection::pluck()` goes through
+`Arr::pluck`, which reads array keys, so it returns nothing for a collection of
+models. Pre-existing bug, not fixed here.
 
 ## Execution recommendation
 - One worktree per phase (NOT symlinked vendor — see buglog bug-049; run real
