@@ -2,6 +2,7 @@
 
 namespace Phare\Providers;
 
+use Phare\Database\Connection;
 use Phare\Database\MySql\DatabaseManager;
 use Phare\Support\ServiceProvider;
 
@@ -32,6 +33,17 @@ class DatabaseProvider extends ServiceProvider
             $manager = $app->make('dbManager');
 
             return $manager->connection();
+        });
+
+        // Phare-typed seam over the Phalcon adapter. Prefer this over 'db' in
+        // Phare code; 'db' stays a raw Phalcon adapter because Phalcon's own ORM
+        // resolves it out of the DI and requires the native type.
+        $app->singleton('db.connection', function () use ($app) {
+            return Connection::wrap($app->make('db'));
+        });
+
+        $app->singleton(Connection::class, function () use ($app) {
+            return $app->make('db.connection');
         });
     }
 }

@@ -1,6 +1,6 @@
 # Phalcon Decoupling — Staged Plan (L1 structural-inheritance leak)
 
-**Status:** plan only, awaiting greenlight. No implementation started.
+**Status:** B05 shipped 2026-08-25. B01/B02/B03/Session/E01b outstanding.
 **Author:** review pass 2026-06-13.
 **Context:** The last remaining parity defect class from `docs/audit-summary.md` §1 L1 —
 concrete Phare types `extends` Phalcon C-classes, leaking the full Phalcon public
@@ -32,11 +32,21 @@ them green without editing them (a test edit = a public-API break that needs a d
 
 ## Recommended order (smallest-blast first; each unblocks the next)
 
-### Phase B05 — `Phare\Database\Connection` wrapper (M, do FIRST)
+### Phase B05 — `Phare\Database\Connection` wrapper (M) — DONE 2026-08-25
 Introduce a Phare `Connection` that wraps `AbstractPdo`. Change `SchemaBuilder`,
 `Blueprint::toSql`, `Grammar::compileBlueprint`, `Migrator`, `Factory` ctors/params
 to take the Phare `Connection`, not the raw Phalcon adapter. Closes the L3 leak and
 gives every later phase a Phare-typed DB seam. Lowest risk; no inheritance change yet.
+
+**Shipped as:** `Phare\Database\Connection` (select / selectOne / statement /
+lastInsertId / beginTransaction / commit / rollBack / getDriverName / getAdapter).
+`SchemaBuilder`, `Blueprint::toSql`, `Grammar::compileBlueprint`, `Migrator`, `Factory`,
+`Seeder`, `SeederTable` all hold a `Connection`. Public ctors take `Connection|AbstractPdo`
+and normalize via `Connection::wrap()`, so no BC break for existing callers — narrowing
+the union to `Connection` alone is a future major-version cleanup.
+Every raw Phalcon adapter call under `src/Phare/Database` now lives in `Connection`.
+Container: `db` stays a raw Phalcon adapter (Phalcon's ORM resolves it from the DI and
+needs the native type); `db.connection` and `Connection::class` are the Phare seam.
 
 ### Phase B01 — `Model` composition (L–XL)
 Remove `extends Phalcon\Mvc\Model`. Phare `Model` holds/uses a persistence gateway
