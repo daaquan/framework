@@ -12,6 +12,7 @@ use Phare\Storage\Adapter\RedisCluster as RedisClusterAdapter;
 
 class SessionStoreManager
 {
+    /** @var array<string, SessionManager> */
     protected array $stores = [];
 
     public function __construct(protected Container $app) {}
