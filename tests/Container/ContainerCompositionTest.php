@@ -2,7 +2,15 @@
 
 use Phalcon\Di\Di;
 use Phalcon\Di\DiInterface;
+use Phalcon\Encryption\Security;
 use Phare\Container\Container;
+use Phare\Contracts\Foundation\Application;
+use Phare\Foundation\AbstractApplication;
+use Phare\Foundation\Bootstrap\LoadConfiguration;
+use Phare\Foundation\Bootstrap\LoadEnvironmentVariables;
+use Phare\Foundation\Bootstrap\RegisterFacades;
+use Phare\Foundation\Bootstrap\RegisterProviders;
+use Phare\Foundation\Micro;
 
 it('basic bind and make returns concrete', function () {
     $c = new Container();
@@ -50,8 +58,10 @@ it('is shared reflects binding', function () {
     expect($c->isShared('b'))->toBeFalse();
 });
 
-it('container is a phalcon di interface', function () {
-    expect(new Container())->toBeInstanceOf(DiInterface::class);
+it('is not a phalcon di interface', function () {
+    // Phalcon's container contract is no longer part of Phare's public API;
+    // components that need one are handed phalconDi() instead.
+    expect(new Container())->not->toBeInstanceOf(DiInterface::class);
 });
 
 it('getshared delegates to phalcon store', function () {
@@ -79,4 +89,44 @@ it('holds a distinct inner Phalcon Di instance', function () {
 
 it('still satisfies ArrayAccess (load-bearing for app() helper)', function () {
     expect(new Container())->toBeInstanceOf(ArrayAccess::class);
+});
+
+function bootCompositionApp(): AbstractApplication
+{
+    Di::reset();
+    $_ENV['APP_BASE_PATH'] = 'tests/Mock';
+    $app = new Micro('tests/Mock');
+    $app->bootstrapWith([
+        LoadEnvironmentVariables::class,
+        LoadConfiguration::class,
+        RegisterProviders::class,
+        RegisterFacades::class,
+    ]);
+
+    return $app;
+}
+
+it('hands phalcon components a phalcon container, not itself', function () {
+    // The whole point of dropping implements DiInterface: a Phalcon component
+    // that needs a container gets the inner store, and still resolves the
+    // services the Phare container registered.
+    $app = bootCompositionApp();
+
+    expect($app)->not->toBeInstanceOf(DiInterface::class)
+        ->and($app->phalconDi())->toBeInstanceOf(DiInterface::class)
+        ->and(Di::getDefault())->toBe($app->phalconDi());
+
+    $security = new Security();
+    $security->setDI($app->phalconDi());
+
+    expect($security->getDI())->toBe($app->phalconDi());
+});
+
+it('keeps the application resolvable through the phalcon store', function () {
+    // app() and container() go through Di::getDefault(), which is now the
+    // store. It must still hand back the Phare application.
+    $app = bootCompositionApp();
+
+    expect(app())->toBe($app)
+        ->and(Di::getDefault()->getShared(Application::class))->toBe($app);
 });

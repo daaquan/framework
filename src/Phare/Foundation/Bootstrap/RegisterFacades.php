@@ -2,16 +2,14 @@
 
 namespace Phare\Foundation\Bootstrap;
 
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phare\Foundation\AbstractApplication as Application;
 
-class RegisterFacades implements ServiceProviderInterface
+class RegisterFacades
 {
     /**
      * Bootstrap the given application.
      */
-    public function register(Application|DiInterface $app): void
+    public function register(Application $app): void
     {
         $app->registerConfiguredAliases();
     }

@@ -133,7 +133,7 @@ beforeEach(function () {
     $this->app[ApplicationContract::class] = $this->app;
     $this->app['events'] = $this->dispatcher;
 
-    Di::setDefault($this->app);
+    Di::setDefault($this->app->phalconDi());
     EventFacade::setFacadeApplication($this->app);
 });
 

@@ -1,6 +1,6 @@
 # Phalcon Decoupling — Staged Plan (L1 structural-inheritance leak)
 
-**Status:** B05, SessionManager, B01, B02, B03 shipped 2026-08-25. E01b is BLOCKED — see below.
+**Status:** all phases shipped 2026-08-25 (B05, SessionManager, B01, B02, B03, E01b).
 **Author:** review pass 2026-06-13.
 **Context:** The last remaining parity defect class from `docs/audit-summary.md` §1 L1 —
 concrete Phare types `extends` Phalcon C-classes, leaking the full Phalcon public
@@ -84,26 +84,33 @@ the contract is kept deliberately, and covered by a Flash interop regression tes
 Also updated the `Session` facade docblock, which advertised Phalcon return types.
 PHPStan for `src/Phare/Session` + `src/Phare/Contracts/Session`: 22 errors -> 0.
 
-### E01b — Container type cleanup — BLOCKED (premise was wrong)
+### E01b — Container type cleanup — DONE 2026-08-25
 
-The plan assumed the Container could drop `implements DiInterface` once Models
-stopped being Phalcon models. Models are done, and it still cannot: Phalcon's
-MVC/HTTP components are the real blockers, and they are still in use.
+The plan expected this to fall out of B01. It did not: Models were never the
+blocker. `Phalcon\Encryption\Security`, `Phalcon\Mvc\View`, `Phalcon\Mvc\Router`,
+`Phalcon\Http\Response\Cookies` and `Phalcon\Flash\Session` all take a
+`Phalcon\Di\DiInterface`, and `Di::setDefault($app)` made the Phare container the
+default DI that every Phalcon component resolves through.
 
-Verified 2026-08-25 — every one of these takes `Phalcon\Di\DiInterface` and is
-handed the Phare Container today:
+What made it possible was already in the tree: E01a gave the Container an inner
+`Phalcon\Di\Di` behind `phalconDi()`, and that store holds every service the
+container does, the application contract included. So no bridge class was needed
+— Phalcon just had to be handed the store instead of the container.
 
-| Consumer | Where |
-|---|---|
-| `Phalcon\Encryption\Security::setDI()` | `Providers/EncrypterProvider.php:27` |
-| `Phalcon\Mvc\View::setDI()` | view providers |
-| `Phalcon\Mvc\Router::setDI()` | `Routing/RouteLoader.php` |
-| `Phalcon\Http\Response\Cookies::setDI()` | container reserved services |
-| `Phalcon\Flash\Session::setDI()` | `View/ViewServiceProvider.php` |
+**Shipped as:** `Container` implements `ArrayAccess`, Phare's own container
+contract and PSR-11 — no longer `DiInterface`. `Di::setDefault()` receives
+`phalconDi()`; `Phalcon\Mvc\Micro` / `Phalcon\Mvc\Application` and
+`Phalcon\Encryption\Security` are constructed with it; Phalcon service providers
+are registered against it. The four bootstrappers stopped implementing
+`Phalcon\Di\ServiceProviderInterface` (they are Phare bootstrappers, and that
+interface was forcing `Application|DiInterface` unions through the bootstrap
+path).
 
-E01b is therefore not an S-sized cleanup after B01. It is gated on replacing or
-wrapping the Phalcon MVC/HTTP layer (View, Router, Cookies, Flash, Security) —
-a separate piece of work, larger than E01b as written.
+**API change:** `Di::setDefault($app)` becomes `Di::setDefault($app->phalconDi())`,
+and `Di::getDefault()` returns the Phalcon store rather than the Phare
+application. `app()` and `container()` are unaffected — they resolve the
+application contract out of the store. Ten test bootstraps were updated; one
+test asserted the container *was* a `DiInterface` and now asserts it is not.
 
 ## Remaining Phalcon inheritance in `src/Phare` (audit 2026-08-25)
 

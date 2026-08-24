@@ -23,7 +23,7 @@ function refreshViewHelperApp(): void
         RegisterFacades::class,
     ]);
 
-    Di::setDefault($app);
+    Di::setDefault($app->phalconDi());
 }
 
 beforeEach(function () {
