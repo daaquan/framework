@@ -3,6 +3,7 @@
 namespace Phare\Database\Schema;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
+use Phare\Database\Connection;
 
 abstract class Grammar
 {
@@ -20,7 +21,7 @@ abstract class Grammar
 
     abstract protected function getType(ColumnDefinition $column): string;
 
-    public function compileBlueprint(Blueprint $blueprint, AbstractPdo $connection): array
+    public function compileBlueprint(Blueprint $blueprint, Connection|AbstractPdo $connection): array
     {
         $statements = [];
 

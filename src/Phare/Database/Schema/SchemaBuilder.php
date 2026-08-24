@@ -3,15 +3,24 @@
 namespace Phare\Database\Schema;
 
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
-use Phalcon\Db\Enum;
+use Phare\Database\Connection;
 
 class SchemaBuilder
 {
-    protected AbstractPdo $connection;
+    protected Connection $connection;
 
-    public function __construct(AbstractPdo $connection)
+    /**
+     * @param Connection|AbstractPdo $connection A raw Phalcon adapter is still
+     *                                           accepted for backwards compatibility.
+     */
+    public function __construct(Connection|AbstractPdo $connection)
     {
-        $this->connection = $connection;
+        $this->connection = Connection::wrap($connection);
+    }
+
+    public function getConnection(): Connection
+    {
+        return $this->connection;
     }
 
     public function create(string $table, \Closure $callback): void
@@ -32,7 +41,7 @@ class SchemaBuilder
 
     public function drop(string $table): void
     {
-        $this->connection->execute("DROP TABLE {$table}");
+        $this->connection->statement("DROP TABLE {$table}");
     }
 
     public function dropIfExists(string $table): void
@@ -51,53 +60,53 @@ class SchemaBuilder
             default => "ALTER TABLE {$from} RENAME TO {$to}",
         };
 
-        $this->connection->execute($sql);
+        $this->connection->statement($sql);
     }
 
     public function hasTable(string $table): bool
     {
         $driver = $this->getDriverName();
 
-        return match ($driver) {
-            'mysql' => $this->connection->fetchOne(
+        $row = match ($driver) {
+            'mysql' => $this->connection->selectOne(
                 'SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?',
-                Enum::FETCH_ASSOC,
                 [$table]
-            )['count'] > 0,
-            'sqlite' => $this->connection->fetchOne(
+            ),
+            'sqlite' => $this->connection->selectOne(
                 "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name = ?",
-                Enum::FETCH_ASSOC,
                 [$table]
-            )['count'] > 0,
-            'pgsql' => $this->connection->fetchOne(
+            ),
+            'pgsql' => $this->connection->selectOne(
                 "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = ? AND table_schema = 'public'",
-                Enum::FETCH_ASSOC,
                 [$table]
-            )['count'] > 0,
-            default => false,
+            ),
+            default => null,
         };
+
+        return (int)($row['count'] ?? 0) > 0;
     }
 
     public function hasColumn(string $table, string $column): bool
     {
         $driver = $this->getDriverName();
 
-        return match ($driver) {
-            'mysql' => $this->connection->fetchOne(
+        if ($driver === 'sqlite') {
+            return in_array($column, $this->getColumnListing($table), true);
+        }
+
+        $row = match ($driver) {
+            'mysql' => $this->connection->selectOne(
                 'SELECT COUNT(*) as count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?',
-                Enum::FETCH_ASSOC,
                 [$table, $column]
-            )['count'] > 0,
-            'sqlite' => !empty($this->connection->fetchAll(
-                "PRAGMA table_info({$table})"
-            )) && in_array($column, array_column($this->connection->fetchAll("PRAGMA table_info({$table})"), 'name')),
-            'pgsql' => $this->connection->fetchOne(
+            ),
+            'pgsql' => $this->connection->selectOne(
                 "SELECT COUNT(*) as count FROM information_schema.columns WHERE table_name = ? AND column_name = ? AND table_schema = 'public'",
-                Enum::FETCH_ASSOC,
                 [$table, $column]
-            )['count'] > 0,
-            default => false,
+            ),
+            default => null,
         };
+
+        return (int)($row['count'] ?? 0) > 0;
     }
 
     public function getColumnListing(string $table): array
@@ -106,18 +115,16 @@ class SchemaBuilder
 
         return match ($driver) {
             'mysql' => array_column(
-                $this->connection->fetchAll(
+                $this->connection->select(
                     'SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? ORDER BY ordinal_position',
-                    Enum::FETCH_ASSOC,
                     [$table]
                 ),
                 'column_name'
             ),
-            'sqlite' => array_column($this->connection->fetchAll("PRAGMA table_info({$table})"), 'name'),
+            'sqlite' => array_column($this->connection->select("PRAGMA table_info({$table})"), 'name'),
             'pgsql' => array_column(
-                $this->connection->fetchAll(
+                $this->connection->select(
                     "SELECT column_name FROM information_schema.columns WHERE table_name = ? AND table_schema = 'public' ORDER BY ordinal_position",
-                    Enum::FETCH_ASSOC,
                     [$table]
                 ),
                 'column_name'
@@ -131,13 +138,13 @@ class SchemaBuilder
         $statements = $blueprint->toSql($this->connection, $this->getGrammar());
 
         foreach ($statements as $statement) {
-            $this->connection->execute($statement);
+            $this->connection->statement($statement);
         }
     }
 
     protected function getDriverName(): string
     {
-        return strtolower($this->connection->getType());
+        return $this->connection->getDriverName();
     }
 
     protected function getGrammar(): Grammar

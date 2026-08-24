@@ -2,7 +2,6 @@
 
 namespace Phare\Eloquent\Relations;
 
-use Phalcon\Db\Enum;
 use Phare\Collections\Collection;
 use Phare\Eloquent\Builder;
 use Phare\Eloquent\Model;
@@ -163,7 +162,7 @@ class BelongsToMany extends Relation
         $records = $this->formatAttachRecords($this->parseIdsWithAttributes($id, $attributes));
 
         foreach ($records as $record) {
-            $this->parent->getWriteConnection()->insertAsDict($this->table, $record);
+            $this->parent->getQueryConnection()->insert($this->table, $record);
         }
     }
 
@@ -171,13 +170,13 @@ class BelongsToMany extends Relation
     {
         [$sql, $bindings] = $this->buildPivotDeleteQuery($ids);
         $countSql = preg_replace('/^DELETE/', 'SELECT *', $sql, 1);
-        $rows = $this->parent->getReadConnection()->fetchAll($countSql, Enum::FETCH_ASSOC, $bindings);
+        $rows = $this->parent->getQueryConnection()->select($countSql, $bindings);
 
         if ($rows === []) {
             return 0;
         }
 
-        $this->parent->getWriteConnection()->execute($sql, $bindings);
+        $this->parent->getQueryConnection()->statement($sql, $bindings);
 
         return count($rows);
     }
@@ -246,7 +245,7 @@ class BelongsToMany extends Relation
 
         $attributes = $this->addTimestampsToRecord($attributes, false);
         [$sql, $bindings] = $this->buildPivotUpdateQuery($id, $attributes);
-        $this->parent->getWriteConnection()->execute($sql, $bindings);
+        $this->parent->getQueryConnection()->statement($sql, $bindings);
 
         return 1;
     }
@@ -337,7 +336,7 @@ class BelongsToMany extends Relation
     {
         [$sql, $bindings] = $this->buildSelectQuery();
 
-        return $this->parent->getReadConnection()->fetchAll($sql, Enum::FETCH_ASSOC, $bindings);
+        return $this->parent->getQueryConnection()->select($sql, $bindings);
     }
 
     protected function buildSelectQuery(): array
@@ -625,7 +624,7 @@ class BelongsToMany extends Relation
 
         $bindings = [$this->parent->readAttribute($this->parentKey)];
         [$sql, $bindings] = $this->applyAdditionalPivotSelectConstraints($sql, $bindings);
-        $rows = $this->parent->getReadConnection()->fetchAll($sql, Enum::FETCH_ASSOC, $bindings);
+        $rows = $this->parent->getQueryConnection()->select($sql, $bindings);
         $map = [];
 
         foreach ($rows as $row) {

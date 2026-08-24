@@ -68,7 +68,7 @@ class SoftDeletingScope implements Scope
         }
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $model->getWriteConnection()->execute(
+        $model->getQueryConnection()->statement(
             sprintf(
                 'UPDATE %s SET %s = ? WHERE %s IN (%s)',
                 $model->getTable(),
@@ -99,7 +99,7 @@ class SoftDeletingScope implements Scope
         }
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $model->getWriteConnection()->execute(
+        $model->getQueryConnection()->statement(
             sprintf(
                 'DELETE FROM %s WHERE %s IN (%s)',
                 $model->getTable(),

@@ -2,14 +2,44 @@
 
 namespace Phare\Eloquent\Relations;
 
-use Phalcon\Mvc\Model\Relation as PhalconRelation;
 use Phare\Collections\Collection;
 use Phare\Eloquent\Builder;
 use Phare\Eloquent\Model;
 
-abstract class Relation extends PhalconRelation
+/**
+ * Base for Phare's relations.
+ *
+ * This used to extend Phalcon\Mvc\Model\Relation purely to hand it the
+ * relation metadata in its constructor; nothing ever read that metadata back.
+ * The metadata is kept here instead, and the Phalcon inheritance is gone.
+ */
+abstract class Relation
 {
+    // Same values as Phalcon\Mvc\Model\Relation used, so stored or compared
+    // relation types keep their meaning across the change.
+    public const BELONGS_TO = 0;
+
+    public const HAS_ONE = 1;
+
+    public const HAS_MANY = 2;
+
+    public const HAS_ONE_THROUGH = 3;
+
+    public const HAS_MANY_THROUGH = 4;
+
+    public const NO_ACTION = 0;
+
+    public const ACTION_RESTRICT = 1;
+
+    public const ACTION_CASCADE = 2;
+
     protected static bool $constraints = true;
+
+    protected int $type;
+
+    protected mixed $fields;
+
+    protected mixed $referencedFields;
 
     protected Builder $query;
 
@@ -29,12 +59,9 @@ abstract class Relation extends PhalconRelation
             $this->related->setDI($parent->getDI());
         }
 
-        parent::__construct(
-            $this->getRelationType(),
-            $query->getModelName(),
-            $this->getRelationFields(),
-            $this->getRelatedFields()
-        );
+        $this->type = $this->getRelationType();
+        $this->fields = $this->getRelationFields();
+        $this->referencedFields = $this->getRelatedFields();
 
         $this->addConstraints();
     }
@@ -70,6 +97,26 @@ abstract class Relation extends PhalconRelation
     public function getRelationExistenceQuery(Builder $query, Builder $parentQuery, array|string $columns = ['*']): Builder
     {
         return $query;
+    }
+
+    public function getType(): int
+    {
+        return $this->type;
+    }
+
+    public function getFields(): mixed
+    {
+        return $this->fields;
+    }
+
+    public function getReferencedFields(): mixed
+    {
+        return $this->referencedFields;
+    }
+
+    public function getReferencedModel(): ?string
+    {
+        return $this->query->getModelName();
     }
 
     public function getQuery(): Builder

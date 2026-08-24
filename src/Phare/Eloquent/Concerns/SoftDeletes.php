@@ -47,18 +47,16 @@ trait SoftDeletes
             array_keys($columns)
         ));
 
-        $restored = $this->getWriteConnection()->execute(
+        $restored = $this->getQueryConnection()->statement(
             sprintf('UPDATE %s SET %s WHERE %s = ?', $this->getTable(), $assignments, $this->getKeyName()),
             [...array_values($columns), $key]
         );
 
         if ($restored) {
             $this->attributes[$this->getDeletedAtColumn()] = null;
-            parent::__set($this->getDeletedAtColumn(), null);
 
             if (isset($updatedAtColumn)) {
                 $this->attributes[$updatedAtColumn] = $columns[$updatedAtColumn];
-                parent::__set($updatedAtColumn, $columns[$updatedAtColumn]);
             }
 
             $this->fireModelEvent('restored', false);
@@ -80,7 +78,7 @@ trait SoftDeletes
         }
 
         if ($this->forceDeleting) {
-            $deleted = $this->getWriteConnection()->delete(
+            $deleted = $this->getQueryConnection()->delete(
                 $this->getTable(),
                 $this->getKeyName() . ' = ?',
                 [$key]
@@ -108,7 +106,7 @@ trait SoftDeletes
             array_keys($columns)
         ));
 
-        $deleted = $this->getWriteConnection()->execute(
+        $deleted = $this->getQueryConnection()->statement(
             sprintf('UPDATE %s SET %s WHERE %s = ?', $this->getTable(), $assignments, $this->getKeyName()),
             [...array_values($columns), $key]
         );
@@ -116,7 +114,6 @@ trait SoftDeletes
         if ($deleted) {
             foreach ($columns as $column => $value) {
                 $this->attributes[$column] = $value;
-                parent::__set($column, $value);
             }
 
             $this->fireModelEvent('deleted', false);
