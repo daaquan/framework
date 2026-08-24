@@ -11,7 +11,7 @@ use Phare\Foundation\Bootstrap\LoadEnvironmentVariables;
 use Phare\Foundation\Bootstrap\RegisterFacades;
 use Phare\Foundation\Bootstrap\RegisterProviders;
 
-function bootAuthManagerApplication(): void
+function bootAuthManagerApplication(): object
 {
     Di::reset();
 
@@ -25,12 +25,14 @@ function bootAuthManagerApplication(): void
         RegisterFacades::class,
     ]);
 
-    Di::setDefault($app);
+    Di::setDefault($app->phalconDi());
+
+    return $app;
 }
 
 beforeEach(function () {
-    bootAuthManagerApplication();
-    $this->app = Di::getDefault();
+    // Di::getDefault() is the Phalcon store now, not the Phare container.
+    $this->app = bootAuthManagerApplication();
 });
 
 test('default guard resolves to session driver', function () {

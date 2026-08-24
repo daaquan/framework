@@ -333,7 +333,6 @@ class Model implements \ArrayAccess
         ) {
             return $this->getAttribute($property);
         }
-
     }
 
     public function __set(string $property, $value): void

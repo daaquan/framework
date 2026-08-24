@@ -103,11 +103,15 @@ abstract class AbstractApplication extends Container implements ApplicationContr
     {
         parent::__construct();
 
-        self::setDefault($this);
+        $this->singleton(ApplicationContract::class, $this);
+
+        // Phalcon components resolve services through Di::getDefault(). They get
+        // the inner Phalcon store, not the Phare container, so the container is
+        // free to stop being a Phalcon\Di\DiInterface. The store holds every
+        // service the container does, the application contract included.
+        self::setDefault($this->phalconDi());
 
         $this->app = $this->createApplication();
-
-        $this->singleton(ApplicationContract::class, $this);
     }
 
     /**
@@ -325,7 +329,8 @@ abstract class AbstractApplication extends Container implements ApplicationContr
 
             $provider = new $providerClass();
             if ($provider instanceof ServiceProviderInterface) {
-                $provider->register($this);
+                // A Phalcon service provider wants a Phalcon container.
+                $provider->register($this->phalconDi());
             }
         }
     }

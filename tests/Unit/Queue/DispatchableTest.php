@@ -105,7 +105,7 @@ beforeEach(function () {
     $this->app->singleton('queue', fn () => $this->queue);
     $this->app['queue'] = $this->queue;
 
-    Di::setDefault($this->app);
+    Di::setDefault($this->app->phalconDi());
 });
 
 test('dispatchable dispatch returns pending dispatch and enqueues on resolve', function () {

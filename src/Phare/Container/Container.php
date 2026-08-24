@@ -40,7 +40,17 @@ use TypeError;
 /**
  * @implements ArrayAccess<string, mixed>
  */
-class Container implements ArrayAccess, ContractsContainer, DiInterface, PsrContainerInterface
+/**
+ * Phare's service container.
+ *
+ * It is deliberately NOT a Phalcon\Di\DiInterface. It keeps a real Phalcon DI
+ * as its store and hands that out through phalconDi() whenever a Phalcon
+ * component needs one, so Phalcon's container contract is not part of Phare's
+ * public API. The Di* methods below remain as conveniences over the store.
+ *
+ * @implements ArrayAccess<string, mixed>
+ */
+class Container implements ArrayAccess, ContractsContainer, PsrContainerInterface
 {
     /**
      * Phalcon standard services

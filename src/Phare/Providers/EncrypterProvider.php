@@ -24,7 +24,7 @@ class EncrypterProvider extends ServiceProvider
         $app->singleton('security', function () use ($app) {
             $security = new Security();
             $security->setWorkFactor(12);
-            $security->setDI($app);
+            $security->setDI($app->phalconDi());
 
             return $security;
         });

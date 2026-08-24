@@ -2,10 +2,9 @@
 
 namespace Phare\Foundation\Bootstrap;
 
-use Phalcon\Di\DiInterface;
 use Phare\Console\Output\Logger as ConsoleOutput;
 use Phare\Contracts\Debug\ExceptionHandler;
-use Phare\Contracts\Foundation\Application;
+use Phare\Foundation\AbstractApplication as Application;
 use Phare\Log\Logger;
 use Symfony\Component\ErrorHandler\Error\FatalError;
 use Whoops\Handler\PrettyPageHandler;
@@ -16,9 +15,9 @@ use Whoops\Run;
  */
 class HandleExceptions
 {
-    protected Application|DiInterface $app;
+    protected Application $app;
 
-    public function register(Application|DiInterface $app): void
+    public function register(Application $app): void
     {
         $this->app = $app;
 
@@ -378,7 +377,7 @@ class HandleExceptions
      * Determine if debug mode should be enabled.
      * Safe method that handles missing config gracefully.
      *
-     * @param Application|DiInterface $app
+     * @param Application $app
      */
     protected function shouldEnableDebug($app): bool
     {
@@ -421,7 +420,7 @@ class HandleExceptions
     /**
      * Get Phalcon warning setting safely.
      *
-     * @param Application|DiInterface $app
+     * @param Application $app
      */
     protected function getPhalconWarningEnabled($app): bool
     {

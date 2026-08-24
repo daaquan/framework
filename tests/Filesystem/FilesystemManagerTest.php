@@ -26,7 +26,7 @@ function bootFilesystemApplication(): void
         RegisterFacades::class,
     ]);
 
-    Di::setDefault($app);
+    Di::setDefault($app->phalconDi());
 }
 
 beforeEach(function () {

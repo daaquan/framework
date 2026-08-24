@@ -13,7 +13,7 @@ class Micro extends AbstractApplication
 {
     protected function createApplication()
     {
-        return (new App($this))
+        return (new App($this->phalconDi()))
             ->notFound($this->getNotFoundHandler());
     }
 

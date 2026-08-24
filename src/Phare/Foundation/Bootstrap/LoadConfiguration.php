@@ -3,22 +3,20 @@
 namespace Phare\Foundation\Bootstrap;
 
 use Phalcon\Config\Config;
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\ServiceProviderInterface;
 use Phare\Bootstrap\LoadEnvironmentVariables;
 use Phare\Foundation\AbstractApplication as Application;
 
 /**
  * Load various configuration settings.
  */
-class LoadConfiguration implements ServiceProviderInterface
+class LoadConfiguration
 {
     private ?string $compiledFilePath = null;
 
     /**
      * Laravel-style bootstrap entry point.
      */
-    public function bootstrap(Application|DiInterface $app): void
+    public function bootstrap(Application $app): void
     {
         $this->register($app);
     }
@@ -26,7 +24,7 @@ class LoadConfiguration implements ServiceProviderInterface
     /**
      * Prepare the configuration cache and load it into the application.
      */
-    public function register(Application|DiInterface $app): void
+    public function register(Application $app): void
     {
         $app->singleton('config', Config::class);
 
@@ -46,8 +44,6 @@ class LoadConfiguration implements ServiceProviderInterface
 
     /**
      * Determine whether the cache is outdated.
-     *
-     * @param Application|DiInterface $app
      */
     private function isConfigOutdated(Application $app): bool
     {

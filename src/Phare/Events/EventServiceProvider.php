@@ -31,7 +31,6 @@ class EventServiceProvider extends ServiceProvider
                 if (method_exists($container, 'bound') && $container->bound('dbManager')) {
                     return $container->make('dbManager');
                 }
-
             });
 
             return $dispatcher;

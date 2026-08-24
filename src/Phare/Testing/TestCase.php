@@ -53,7 +53,7 @@ abstract class TestCase extends BaseTestCase
             RegisterFacades::class,
         ]);
 
-        Di::setDefault($this->app = $app);
+        Di::setDefault(($this->app = $app)->phalconDi());
     }
 
     /**

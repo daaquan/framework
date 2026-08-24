@@ -11,7 +11,7 @@ class Web extends AbstractApplication
 {
     protected function createApplication()
     {
-        return (new App($this))
+        return (new App($this->phalconDi()))
             ->useImplicitView(false);
     }
 
