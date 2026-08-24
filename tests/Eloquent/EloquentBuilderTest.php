@@ -8,13 +8,13 @@ if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     return;
 }
 
-use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\Exception;
-use Phalcon\Mvc\ModelInterface;
 use Phare\Database\Schema\Blueprint;
 use Phare\Database\Schema\SchemaBuilder;
 use Phare\Eloquent\Builder;
+use Phare\Eloquent\BuilderInterface;
 use Phare\Eloquent\Exceptions\QueryException;
+use Phare\Eloquent\Model;
 use Tests\Mock\Models\User;
 
 beforeEach(function () {
@@ -40,7 +40,9 @@ it('can create a new instance', function () {
     $builder = new Builder();
 
     expect($builder)->toBeInstanceOf(Builder::class);
-    expect($builder)->toBeInstanceOf(Criteria::class);
+    // Builder no longer extends Phalcon\Mvc\Model\Criteria; it implements
+    // Phare's own contract.
+    expect($builder)->toBeInstanceOf(BuilderInterface::class);
 });
 
 it('returns the first record', function () {
@@ -55,7 +57,8 @@ it('returns the first record', function () {
 
     $result = $builder->first();
 
-    expect($result)->toBeInstanceOf(ModelInterface::class);
+    // Models are no longer Phalcon models.
+    expect($result)->toBeInstanceOf(Model::class);
 
     // Clean up
     $connection->execute('DELETE FROM users');

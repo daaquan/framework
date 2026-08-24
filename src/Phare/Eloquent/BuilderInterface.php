@@ -2,19 +2,38 @@
 
 namespace Phare\Eloquent;
 
-use Phalcon\Mvc\Model\CriteriaInterface;
-use Phalcon\Mvc\Model\ResultsetInterface;
-use Phalcon\Mvc\ModelInterface;
+use Phalcon\Di\DiInterface;
 use Phare\Collections\Collection;
 use Phare\Pagination\LengthAwarePaginator;
 
-interface BuilderInterface extends CriteriaInterface
+/**
+ * This used to extend Phalcon\Mvc\Model\CriteriaInterface, which forced every
+ * Phare query builder to carry Phalcon's whole criteria surface. The few
+ * members that were actually used are declared here instead.
+ */
+interface BuilderInterface
 {
-    public function get(): ResultsetInterface|Collection;
+    public function setModelName(string $modelName): static;
 
-    public function first(): ?ModelInterface;
+    public function getModelName(): ?string;
 
-    public function last(): ?ModelInterface;
+    /** @return array<string, mixed> */
+    public function getParams(): array;
+
+    public function setDI(DiInterface $container): void;
+
+    public function getDI(): ?DiInterface;
+
+    /** @return Collection<int, Model> */
+    public function get(): Collection;
+
+    public function first(): ?Model;
+
+    public function last(): ?Model;
+
+    public function columns($columns): BuilderInterface;
+
+    public function limit(int $limit, int $offset = 0): BuilderInterface;
 
     public function with($relations, $callback = null): BuilderInterface;
 

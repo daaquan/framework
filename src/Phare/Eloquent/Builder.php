@@ -3,9 +3,7 @@
 namespace Phare\Eloquent;
 
 use Closure;
-use Phalcon\Mvc\Model\Criteria;
-use Phalcon\Mvc\Model\ResultsetInterface;
-use Phalcon\Mvc\ModelInterface;
+use Phalcon\Di\DiInterface;
 use Phare\Collections\Collection;
 use Phare\Eloquent\Query\Executor;
 use Phare\Eloquent\Relations\Relation;
@@ -13,10 +11,27 @@ use Phare\Pagination\LengthAwarePaginator;
 use Phare\Pagination\Paginator;
 
 /**
- * Eloquent Builder for Phalcon
+ * Phare's query builder.
+ *
+ * This used to extend Phalcon\Mvc\Model\Criteria, which put 31 inherited
+ * Phalcon methods (betweenWhere, inWhere, cache, joins, sharedLock, ...) into
+ * Phare's public API even though only six of them were ever used. The query
+ * parameter array it assembles is now owned here and compiled by
+ * Phare\Eloquent\Query\Compiler.
  */
-class Builder extends Criteria implements BuilderInterface
+class Builder implements BuilderInterface
 {
+    /**
+     * Query parameters: conditions, bind, columns, order, group, limit.
+     *
+     * @var array<string, mixed>
+     */
+    protected array $params = [];
+
+    protected ?string $modelName = null;
+
+    protected ?DiInterface $container = null;
+
     /**
      * Auto-incrementing counter to generate unique bind parameter keys.
      */
@@ -46,10 +61,43 @@ class Builder extends Criteria implements BuilderInterface
 
     protected bool $scopesApplied = false;
 
+    public function __construct(?DiInterface $container = null)
+    {
+        $this->container = $container;
+    }
+
+    public function setDI(DiInterface $container): void
+    {
+        $this->container = $container;
+    }
+
+    public function getDI(): ?DiInterface
+    {
+        return $this->container;
+    }
+
+    public function setModelName(string $modelName): static
+    {
+        $this->modelName = $modelName;
+
+        return $this;
+    }
+
+    public function getModelName(): ?string
+    {
+        return $this->modelName;
+    }
+
+    /** @return array<string, mixed> */
+    public function getParams(): array
+    {
+        return $this->params;
+    }
+
     public function setModel(Model $model): static
     {
         $this->eloquentModel = $model;
-        parent::setModelName($model::class);
+        $this->modelName = $model::class;
 
         return $this;
     }
@@ -155,37 +203,30 @@ class Builder extends Criteria implements BuilderInterface
     /**
      * Get the first result of the query.
      */
-    public function first(): ?ModelInterface
+    public function first(): ?Model
     {
-        $results = $this->applyScopes()->get();
-
-        return $results instanceof Collection ? $results->first() : $results->getFirst();
+        return $this->applyScopes()->get()->first();
     }
 
     /**
      * Get the last result of the query.
      */
-    public function last(): ?ModelInterface
+    public function last(): ?Model
     {
-        $results = $this->get();
-
-        return $results instanceof Collection ? $results->last() : $results->getLast();
+        return $this->get()->last();
     }
 
     /**
      * Execute the query and return the result set.
      */
-    public function get(): ResultsetInterface|Collection
+    /** @return Collection<int, Model> */
+    public function get(): Collection
     {
         $builder = $this->applyScopes();
         $modelName = $builder->getModelName();
         $params = $builder->getParams();
 
-        $model = $builder->getEloquentModel();
-
-        $results = $model instanceof Model
-            ? (new Executor($model->getQueryConnection()))->select($model, $params)
-            : $builder->execute();
+        $results = $builder->runSelect($params);
 
         if ($this->eagerLoad !== []) {
             return $this->eagerLoadRelations($results);
@@ -300,7 +341,8 @@ class Builder extends Criteria implements BuilderInterface
         return $this;
     }
 
-    private function eagerLoadRelations(ResultsetInterface|Collection $results): Collection
+    /** @param  Collection<int, Model>  $results */
+    private function eagerLoadRelations(Collection $results): Collection
     {
         $models = iterator_to_array($results, false);
 
@@ -746,29 +788,13 @@ class Builder extends Criteria implements BuilderInterface
             'offset' => $offset,
         ];
 
-        $modelName = $this->getModelName();
-
-        $results = is_string($modelName) && method_exists($modelName, 'rawFind')
-            ? $modelName::rawFind($params)
-            : (clone $this)->setPageParams($params)->execute();
+        $results = $this->runSelect($params);
 
         if ($this->eagerLoad !== []) {
             return $this->eagerLoadRelations($results);
         }
 
-        return new Collection(iterator_to_array($results, false));
-    }
-
-    /**
-     * Apply a prepared params array to this builder (used by pagination).
-     *
-     * @param array<string, mixed> $params
-     */
-    private function setPageParams(array $params): static
-    {
-        $this->params = $params;
-
-        return $this;
+        return $results;
     }
 
     /**
@@ -793,20 +819,41 @@ class Builder extends Criteria implements BuilderInterface
             $countParams['group'] = $params['group'];
         }
 
-        $modelName = $this->getModelName();
+        $model = $this->getEloquentModel();
 
-        if (is_string($modelName) && method_exists($modelName, 'count')) {
-            $count = $modelName::count($countParams === [] ? null : $countParams);
-
-            // A grouped count returns a resultset of per-group counts.
-            if (is_object($count) && $count instanceof \Countable) {
-                return count($count);
-            }
-
-            return (int)$count;
+        if (!$model instanceof Model) {
+            return 0;
         }
 
-        return 0;
+        // A grouped count returns one row per group; the page total is the
+        // number of groups, not the count inside any one of them.
+        if (!empty($countParams['group'])) {
+            return count($this->executor($model)->select($model, $countParams));
+        }
+
+        return $this->executor($model)->count($model, $countParams);
+    }
+
+    /**
+     * Run a select for the given params and hydrate the models.
+     *
+     * @param array<string, mixed> $params
+     * @return Collection<int, Model>
+     */
+    protected function runSelect(array $params): Collection
+    {
+        $model = $this->getEloquentModel();
+
+        if (!$model instanceof Model) {
+            throw new \RuntimeException('Cannot execute a query without a model. Call setModelName() first.');
+        }
+
+        return $this->executor($model)->select($model, $params);
+    }
+
+    protected function executor(Model $model): Executor
+    {
+        return new Executor($model->getQueryConnection());
     }
 
     /**

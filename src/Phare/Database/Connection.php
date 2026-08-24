@@ -57,6 +57,22 @@ class Connection
         return $this->adapter->execute($sql, $bindings);
     }
 
+    /**
+     * @param array<string, mixed> $values column => value
+     */
+    public function insert(string $table, array $values): bool
+    {
+        return $this->adapter->insertAsDict($table, $values);
+    }
+
+    /**
+     * @param array<int, mixed> $bindings
+     */
+    public function delete(string $table, ?string $where = null, array $bindings = []): bool
+    {
+        return $this->adapter->delete($table, $where, $bindings);
+    }
+
     public function lastInsertId(?string $sequence = null): int|string|false
     {
         return $this->adapter->lastInsertId($sequence);
