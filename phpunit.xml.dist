@@ -22,6 +22,8 @@
             <directory suffix="Test.php">./tests/Console</directory>
             <directory suffix="Test.php">./tests/Inertia</directory>
             <directory suffix="Test.php">./tests/View</directory>
+            <directory suffix="Test.php">./tests/Database</directory>
+            <directory suffix="Test.php">./tests/Eloquent</directory>
         </testsuite>
     </testsuites>
     <php>
