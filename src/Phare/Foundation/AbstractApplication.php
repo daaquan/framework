@@ -223,7 +223,21 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function getCachedConfigPath(): string
     {
-        return $this->bootstrapPath('cache/config.php');
+        return $this->bootstrapPath('cache/config' . $this->cacheFileSuffix() . '.php');
+    }
+
+    /**
+     * Suffix that keeps a testing run's caches out of the deployed ones.
+     *
+     * A test run regenerates the config and route caches; without the suffix it
+     * writes them to the same files the deployed app reads, leaving the site on
+     * the testing connection until the config files change again.
+     */
+    protected function cacheFileSuffix(): string
+    {
+        $env = $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: null;
+
+        return $env === 'testing' ? '.testing' : '';
     }
 
     /**
@@ -280,7 +294,7 @@ abstract class AbstractApplication extends Container implements ApplicationContr
      */
     public function routesCachePath()
     {
-        return $this->bootstrapPath('cache/routes.php');
+        return $this->bootstrapPath('cache/routes' . $this->cacheFileSuffix() . '.php');
     }
 
     /**
