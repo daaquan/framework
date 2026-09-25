@@ -113,11 +113,14 @@ class Response
             && $request->getHeader('X-Inertia-Partial-Data') !== '';
     }
 
+    /**
+     * Root-relative URL (path + query), as Laravel's adapter sends. An absolute
+     * URL breaks behind a TLS-terminating proxy: the app sees http:// while the
+     * browser is on https://, and history.pushState() rejects the cross-origin URL.
+     */
     protected function resolveUrl(RequestInterface $request): string
     {
-        return method_exists($request, 'fullUrl')
-            ? $request->fullUrl()
-            : ($_SERVER['REQUEST_URI'] ?? '/');
+        return $_SERVER['REQUEST_URI'] ?? '/';
     }
 
     protected function renderRootView(array $page): string

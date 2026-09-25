@@ -1,6 +1,9 @@
 <?php
 
+use Phalcon\Events\Manager;
+use Phalcon\Http\Response;
 use Phare\Container\Container;
+use Phare\Http\Request;
 use Phare\Inertia\InertiaServiceProvider;
 use Phare\Inertia\ResponseFactory;
 use Phare\Support\Facades\Inertia;
@@ -56,3 +59,26 @@ it('exposes the inertia accessor on the facade', function () {
 
     expect($method->invoke(null))->toBe('inertia');
 });
+
+it('turns redirects after Inertia PUT/PATCH/DELETE into 303 so the browser follows with GET', function (string $method, bool $inertia, int $expected) {
+    $_SERVER['REQUEST_METHOD'] = $method;
+    $inertia ? $_SERVER['HTTP_X_INERTIA'] = 'true' : null;
+
+    $events = new Manager();
+    $this->app['eventsManager'] = $events;
+    $this->app['request'] = new Request();
+    (new InertiaServiceProvider($this->app))->boot();
+
+    $response = (new Response())->setStatusCode(302)->setHeader('Location', '/settings/profile');
+    $events->fire('application:beforeSendResponse', new stdClass(), $response);
+
+    unset($_SERVER['HTTP_X_INERTIA'], $_SERVER['REQUEST_METHOD']);
+
+    expect($response->getStatusCode())->toBe($expected);
+})->with([
+    'inertia PATCH' => ['PATCH', true, 303],
+    'inertia PUT' => ['PUT', true, 303],
+    'inertia DELETE' => ['DELETE', true, 303],
+    'inertia POST' => ['POST', true, 302],
+    'plain PATCH' => ['PATCH', false, 302],
+]);

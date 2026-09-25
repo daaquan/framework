@@ -117,3 +117,13 @@ it('includes a lazy prop only when requested in a partial reload', function () {
 
     expect($page['props'])->toBe(['lazy' => 'sometimes']);
 });
+
+it('sends a root-relative page url so history.pushState stays same-origin', function () {
+    // Behind a TLS-terminating proxy the app sees http://, while the browser is on
+    // https://. An absolute url would make pushState throw a SecurityError.
+    $response = new Response('Dashboard', [], 'app', 'v1');
+
+    $page = json_decode($response->toResponse(inertiaRequest(['X-Inertia' => 'true'], 'GET', '/posts?page=2'))->getContent(), true);
+
+    expect($page['url'])->toBe('/posts?page=2');
+});
