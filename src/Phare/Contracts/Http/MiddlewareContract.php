@@ -15,9 +15,29 @@ abstract class MiddlewareContract implements Middleware, MiddlewareInterface
 {
     protected function beforeHandleRequest(Event $event, Application $app)
     {
-        if ($this instanceof BeforeMiddleware) {
-            return $this->handle($app->request, fn () => $app->response);
+        if (!$this instanceof BeforeMiddleware) {
+            return;
         }
+
+        $passed = false;
+        $response = $this->handle($app->request, function () use (&$passed, $app) {
+            $passed = true;
+
+            return $app->response;
+        });
+
+        // Phalcon only aborts handle() when a beforeHandleRequest listener returns
+        // false, so a middleware that answered without calling $next (auth redirect,
+        // guest bounce, ...) must stop the chain here or the controller still runs.
+        if (!$passed) {
+            if ($event->isCancelable()) {
+                $event->stop();
+            }
+
+            return false;
+        }
+
+        return $response;
     }
 
     protected function beforeSendResponse(Event $event, Application $app)

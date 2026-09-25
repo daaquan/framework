@@ -2,6 +2,7 @@
 
 namespace Phare\Inertia;
 
+use Phalcon\Http\ResponseInterface;
 use Phare\Support\ServiceProvider;
 use Phare\View\Engines\BladeEngine;
 
@@ -30,6 +31,33 @@ class InertiaServiceProvider extends ServiceProvider
     {
         $this->registerBladeDirectives();
         $this->registerResponseBridge();
+        $this->registerSeeOtherRedirects();
+    }
+
+    /**
+     * Inertia protocol: a redirect after PUT/PATCH/DELETE must be a 303. The
+     * browser re-sends the original method on a 302 for anything but POST, so
+     * PATCH /settings/profile -> 302 would PATCH the redirect target too.
+     */
+    protected function registerSeeOtherRedirects(): void
+    {
+        if (!isset($this->app['eventsManager'])) {
+            return;
+        }
+
+        $app = $this->app;
+
+        $app['eventsManager']->attach('application:beforeSendResponse', function ($event, $source, $response) use ($app) {
+            $request = $app['request'];
+
+            if ($response instanceof ResponseInterface
+                && (int)$response->getStatusCode() === 302
+                && $request->getHeader('X-Inertia')
+                && in_array($request->getMethod(), ['PUT', 'PATCH', 'DELETE'], true)
+            ) {
+                $response->setStatusCode(303);
+            }
+        });
     }
 
     /**
