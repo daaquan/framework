@@ -163,3 +163,18 @@ it('invokes request callback when resolved instance is request interface', funct
     expect($resolved[0])->toBe($request);
     expect($called)->toBeTrue();
 });
+
+it('maps url params to scalar args that follow an injected object', function () {
+    $resolver = new ControllerActionParameterResolver();
+    $request = new Request();
+
+    // e.g. verify(Request $request, string $id, string $hash)
+    $resolved = $resolver->resolve(
+        [RequestInterface::class, 'string', 'string'],
+        ['id' => '1', 'hash' => 'abc'],
+        fn (string $type) => $request,
+        fn (RequestInterface $request) => null
+    );
+
+    expect($resolved)->toBe([$request, '1', 'abc']);
+});
