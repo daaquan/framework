@@ -27,15 +27,17 @@ class ControllerActionParameterResolver
         $params = [];
         $routeValues = array_values($urlParams);
 
-        foreach ($paramTypes as $index => $paramType) {
+        // URL values fill untyped/scalar args in order; injected objects
+        // (Request, validators) do not consume a URL value.
+        foreach ($paramTypes as $paramType) {
             if ($paramType === null) {
-                $params[] = $routeValues[$index] ?? null;
+                $params[] = array_shift($routeValues);
 
                 continue;
             }
 
             if (in_array($paramType, ['string', 'int', 'float', 'bool'], true)) {
-                $value = $routeValues[$index] ?? null;
+                $value = array_shift($routeValues);
                 settype($value, $paramType);
                 $params[] = $value;
 
