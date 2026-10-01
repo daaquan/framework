@@ -56,3 +56,9 @@ Auth, Cache, Config, Console, Encryption, Events, Hashing, Http, Mail, Middlewar
 - Code style: Laravel Pint preset (`pint.json`). Run `vendor/bin/pint` before committing.
 - PHPStan level 8 for static analysis.
 - PSR-4 autoloading.
+
+## Language
+
+Write commit messages, code comments, configuration comments, and development documentation in English.
+
+Keep translated README files (`README.ja.md`, `README.zh-CN.md`), locale translations, and Unicode test data in their intended languages.
