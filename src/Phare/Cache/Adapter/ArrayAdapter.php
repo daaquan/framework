@@ -22,7 +22,7 @@ class ArrayAdapter implements CacheAdapterInterface
         return true;
     }
 
-    public function decrement(string $key, int $value = 1): int|bool
+    public function decrement(string $key, int $value = 1): int|false
     {
         return $this->increment($key, -$value);
     }
@@ -120,7 +120,7 @@ class ArrayAdapter implements CacheAdapterInterface
         return $this->get($key) !== null;
     }
 
-    public function increment(string $key, int $value = 1): int|bool
+    public function increment(string $key, int $value = 1): int|false
     {
         $itemKey = $this->itemKey($key);
         $current = $this->get($key, 0);

@@ -119,7 +119,7 @@ class ArrayAdapter implements AdapterInterface
         return $keys;
     }
 
-    public function increment(string $key, int $value = 1): int|bool
+    public function increment(string $key, int $value = 1): int|false
     {
         $prefixedKey = $this->prefix . $key;
 
@@ -133,7 +133,7 @@ class ArrayAdapter implements AdapterInterface
         return $this->store[$prefixedKey]['value'];
     }
 
-    public function decrement(string $key, int $value = 1): int|bool
+    public function decrement(string $key, int $value = 1): int|false
     {
         return $this->increment($key, -$value);
     }

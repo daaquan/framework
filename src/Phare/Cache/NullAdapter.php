@@ -44,12 +44,12 @@ class NullAdapter implements AdapterInterface
         return [];
     }
 
-    public function increment(string $key, int $value = 1): int|bool
+    public function increment(string $key, int $value = 1): int|false
     {
         return false;
     }
 
-    public function decrement(string $key, int $value = 1): int|bool
+    public function decrement(string $key, int $value = 1): int|false
     {
         return false;
     }

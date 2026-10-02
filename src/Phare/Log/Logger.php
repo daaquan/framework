@@ -82,6 +82,11 @@ class Logger implements \Psr\Log\LoggerInterface, LoggerInterface
         $this->writeLog(__FUNCTION__, $message, $context);
     }
 
+    public function trace($message, array $context = []): void
+    {
+        $this->writeLog(__FUNCTION__, $message, $context);
+    }
+
     public function warning($message, array $context = []): void
     {
         $this->writeLog(__FUNCTION__, $message, $context);

@@ -8,7 +8,7 @@ use Closure;
 use Phare\Collections\Exceptions\ItemNotFoundException;
 use Phare\Collections\Exceptions\MultipleItemsFoundException;
 
-class Collection extends \Phalcon\Support\Collection
+class Collection extends CollectionStorage
 {
     /**
      * Create a new collection (Laravel parity).

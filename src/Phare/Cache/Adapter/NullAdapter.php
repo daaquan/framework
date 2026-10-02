@@ -13,7 +13,7 @@ class NullAdapter implements CacheAdapterInterface
         return true;
     }
 
-    public function decrement(string $key, int $value = 1): int|bool
+    public function decrement(string $key, int $value = 1): int|false
     {
         return false;
     }
@@ -53,7 +53,7 @@ class NullAdapter implements CacheAdapterInterface
         return false;
     }
 
-    public function increment(string $key, int $value = 1): int|bool
+    public function increment(string $key, int $value = 1): int|false
     {
         return false;
     }
