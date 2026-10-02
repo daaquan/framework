@@ -10,18 +10,13 @@ use Phare\Foundation\AbstractApplication;
 use Phare\Foundation\Bootstrap\HandleExceptions;
 use Phare\Log\LogManager;
 
-// We're using a mock here because AbstractApplication is an abstract class.
-// You'll need to create a concrete implementation for testing purposes.
-
 class MockApplication extends AbstractApplication
 {
     protected function createApplication()
     {
         $this->singleton('config', Config::class);
 
-        // Return the actual application instance you want to test, e.g., Micro or other.
-        // Hand the container to Micro the same way Phare\Foundation\Micro does.
-        return (new Micro($this))
+        return (new Micro($this->phalconDi()))
             ->notFound(function () {
                 return 'Not found';
             });
@@ -40,13 +35,9 @@ class MockApplication extends AbstractApplication
 
     public function terminate()
     {
-        $this->app->stop();
+        $this->callTerminatingCallbacks();
     }
 }
-
-// ponytail: no handler save/restore wrapper here — HandleExceptions::register()
-// returns before installing any handler when runningUnitTests() is true, so the
-// old wrapper only unbalanced PHPUnit's handler stack and made these tests risky.
 
 it('can be instantiated', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
@@ -61,10 +52,10 @@ it('has a version', function () {
 
 it('can handle a request', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
-    // You might need to mock the handle method or set expectations depending on its functionality.
+    $this->expectOutputString('Not found');
+
     $response = $app->handle('/some/uri');
-    expect($response)->not()->toBeNull();
-    // Add more assertions based on what handle() should be doing.
+    expect($response)->toBe('Not found');
 });
 
 it('loads configurations properly', function () {
@@ -73,9 +64,7 @@ it('loads configurations properly', function () {
     $app->configure('database');
     $config = $app->make('config');
 
-    // Assuming that 'database' config sets a 'default' key
-    expect($config->path('database.default'))->not()->toBeNull();
-    // You can add more assertions to test different aspects of the configuration.
+    expect($config->path('database.default'))->toBe('sqlite');
 });
 
 it('sets and gets base path correctly', function () {
@@ -83,60 +72,48 @@ it('sets and gets base path correctly', function () {
     $basePath = $app->basePath();
 
     expect($basePath)->toEqual($_ENV['APP_BASE_PATH']);
-    // Add more assertions if you want to test setting a different base path.
 });
 
 it('determines if the application is running in the console', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
 
-    // Here you might need to mock PHP_SAPI to test both cli and non-cli scenarios
     $runningInConsole = $app->runningInConsole();
 
-    // The expectation here depends on whether you're running tests in the console or not
-    expect($runningInConsole)->toBe(true); // or false if not in console
+    expect($runningInConsole)->toBe(true);
 });
 
 it('registers configured providers', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
     $app->configure('app');
 
-    // You need to set up some providers in your config for this test to work
     $app->registerConfiguredProviders();
 
-    // Assuming you have a ServiceProvider that binds a service named 'exampleService'
     $service = $app->make('log');
     expect($service)->toBeInstanceOf(LogManager::class);
-    // Replace ExpectedServiceProviderClass with the actual class you expect
 });
 
 it('checks the application environment', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
 
-    // Assume 'APP_ENV' is set to 'testing' for this scenario
     $previous = getenv('APP_ENV');
     putenv('APP_ENV=testing');
 
     expect($app->environment('testing'))->toBe(true);
     expect($app->environment('production'))->toBe(false);
 
-    // Restore (not clear) the variable — later tests read APP_ENV via getenv().
     putenv($previous === false ? 'APP_ENV' : "APP_ENV={$previous}");
 });
 
 it('bootstrap the application with given bootstrappers', function () {
     $app = new MockApplication($_ENV['APP_BASE_PATH']);
 
-    // Mock bootstrapper classes
     $bootstrappers = [
         HandleExceptions::class,
     ];
 
     $app->bootstrapWith($bootstrappers);
 
-    // Verify that the app has been bootstrapped
     expect($app->hasBeenBootstrapped())->toBe(true);
-
-    // Further assertions can be made to verify the effects of bootstrapping
 });
 
 it('determines if the application has been bootstrapped', function () {
@@ -144,17 +121,20 @@ it('determines if the application has been bootstrapped', function () {
 
     expect($app->hasBeenBootstrapped())->toBe(false);
 
-    // Perform bootstrapping then check again
     $app->bootstrapWith([HandleExceptions::class]);
 
     expect($app->hasBeenBootstrapped())->toBe(true);
 });
 
-it('terminates the application', function () {
-    $app = new MockApplication($_ENV['APP_BASE_PATH']);
+it('runs terminating callbacks through the micro application', function () {
+    $app = new Phare\Foundation\Micro($_ENV['APP_BASE_PATH']);
 
-    // You can check if any resources need to be disposed of or if any final actions need to be taken
+    $called = false;
+    $app->terminating(function () use (&$called) {
+        $called = true;
+    });
+
     $app->terminate();
 
-    expect(true)->toBeTrue();
+    expect($called)->toBeTrue();
 });

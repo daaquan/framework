@@ -3,15 +3,18 @@
 use Phare\Http\UploadedFile;
 
 beforeEach(function () {
-    $this->tempDir = sys_get_temp_dir();
+    $this->tempDir = sys_get_temp_dir() . '/phare-upload-' . bin2hex(random_bytes(6));
+    mkdir($this->tempDir);
     $this->testFile = tempnam($this->tempDir, 'test_upload_');
     file_put_contents($this->testFile, 'test content');
 });
 
 afterEach(function () {
-    if (file_exists($this->testFile)) {
-        unlink($this->testFile);
+    foreach (glob($this->tempDir . '/*') as $path) {
+        unlink($path);
     }
+
+    rmdir($this->tempDir);
 });
 
 it('creates uploaded file from array', function () {
@@ -93,9 +96,10 @@ it('moves file to new location', function () {
 
 it('stores file with custom name', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK, true);
-    $path = $file->storeAs('uploads', 'custom_name.txt');
+    $path = $file->storeAs($this->tempDir, 'custom_name.txt');
 
-    expect($path)->toBe('uploads/custom_name.txt');
+    expect($path)->toBe($this->tempDir . '/custom_name.txt')
+        ->and(file_get_contents($path))->toBe('test content');
 });
 
 it('rejects path traversal storage names', function () {
@@ -107,9 +111,11 @@ it('rejects path traversal storage names', function () {
 
 it('stores file with generated name', function () {
     $file = new UploadedFile($this->testFile, 'test.txt', 'text/plain', 12, UPLOAD_ERR_OK, true);
-    $path = $file->store('uploads');
+    $path = $file->store($this->tempDir);
 
-    expect($path)->toMatch('/^uploads\/[a-f0-9]{64}\.txt$/');
+    expect(dirname($path))->toBe($this->tempDir)
+        ->and(basename($path))->toMatch('/^[a-f0-9]{64}\.txt$/')
+        ->and(file_get_contents($path))->toBe('test content');
 });
 
 it('provides error messages', function () {
@@ -124,6 +130,8 @@ it('creates fake files for testing', function () {
     expect($fakeFile->getClientOriginalName())->toBe('fake.txt');
     expect($fakeFile->getMimeType())->toBe('text/plain');
     expect($fakeFile->getSize())->toBe(100);
+
+    unlink($fakeFile->getPath());
 });
 
 it('gets max filesize from php ini', function () {

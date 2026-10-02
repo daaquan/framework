@@ -6,24 +6,7 @@
 >
     <testsuites>
         <testsuite name="Unit Test Suite">
-            <directory suffix="Test.php">./tests/Unit</directory>
-            <directory suffix="Test.php">./tests/Validation</directory>
-            <directory suffix="Test.php">./tests/Pipeline</directory>
-            <directory suffix="Test.php">./tests/Cache</directory>
-            <directory suffix="Test.php">./tests/Collections</directory>
-            <directory suffix="Test.php">./tests/Container</directory>
-            <directory suffix="Test.php">./tests/Security</directory>
-            <directory suffix="Test.php">./tests/Session</directory>
-            <directory suffix="Test.php">./tests/RateLimit</directory>
-            <directory suffix="Test.php">./tests/Middleware</directory>
-            <directory suffix="Test.php">./tests/Auth</directory>
-            <directory suffix="Test.php">./tests/Hashing</directory>
-            <directory suffix="Test.php">./tests/Encryption</directory>
-            <directory suffix="Test.php">./tests/Console</directory>
-            <directory suffix="Test.php">./tests/Inertia</directory>
-            <directory suffix="Test.php">./tests/View</directory>
-            <directory suffix="Test.php">./tests/Database</directory>
-            <directory suffix="Test.php">./tests/Eloquent</directory>
+            <directory suffix="Test.php">./tests</directory>
         </testsuite>
     </testsuites>
     <php>

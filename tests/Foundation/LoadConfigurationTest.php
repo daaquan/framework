@@ -79,23 +79,20 @@ it('generates and loads configuration when cache is missing', function () {
 });
 
 it('regenerates cache in testing even when configuration has not changed', function () {
-    // Ensure cached file mtime can be compared across runs.
-    sleep(1);
-
     $app = new LoadConfigurationTestApplication($this->basePath);
     $bootstrapper = new LoadConfiguration();
     $bootstrapper->register($app);
 
     $cachedPath = $app->getCachedConfigPath();
-    $mtimeBefore = filemtime($cachedPath);
-
-    sleep(1);
+    $cached = require $cachedPath;
+    $cached['app']['name'] = 'Stale cached name';
+    file_put_contents($cachedPath, '<?php return ' . var_export($cached, true) . ';');
 
     $freshApp = new LoadConfigurationTestApplication($this->basePath);
     $bootstrapper->register($freshApp);
-    $mtimeAfter = filemtime($cachedPath);
 
-    expect($mtimeAfter)->toBeGreaterThan($mtimeBefore);
+    expect($freshApp->make('config')->path('app.name'))->toBe('Phare Test')
+        ->and((require $cachedPath)['app']['name'])->toBe('Phare Test');
 });
 
 it('regenerates cache in testing when configuration changes', function () {
@@ -104,15 +101,11 @@ it('regenerates cache in testing when configuration changes', function () {
     $bootstrapper->register($app);
 
     $cachedPath = $app->getCachedConfigPath();
-    $mtimeBefore = filemtime($cachedPath);
-
-    sleep(1);
     createConfigFixture($this->basePath, 'Updated Name');
 
     $freshApp = new LoadConfigurationTestApplication($this->basePath);
     $bootstrapper->register($freshApp);
-    $mtimeAfter = filemtime($cachedPath);
 
-    expect($mtimeAfter)->toBeGreaterThan($mtimeBefore);
-    expect($freshApp->make('config')->path('app.name'))->toBe('Updated Name');
+    expect($freshApp->make('config')->path('app.name'))->toBe('Updated Name')
+        ->and((require $cachedPath)['app']['name'])->toBe('Updated Name');
 });
